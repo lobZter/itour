@@ -3,8 +3,6 @@ package nctu.cs.cgv.itour.maplist;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,7 +17,7 @@ import java.io.File;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
-import nctu.cs.cgv.itour.Config;
+import nctu.cs.cgv.itour.config.Config;
 import nctu.cs.cgv.itour.R;
 
 /**

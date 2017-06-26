@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.config;
 
 import android.content.Context;
 import android.util.TypedValue;
@@ -8,7 +8,7 @@ import android.util.TypedValue;
  */
 
 public class Utility {
-    static int dpToPx(Context context, int dp) {
+    public static int dpToPx(Context context, int dp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
     }
 }

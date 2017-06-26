@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.map;
 
 import android.view.MotionEvent;
 

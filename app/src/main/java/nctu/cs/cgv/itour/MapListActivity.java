@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Environment;
@@ -22,7 +21,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.Toast;
 
@@ -43,12 +41,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.config.Config;
 import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
 import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
-import static nctu.cs.cgv.itour.Utility.dpToPx;
+import static nctu.cs.cgv.itour.config.Utility.dpToPx;
 
 public class MapListActivity extends AppCompatActivity {
 

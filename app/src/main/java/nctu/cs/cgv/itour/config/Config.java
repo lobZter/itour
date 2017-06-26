@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.config;
 
 import android.os.Environment;
 

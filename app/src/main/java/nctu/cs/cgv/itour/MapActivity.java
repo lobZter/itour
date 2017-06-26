@@ -31,7 +31,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -47,6 +46,7 @@ import java.util.LinkedList;
 
 import nctu.cs.cgv.itour.map.IdxWeights;
 import nctu.cs.cgv.itour.map.Mesh;
+import nctu.cs.cgv.itour.map.RotationGestureDetector;
 
 public class MapActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -696,33 +696,33 @@ public class MapActivity extends AppCompatActivity implements
         return true;
     }
 
-//    // handler for received Intents for the "my-event" event
-//    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            // Extract data included in the Intent
-//            String lat = intent.getStringExtra("lat");
-//            String lng = intent.getStringExtra("lng");
-//            Log.d("receiver", "Got message: " + lat + ", " + lng);
-//            ImageView nodeImage = new ImageView(MapActivity.this);
-//            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_circle_white_24dp));
-//            nodeImage.setLayoutParams(new FrameLayout.LayoutParams(64, 64));
-//            parentLayout.addView(nodeImage);
-////            nodeImage.setTranslationX(0 - 64);
-////            nodeImage.setTranslationY(Float.parseFloat(lng) - 64);
-//
-////            nodeImageList.add(nodeImage);
-//
-//        }
-//    };
+    // handler for received Intents for the "my-event" event
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Extract data included in the Intent
+            String lat = intent.getStringExtra("lat");
+            String lng = intent.getStringExtra("lng");
+            Log.d("receiver", "Got message: " + lat + ", " + lng);
+            ImageView nodeImage = new ImageView(MapActivity.this);
+            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_circle_red_400_24dp));
+            nodeImage.setLayoutParams(new FrameLayout.LayoutParams(64, 64));
+            parentLayout.addView(nodeImage);
+//            nodeImage.setTranslationX(0 - 64);
+//            nodeImage.setTranslationY(Float.parseFloat(lng) - 64);
+
+//            nodeImageList.add(nodeImage);
+
+        }
+    };
 
     @Override
     protected void onResume() {
         super.onResume();
 
         // Register mMessageReceiver to receive messages.
-//        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
-//                new IntentFilter("my-event"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter("my-event"));
 
         googleApiClient.connect();
 
@@ -769,7 +769,7 @@ public class MapActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         // Unregister since the activity is not visible
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mMessageReceiver);
 
         if (googleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
