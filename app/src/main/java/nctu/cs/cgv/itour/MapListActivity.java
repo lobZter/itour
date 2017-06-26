@@ -48,6 +48,8 @@ import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
 import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
+import static nctu.cs.cgv.itour.Utility.dpToPx;
+
 public class MapListActivity extends AppCompatActivity {
 
     private final String TAG = "MapListActivity";
@@ -69,6 +71,73 @@ public class MapListActivity extends AppCompatActivity {
         initRecyclerView();
         initSwipeRefreshLayout();
         initListItem();
+    }
+
+    private void initToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+    }
+
+    private void initCollapsingToolbar() {
+        final CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
+        collapsingToolbar.setTitle(" ");
+        AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
+        appBarLayout.setExpanded(true);
+
+        // hiding & showing the title when toolbar expanded & collapsed
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+            boolean isShow = false;
+            int scrollRange = -1;
+
+            @Override
+            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                if (scrollRange == -1) {
+                    scrollRange = appBarLayout.getTotalScrollRange();
+                }
+                if (scrollRange + verticalOffset == 0) {
+                    collapsingToolbar.setTitle(getString(R.string.app_name));
+                    isShow = true;
+                } else if (isShow) {
+                    collapsingToolbar.setTitle(" ");
+                    isShow = false;
+                }
+            }
+        });
+    }
+
+    private void initRecyclerView() {
+
+        mapListItems = new ArrayList<>();
+        mapListAdapter = new MapListAdapter(MapListActivity.this, mapListItems);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView.setAdapter(mapListAdapter);
+
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(MapListActivity.this, 2);
+        recyclerView.setLayoutManager(layoutManager);
+
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, dpToPx(MapListActivity.this, 10), true));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        mapTag = mapListItems.get(position).mapTag;
+                        String path = Environment.getExternalStorageDirectory().toString() + "/iTour/";
+                        File distortedMapFile = new File(Config.dirPath + mapTag + "_distorted_map.png");
+                        File meshFile = new File(Config.dirPath + mapTag + "_mesh.txt");
+                        File warpMeshFile = new File(Config.dirPath + mapTag + "_warpMesh.txt");
+                        File boundBoxFile = new File(Config.dirPath + mapTag + "_bound_box.txt");
+                        File edgeLengthFile = new File(Config.dirPath + mapTag + "_edge_length.txt");
+                        if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
+                            Intent intent = new Intent(MapListActivity.this, MapListActivity.class);
+                            intent.putExtra("MAP", mapTag);
+                            startActivity(intent);
+                        } else {
+                            new DownloadFileAsyncTask(MapListActivity.this).execute(mapTag);
+                        }
+                    }
+                })
+        );
     }
 
     private void initSwipeRefreshLayout() {
@@ -125,74 +194,6 @@ public class MapListActivity extends AppCompatActivity {
         }
     }
 
-    private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-    }
-
-    private void initCollapsingToolbar() {
-
-        final CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
-        collapsingToolbar.setTitle(" ");
-        AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
-        appBarLayout.setExpanded(true);
-
-        // hiding & showing the title when toolbar expanded & collapsed
-        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
-            boolean isShow = false;
-            int scrollRange = -1;
-
-            @Override
-            public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
-                if (scrollRange == -1) {
-                    scrollRange = appBarLayout.getTotalScrollRange();
-                }
-                if (scrollRange + verticalOffset == 0) {
-                    collapsingToolbar.setTitle(getString(R.string.app_name));
-                    isShow = true;
-                } else if (isShow) {
-                    collapsingToolbar.setTitle(" ");
-                    isShow = false;
-                }
-            }
-        });
-    }
-
-    private void initRecyclerView() {
-
-        mapListItems = new ArrayList<>();
-        mapListAdapter = new MapListAdapter(MapListActivity.this, mapListItems);
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        recyclerView.setAdapter(mapListAdapter);
-
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(MapListActivity.this, 2);
-        recyclerView.setLayoutManager(layoutManager);
-
-        recyclerView.addItemDecoration(new GridSpacingItemDecoration(2, dpToPx(10), true));
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.addOnItemTouchListener(
-                new RecyclerItemClickListener(this, new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        mapTag = mapListItems.get(position).mapTag;
-                        String path = Environment.getExternalStorageDirectory().toString() + "/iTour/";
-                        File distortedMapFile = new File(Config.dirPath + mapTag + "_distorted_map.png");
-                        File meshFile = new File(Config.dirPath + mapTag + "_mesh.txt");
-                        File warpMeshFile = new File(Config.dirPath + mapTag + "_warpMesh.txt");
-                        File boundBoxFile = new File(Config.dirPath + mapTag + "_bound_box.txt");
-                        File edgeLengthFile = new File(Config.dirPath + mapTag + "_edge_length.txt");
-                        if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
-                            Intent intent = new Intent(MapListActivity.this, MapListActivity.class);
-                            intent.putExtra("MAP", mapTag);
-                            startActivity(intent);
-                        } else {
-                            new DownloadFileAsyncTask(MapListActivity.this).execute(mapTag);
-                        }
-                    }
-                })
-        );
-    }
-
     private void updateAdapter(File file) {
 
         try {
@@ -226,6 +227,44 @@ public class MapListActivity extends AppCompatActivity {
             Toast.makeText(MapListActivity.this, e.toString(), Toast.LENGTH_LONG).show();
         } finally {
             swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
+    /**
+     * RecyclerView item decoration - give equal margin around grid item
+     */
+    private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
+
+        private int spanCount;
+        private int spacing;
+        private boolean includeEdge;
+
+        public GridSpacingItemDecoration(int spanCount, int spacing, boolean includeEdge) {
+            this.spanCount = spanCount;
+            this.spacing = spacing;
+            this.includeEdge = includeEdge;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            int position = parent.getChildAdapterPosition(view); // item position
+            int column = position % spanCount; // item column
+
+            if (includeEdge) {
+                outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
+                outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
+
+                if (position < spanCount) { // top edge
+                    outRect.top = spacing;
+                }
+                outRect.bottom = spacing; // item bottom
+            } else {
+                outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
+                outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
+                if (position >= spanCount) {
+                    outRect.top = spacing; // item top
+                }
+            }
         }
     }
 
@@ -285,49 +324,6 @@ public class MapListActivity extends AppCompatActivity {
                     }
                 }
                 break;
-        }
-    }
-
-    private int dpToPx(int dp) {
-        Resources r = getResources();
-        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
-    }
-
-    /**
-     * RecyclerView item decoration - give equal margin around grid item
-     */
-    private class GridSpacingItemDecoration extends RecyclerView.ItemDecoration {
-
-        private int spanCount;
-        private int spacing;
-        private boolean includeEdge;
-
-        public GridSpacingItemDecoration(int spanCount, int spacing, boolean includeEdge) {
-            this.spanCount = spanCount;
-            this.spacing = spacing;
-            this.includeEdge = includeEdge;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-            int position = parent.getChildAdapterPosition(view); // item position
-            int column = position % spanCount; // item column
-
-            if (includeEdge) {
-                outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
-                outRect.right = (column + 1) * spacing / spanCount; // (column + 1) * ((1f / spanCount) * spacing)
-
-                if (position < spanCount) { // top edge
-                    outRect.top = spacing;
-                }
-                outRect.bottom = spacing; // item bottom
-            } else {
-                outRect.left = column * spacing / spanCount; // column * ((1f / spanCount) * spacing)
-                outRect.right = spacing - (column + 1) * spacing / spanCount; // spacing - (column + 1) * ((1f /    spanCount) * spacing)
-                if (position >= spanCount) {
-                    outRect.top = spacing; // item top
-                }
-            }
         }
     }
 }
