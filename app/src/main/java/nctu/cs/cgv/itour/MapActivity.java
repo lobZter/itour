@@ -37,6 +37,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -233,6 +235,11 @@ public class MapActivity extends AppCompatActivity implements
                 touristMap.setBackground(touristMapDrawable);
             }
         });
+
+        FirebaseMessaging.getInstance().subscribeToTopic("checkIn");
+        String token = FirebaseInstanceId.getInstance().getToken();
+        Log.d(TAG, "token: " + token);
+
     }
 
     private void setTouchListener() {
@@ -703,15 +710,37 @@ public class MapActivity extends AppCompatActivity implements
             // Extract data included in the Intent
             String lat = intent.getStringExtra("lat");
             String lng = intent.getStringExtra("lng");
+            Float latDistored = 0f, lngDistored = 0f;
             Log.d("receiver", "Got message: " + lat + ", " + lng);
             ImageView nodeImage = new ImageView(MapActivity.this);
             nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_circle_red_400_24dp));
             nodeImage.setLayoutParams(new FrameLayout.LayoutParams(64, 64));
             parentLayout.addView(nodeImage);
-//            nodeImage.setTranslationX(0 - 64);
-//            nodeImage.setTranslationY(Float.parseFloat(lng) - 64);
 
-//            nodeImageList.add(nodeImage);
+            nodeList.add(Float.parseFloat(lng));
+            nodeList.add(Float.parseFloat(lat));
+
+
+            if (meshReady && warpMeshReady) {
+                double imgX = realMesh.mapWidth * (Float.parseFloat(lng) - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+                double imgY = realMesh.mapHeight * (realMesh.maxLat - Float.parseFloat(lat)) / (realMesh.maxLat - realMesh.minLat);
+
+                IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+                if (idxWeights.idx >= 0) {
+                    double[] newPos = warpMesh.interpolatePosition(idxWeights);
+                    lngDistored = (float) newPos[0];
+                    latDistored = (float) newPos[1];
+                }
+            }
+            Matrix chekInIconTransform = new Matrix();
+            chekInIconTransform.postTranslate(-32, -32);
+            float[] point = new float[]{lngDistored, latDistored};
+            transformMat.mapPoints(point);
+            chekInIconTransform.mapPoints(point);
+            nodeImage.setTranslationX(point[0]);
+            nodeImage.setTranslationY(point[1]);
+
+            nodeImageList.add(nodeImage);
 
         }
     };
