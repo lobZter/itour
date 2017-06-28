@@ -39,6 +39,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,6 +49,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.map.IdxWeights;
 import nctu.cs.cgv.itour.map.Mesh;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
@@ -65,6 +69,7 @@ public class MapActivity extends AppCompatActivity implements
     private float parentLayoutWidth = 0f, parentLayoutHeight = 0f;
     private float touristMapWidth = 0f, touristMapHeight = 0f;
     private Matrix transformMat;
+    private double latitude = 0, longitude = 0;
     private float gpsDistortedX = 0, gpsDistortedY = 0;
     private float prevFocusX = 0, prevFocusY = 0;
     private float scale = 1f;
@@ -84,7 +89,8 @@ public class MapActivity extends AppCompatActivity implements
     Boolean realMapReady = false;
     Boolean warpMeshReady = false;
     private FloatingActionButton floatingActionButton;
-    private ImageView compassButton;
+    private FloatingActionButton compassButton;
+    private FloatingActionButton checkinButton;
     private RelativeLayout parentLayout;
     private FrameLayout touristMap;
     private GestureDetector gestureDetector;
@@ -215,12 +221,22 @@ public class MapActivity extends AppCompatActivity implements
             }
         });
 
-        compassButton = (ImageView) findViewById(R.id.btn_compass);
+        compassButton = (FloatingActionButton) findViewById(R.id.btn_compass);
         compassButton.bringToFront();
         compassButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 rotateToNorth();
+            }
+        });
+
+
+        checkinButton = (FloatingActionButton) findViewById(R.id.btn_checkin);
+        checkinButton.bringToFront();
+        checkinButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkIn();
             }
         });
 
@@ -717,8 +733,7 @@ public class MapActivity extends AppCompatActivity implements
             nodeImage.setLayoutParams(new FrameLayout.LayoutParams(64, 64));
             parentLayout.addView(nodeImage);
 
-            nodeList.add(Float.parseFloat(lng));
-            nodeList.add(Float.parseFloat(lat));
+
 
 
             if (meshReady && warpMeshReady) {
@@ -732,6 +747,10 @@ public class MapActivity extends AppCompatActivity implements
                     latDistored = (float) newPos[1];
                 }
             }
+
+            nodeList.add(lngDistored);
+            nodeList.add(latDistored);
+
             Matrix chekInIconTransform = new Matrix();
             chekInIconTransform.postTranslate(-32, -32);
             float[] point = new float[]{lngDistored, latDistored};
@@ -744,6 +763,26 @@ public class MapActivity extends AppCompatActivity implements
 
         }
     };
+
+    private void checkIn() {
+        AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        params.setForceMultipartEntityContentType(true);
+        params.put("lat", latitude);
+        params.put("lng", longitude);
+        client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            }
+        });
+
+    }
 
     @Override
     protected void onResume() {
@@ -771,8 +810,8 @@ public class MapActivity extends AppCompatActivity implements
     }
 
     private void handleLocationChange(Location currentLocation) {
-        double latitude = currentLocation.getLatitude();
-        double longitude = currentLocation.getLongitude();
+        latitude = currentLocation.getLatitude();
+        longitude = currentLocation.getLongitude();
 
         if (meshReady && warpMeshReady) {
 
