@@ -37,8 +37,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.loopj.android.http.AsyncHttpClient;
@@ -139,6 +142,7 @@ public class MapActivity extends AppCompatActivity implements
     private Mesh realMesh;
     private Mesh warpMesh;
     private Bitmap fogBitmap;
+    private DatabaseReference databaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,15 +236,19 @@ public class MapActivity extends AppCompatActivity implements
             }
         });
 
-
         checkinButton = (FloatingActionButton) findViewById(R.id.btn_checkin);
         checkinButton.bringToFront();
         checkinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkin();
+                Intent intent = new Intent(MapActivity.this, CheckinActivity.class);
+                intent.putExtra("lat", latitude);
+                intent.putExtra("lng", longitude);
+                startActivity(intent);
             }
         });
+
+        updateCheckin();
 
         parentLayout.post(new Runnable() {
             @Override
@@ -359,7 +367,7 @@ public class MapActivity extends AppCompatActivity implements
     private void reRender() {
         Matrix nodeIconTransform = new Matrix();
         Matrix gpsMarkTransform = new Matrix();
-        nodeIconTransform.postTranslate(-16, -32);
+        nodeIconTransform.postTranslate(-8, -8);
         gpsMarkTransform.postTranslate(-32, -32);
 
         float[] point = new float[]{0, 0};
@@ -763,48 +771,19 @@ public class MapActivity extends AppCompatActivity implements
         }
     };
 
-    private void checkin() {
-        AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.setForceMultipartEntityContentType(true);
-        params.put("lat", latitude);
-        params.put("lng", longitude);
-        client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+    private void updateCheckin() {
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("checkin");
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                // called when response HTTP status is "200 OK"
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, dataSnapshot.getValue().toString());
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Register mMessageReceiver to receive messages.
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
-                new IntentFilter("my-event"));
-
-        googleApiClient.connect();
-
-        if (currentLocation != null) {
-            handleLocationChange(currentLocation);
-        }
-
-        if (accelerometer != null) {
-            sensorManager.registerListener(
-                    sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        }
-
-        if (magnetometer != null) {
-            sensorManager.registerListener(
-                    sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
-        }
     }
 
     private void handleLocationChange(Location currentLocation) {
@@ -830,6 +809,31 @@ public class MapActivity extends AppCompatActivity implements
         gpsMarkTransform.mapPoints(point);
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Register mMessageReceiver to receive messages.
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter("my-event"));
+
+        googleApiClient.connect();
+
+        if (currentLocation != null) {
+            handleLocationChange(currentLocation);
+        }
+
+        if (accelerometer != null) {
+            sensorManager.registerListener(
+                    sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+
+        if (magnetometer != null) {
+            sensorManager.registerListener(
+                    sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     @Override

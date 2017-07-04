@@ -41,7 +41,7 @@ public class CheckinActivity extends AppCompatActivity {
     private TextView recordFilename;
     private Button submitBtn;
     private ProgressBar progressBar;
-    private String filename;
+    private String filename = " ";
     private double latitude = 0, longitude = 0;
 
     @Override
@@ -123,7 +123,7 @@ public class CheckinActivity extends AppCompatActivity {
     }
 
     private void startAudioRecord() {
-        // TODO prevent name collision0
+        // TODO prevent name collision
         filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
         Log.d(TAG, filename);
 

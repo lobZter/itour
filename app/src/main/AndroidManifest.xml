@@ -17,9 +17,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme.NoActionBar">
         android:screenOrientation="portrait">
-        <activity android:name=".MapListActivity"></activity>
-        <activity android:name=".MapActivity">
+        <activity android:name=".MapListActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
+        <activity android:name=".MapActivity"></activity>
+        <activity android:name=".CheckinActivity"></activity>
 
         <service android:name=".MyFirebaseInstanceIDService">
             <intent-filter>
@@ -32,13 +38,6 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".CheckinActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>
