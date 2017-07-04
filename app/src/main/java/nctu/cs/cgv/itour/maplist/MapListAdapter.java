@@ -17,8 +17,10 @@ import java.io.File;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
-import nctu.cs.cgv.itour.config.Config;
 import nctu.cs.cgv.itour.R;
+
+import static nctu.cs.cgv.itour.MyApplication.URL;
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
 /**
  * Created by lobZter on 2017/6/21.
@@ -52,8 +54,8 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
         MapListItem currentItem = mapList.get(position);
         holder.title.setText(currentItem.mapName);
 
-        String thumbURL = Config.URL + currentItem.mapThumb;
-        final String thumbPath = Config.dirPath + "thumb/" + currentItem.mapThumb;
+        String thumbURL = URL + currentItem.mapThumb;
+        final String thumbPath = dirPath + currentItem.mapThumb;
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         File thumbFile = new File(thumbPath);

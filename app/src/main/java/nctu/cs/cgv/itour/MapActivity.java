@@ -37,6 +37,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.loopj.android.http.AsyncHttpClient;
@@ -236,7 +238,7 @@ public class MapActivity extends AppCompatActivity implements
         checkinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkIn();
+                checkin();
             }
         });
 
@@ -252,7 +254,7 @@ public class MapActivity extends AppCompatActivity implements
             }
         });
 
-        FirebaseMessaging.getInstance().subscribeToTopic("checkIn");
+        FirebaseMessaging.getInstance().subscribeToTopic("checkin");
         String token = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "token: " + token);
 
@@ -733,9 +735,6 @@ public class MapActivity extends AppCompatActivity implements
             nodeImage.setLayoutParams(new FrameLayout.LayoutParams(64, 64));
             parentLayout.addView(nodeImage);
 
-
-
-
             if (meshReady && warpMeshReady) {
                 double imgX = realMesh.mapWidth * (Float.parseFloat(lng) - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
                 double imgY = realMesh.mapHeight * (realMesh.maxLat - Float.parseFloat(lat)) / (realMesh.maxLat - realMesh.minLat);
@@ -764,7 +763,7 @@ public class MapActivity extends AppCompatActivity implements
         }
     };
 
-    private void checkIn() {
+    private void checkin() {
         AsyncHttpClient client = new AsyncHttpClient();
         RequestParams params = new RequestParams();
         params.setForceMultipartEntityContentType(true);
@@ -781,7 +780,6 @@ public class MapActivity extends AppCompatActivity implements
                 // called when response HTTP status is "4XX" (eg. 401, 403, 404)
             }
         });
-
     }
 
     @Override

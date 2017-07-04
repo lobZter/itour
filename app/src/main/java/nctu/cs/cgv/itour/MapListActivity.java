@@ -41,12 +41,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
-import nctu.cs.cgv.itour.config.Config;
 import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
 import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
+import static nctu.cs.cgv.itour.MyApplication.URL;
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.config.Utility.dpToPx;
 
 public class MapListActivity extends AppCompatActivity {
@@ -122,11 +123,11 @@ public class MapListActivity extends AppCompatActivity {
                     public void onItemClick(View view, int position) {
                         mapTag = mapListItems.get(position).mapTag;
                         String path = Environment.getExternalStorageDirectory().toString() + "/iTour/";
-                        File distortedMapFile = new File(Config.dirPath + mapTag + "_distorted_map.png");
-                        File meshFile = new File(Config.dirPath + mapTag + "_mesh.txt");
-                        File warpMeshFile = new File(Config.dirPath + mapTag + "_warpMesh.txt");
-                        File boundBoxFile = new File(Config.dirPath + mapTag + "_bound_box.txt");
-                        File edgeLengthFile = new File(Config.dirPath + mapTag + "_edge_length.txt");
+                        File distortedMapFile = new File(dirPath + mapTag + "_distorted_map.png");
+                        File meshFile = new File(dirPath + mapTag + "_mesh.txt");
+                        File warpMeshFile = new File(dirPath + mapTag + "_warpMesh.txt");
+                        File boundBoxFile = new File(dirPath + mapTag + "_bound_box.txt");
+                        File edgeLengthFile = new File(dirPath + mapTag + "_edge_length.txt");
                         if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
                             Intent intent = new Intent(MapListActivity.this, MapListActivity.class);
                             intent.putExtra("MAP", mapTag);
@@ -154,8 +155,9 @@ public class MapListActivity extends AppCompatActivity {
         final File jsonFile = new File(jsonFilePath);
 
         // download then call updateAdapter()
+        // TODO automatic download at the first time
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get(Config.URL + "jsonexample.json", new AsyncHttpResponseHandler() {
+        client.get(URL + "jsonexample.json", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 try {
