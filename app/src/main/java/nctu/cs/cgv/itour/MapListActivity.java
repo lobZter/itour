@@ -21,6 +21,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -63,22 +64,20 @@ public class MapListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_list);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission();
-        }
-        initToolbar();
+
         initCollapsingToolbar();
         initRecyclerView();
         initSwipeRefreshLayout();
-        initListItem();
-    }
 
-    private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        }
     }
 
     private void initCollapsingToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         final CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(" ");
         AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.appbar);
@@ -122,14 +121,13 @@ public class MapListActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         mapTag = mapListItems.get(position).mapTag;
-                        String path = Environment.getExternalStorageDirectory().toString() + "/iTour/";
                         File distortedMapFile = new File(dirPath + mapTag + "_distorted_map.png");
                         File meshFile = new File(dirPath + mapTag + "_mesh.txt");
                         File warpMeshFile = new File(dirPath + mapTag + "_warpMesh.txt");
                         File boundBoxFile = new File(dirPath + mapTag + "_bound_box.txt");
                         File edgeLengthFile = new File(dirPath + mapTag + "_edge_length.txt");
                         if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
-                            Intent intent = new Intent(MapListActivity.this, MapListActivity.class);
+                            Intent intent = new Intent(MapListActivity.this, MapActivity.class);
                             intent.putExtra("MAP", mapTag);
                             startActivity(intent);
                         } else {
@@ -151,7 +149,7 @@ public class MapListActivity extends AppCompatActivity {
     }
 
     private void downloadAndUpdate() {
-        final String jsonFilePath = Environment.getExternalStorageDirectory().toString() + "/iTour/jsonexample.json";
+        final String jsonFilePath = dirPath + "jsonexample.json";
         final File jsonFile = new File(jsonFilePath);
 
         // download then call updateAdapter()
@@ -161,7 +159,7 @@ public class MapListActivity extends AppCompatActivity {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 try {
-                    // delete file before download
+                    // delete old file before save
                     jsonFile.delete();
                     jsonFile.getParentFile().mkdirs();
                     jsonFile.createNewFile();
@@ -185,7 +183,7 @@ public class MapListActivity extends AppCompatActivity {
     }
 
     private void initListItem() {
-        final String jsonFilePath = Environment.getExternalStorageDirectory().toString() + "/iTour/jsonexample.json";
+        final String jsonFilePath = dirPath + "jsonexample.json";
         final File jsonFile = new File(jsonFilePath);
 
         if (!jsonFile.exists()) {
@@ -286,6 +284,8 @@ public class MapListActivity extends AppCompatActivity {
                                 Manifest.permission.ACCESS_FINE_LOCATION},
                         PERMISSIONS_MULTIPLE_REQUEST);
             }
+        } else {
+            initListItem();
         }
     }
 
@@ -319,7 +319,7 @@ public class MapListActivity extends AppCompatActivity {
 
                     if(storagePermission && gpsPermission)
                     {
-                        Toast.makeText(MapListActivity.this, "Thank you!", Toast.LENGTH_SHORT).show();
+                        initListItem();
                     } else {
                         showExplanation();
                     }

@@ -16,6 +16,8 @@ public class MyApplication extends Application {
     public static final String URL = "http://140.113.210.3/map/json_maps/";
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour/";
     public static final String audioPath = dirPath + "audio/";
+    public static final String photoPath = dirPath + "photo/";
+
 
     @Override
     public void onCreate() {
@@ -24,10 +26,12 @@ public class MyApplication extends Application {
     }
 
     private void mkdirs() {
-        File dir = new File(dirPath);
-        dir.mkdirs();
-
         File audioDir = new File(audioPath);
-        Log.d(TAG, String.valueOf(audioDir.mkdirs()));
+        if(!audioDir.exists())
+            audioDir.mkdirs();
+
+        File photoDir = new File(photoPath);
+        if(!photoDir.exists())
+            photoDir.mkdirs();
     }
 }
