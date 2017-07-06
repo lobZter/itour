@@ -39,6 +39,7 @@ dependencies {
     compile 'com.wrapp.floatlabelededittext:library:0.0.6'
     compile 'com.roughike:bottom-bar:2.3.1'
     compile 'com.github.arimorty:floatingsearchview:2.1.1'
+    compile 'com.ncapdevi:frag-nav:2.0.2'
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'

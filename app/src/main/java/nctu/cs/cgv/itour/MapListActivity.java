@@ -126,7 +126,7 @@ public class MapListActivity extends AppCompatActivity {
                         File edgeLengthFile = new File(dirPath + mapTag + "_edge_length.txt");
                         if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
                             Intent intent = new Intent(MapListActivity.this, MapActivity.class);
-                            intent.putExtra("MAP", mapTag);
+                            intent.putExtra("mapTag", mapTag);
                             startActivity(intent);
                         } else {
                             new DownloadFileAsyncTask(MapListActivity.this).execute(mapTag);

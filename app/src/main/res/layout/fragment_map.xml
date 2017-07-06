@@ -1,13 +1,22 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="nctu.cs.cgv.itour.MapFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <com.arlib.floatingsearchview.FloatingSearchView
+        android:id="@+id/floating_search_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        app:floatingSearch_close_search_on_keyboard_dismiss="true"
+        app:floatingSearch_leftActionMode="showHamburger"
+        app:floatingSearch_searchBarMarginLeft="8dp"
+        app:floatingSearch_searchBarMarginRight="8dp"
+        app:floatingSearch_searchBarMarginTop="8dp"
+        app:floatingSearch_searchHint="Search..."
+        app:floatingSearch_showSearchKey="false"
+        app:floatingSearch_suggestionsListAnimDuration="250" />
 
-</FrameLayout>
+</RelativeLayout>
