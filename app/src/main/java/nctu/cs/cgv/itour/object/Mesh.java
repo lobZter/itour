@@ -1,6 +1,5 @@
-package nctu.cs.cgv.itour.map;
+package nctu.cs.cgv.itour.object;
 
-import android.content.Context;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -9,9 +8,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-/**
- * Created by lobZter on 2017/5/22.
- */
+import nctu.cs.cgv.itour.object.IdxWeights;
 
 public class Mesh {
     // element count
@@ -44,7 +41,6 @@ public class Mesh {
     public boolean readMeshFile(File meshFile) {
 
         try {
-//            InputStream inputStream = context.getResources().openRawResource(resourceId);
             FileInputStream inputStream  = new FileInputStream(meshFile);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -54,10 +50,10 @@ public class Mesh {
 
             // the second line contains size information
             nextLine = bufferedReader.readLine();
-            StringTokenizer st = new StringTokenizer(nextLine);
-            vertexNumber = Integer.valueOf( st.nextToken() );
-            faceNumber = Integer.valueOf( st.nextToken() );
-            lineNumber = Integer.valueOf( st.nextToken() );
+            StringTokenizer stringTokenizer = new StringTokenizer(nextLine);
+            vertexNumber = Integer.valueOf( stringTokenizer.nextToken() );
+            faceNumber = Integer.valueOf( stringTokenizer.nextToken() );
+            lineNumber = Integer.valueOf( stringTokenizer.nextToken() );
 
             // get arrayLists
             vertices = new double[vertexNumber][2];
@@ -67,9 +63,9 @@ public class Mesh {
             for(int vIter=0; vIter<vertexNumber; vIter++){
                 nextLine = bufferedReader.readLine();
 
-                st = new StringTokenizer(nextLine);
-                double x = Double.valueOf( st.nextToken() );
-                double y = Double.valueOf( st.nextToken() );
+                stringTokenizer = new StringTokenizer(nextLine);
+                double x = Double.valueOf( stringTokenizer.nextToken() );
+                double y = Double.valueOf( stringTokenizer.nextToken() );
 
                 vertices[vIter][0] = x;
                 vertices[vIter][1] = y;
@@ -79,11 +75,11 @@ public class Mesh {
             for(int fIter=0; fIter<faceNumber; fIter++){
                 nextLine = bufferedReader.readLine();
 
-                st = new StringTokenizer(nextLine);
-                int vNum = Integer.valueOf( st.nextToken() ); // throw away :P
-                int v1 = Integer.valueOf( st.nextToken() );
-                int v2 = Integer.valueOf( st.nextToken() );
-                int v3 = Integer.valueOf( st.nextToken() );
+                stringTokenizer = new StringTokenizer(nextLine);
+                int vNum = Integer.valueOf( stringTokenizer.nextToken() ); // throw away :P
+                int v1 = Integer.valueOf( stringTokenizer.nextToken() );
+                int v2 = Integer.valueOf( stringTokenizer.nextToken() );
+                int v3 = Integer.valueOf( stringTokenizer.nextToken() );
 
                 faces[fIter][0] = v1;
                 faces[fIter][1] = v2;
@@ -100,25 +96,8 @@ public class Mesh {
         return true;
     }
 
-    public void scaleByBoundingBox(File boundBoxFile) {
-        readBoundingBox(boundBoxFile);
-
-        for(int vIter=0; vIter<vertexNumber; vIter++) {
-            double tx = vertices[vIter][0];
-            double ty = vertices[vIter][1];
-
-            double new_x = minLon + tx*(maxLon - minLon);
-            double new_y = maxLat + ty*(minLat - maxLat);
-            //double new_y = minLat + ty*(maxLat - minLat);
-
-            vertices[vIter][0] = new_x;
-            vertices[vIter][1] = new_y;
-        }
-    }
-
     public boolean readBoundingBox(File boundBoxFile ) {
         try {
-//            InputStream inputStream = context.getResources().openRawResource(resourceId);
             FileInputStream inputStream  = new FileInputStream(boundBoxFile);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -202,7 +181,6 @@ public class Mesh {
         double x = weights[0]*vertices[triId1][0] + weights[1]*vertices[triId2][0] + weights[2]*vertices[triId3][0];
         double y = weights[0]*vertices[triId1][1] + weights[1]*vertices[triId2][1] + weights[2]*vertices[triId3][1];
 
-        double[] result = {x, y};
-        return result;
+        return new double[]{x, y};
     }
 }

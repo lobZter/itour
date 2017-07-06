@@ -1,8 +1,4 @@
-package nctu.cs.cgv.itour.map;
-
-/**
- * Created by lobZter on 2017/5/22.
- */
+package nctu.cs.cgv.itour.object;
 
 public class IdxWeights {
     public int idx;

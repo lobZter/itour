@@ -47,9 +47,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,9 +54,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 
-import cz.msebera.android.httpclient.Header;
-import nctu.cs.cgv.itour.map.IdxWeights;
-import nctu.cs.cgv.itour.map.Mesh;
+import nctu.cs.cgv.itour.object.IdxWeights;
+import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
@@ -161,7 +157,7 @@ public class MapActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
 //        mapTag = intent.getStringExtra("MAP");
-        mapTag = "Tamsui";
+        mapTag = "nctu";
 
         // Set Location API.
         buildGoogleApiClient();
@@ -197,7 +193,7 @@ public class MapActivity extends AppCompatActivity implements
         nodeList = new LinkedList<Float>();
         edgeList = new LinkedList<Float>();
         nodeImageList = new LinkedList<ImageView>();
-//        drawEdgeNode(parentLayout);
+        drawEdgeNode(parentLayout);
         setTouchListener();
 
         String realMeshDir = dirPath + mapTag + "_mesh.txt";
@@ -607,7 +603,7 @@ public class MapActivity extends AppCompatActivity implements
         float distanceToAddorSubtractXStandard = distanceVectorXStandard / distanceRatioStandard;
         float distanceToAddorSubtractYStandard = distanceVectorYStandard / distanceRatioStandard;
         float distanceRatioRealLength = distanceRatioStandard * edgeRealLengthStandard / edgePixelLengthStandard;
-        //Log.i("TAG", "Node standard: " + distanceRatioRealLength + "," + distanceRatioStandard + "," + distanceVectorXStandard + "," + distanceVectorYStandard + "," + distanceToAddorSubtractXStandard + "," + distanceToAddorSubtractYStandard);
+        //Log.i("TAG", "PointF standard: " + distanceRatioRealLength + "," + distanceRatioStandard + "," + distanceVectorXStandard + "," + distanceVectorYStandard + "," + distanceToAddorSubtractXStandard + "," + distanceToAddorSubtractYStandard);
         for (int i = 0; i < edgeList.size(); i += 6) {
             x = edgeList.get(i);
             y = edgeList.get(i + 1);
@@ -625,7 +621,7 @@ public class MapActivity extends AppCompatActivity implements
 
             distanceToAddorSubtractX = (distanceVectorX / distanceRatio);
             distanceToAddorSubtractY = (distanceVectorY / distanceRatio);
-            //Log.i("TAG", "Node normal: " + distanceRatio + "," + distanceVectorX + "," + distanceVectorY + "," + distanceToAddorSubtractX + "," + distanceToAddorSubtractY);
+            //Log.i("TAG", "PointF normal: " + distanceRatio + "," + distanceVectorX + "," + distanceVectorY + "," + distanceToAddorSubtractX + "," + distanceToAddorSubtractY);
             nodeList.add(x);
             nodeList.add(y);
 
@@ -672,8 +668,8 @@ public class MapActivity extends AppCompatActivity implements
                             x -= distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         } else {
-                            nodeList.add((x - distanceToAddorSubtractX) + (width / 2));
-                            nodeList.add((y - distanceToAddorSubtractY) + (height / 2));
+                            nodeList.add((x - distanceToAddorSubtractX));
+                            nodeList.add((y - distanceToAddorSubtractY));
                             x -= distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         }

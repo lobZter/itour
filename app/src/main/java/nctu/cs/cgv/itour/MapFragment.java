@@ -1,11 +1,13 @@
 package nctu.cs.cgv.itour;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -17,7 +19,13 @@ import android.widget.RelativeLayout;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 
+import java.io.File;
+import java.util.LinkedList;
+
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.object.EdgeNode;
+import nctu.cs.cgv.itour.object.IdxWeights;
+import nctu.cs.cgv.itour.object.Mesh;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
@@ -25,22 +33,37 @@ public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
     private String mapTag;
-    // view objects
+    // views
     private RelativeLayout rootLayout;
-    private ImageView touristMap;
     private FloatingSearchView searchBar;
+    private ImageView touristMap;
+    private ImageView gpsMarker;
+    private RelativeLayout.LayoutParams layoutParams;
+    // objects
+    private LinkedList<Float> nodeList;
+    private LinkedList<ImageView> nodeImageList;
+    private Mesh realMesh;
+    private Mesh warpMesh;
     // gestures
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-
+    // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
+    private final int gpsMarkerWidth = 48;
+    private final int gpsMarkerHeight = 48;
+    private final int nodeIconWidth = 16;
+    private final int nodeIconHeight = 16;
+    private int touristMapWidth = 0;
+    private int touristMapHeight = 0;
+    // variables
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private int touristMapWidth = 0;
-    private int touristMapHeight = 0;
+    private float lat = 0, lng = 0;
+    private float gpsDistortedX = 0, gpsDistortedY = 0;
+    private int initialOffsetX = 0, initialOffsetY = 0;
 
 
     public static MapFragment newInstance(String mapTag) {
@@ -67,38 +90,69 @@ public class MapFragment extends Fragment {
 
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
 
-
         // set search bar
         searchBar = (FloatingSearchView) view.findViewById(R.id.floating_search_view);
         // set search bar margin-top with status bar height
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
         layoutParams.setMargins(0, getStatusBarHeight(), 0, 0);
         searchBar.setLayoutParams(layoutParams);
-        // TODO: set search bar autocomplete suggestions
         searchBar.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
+                // TODO: set search bar autocomplete suggestions
                 //get suggestions based on newQuery
 //                searchView.swapSuggestions(newSuggestions);
             }
         });
 
-
         // load image from disk and set tourist map
-        Log.d(TAG, dirPath + mapTag +"_distorted_map.png");
-        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag +"_distorted_map.png");
+        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
         touristMap = new ImageView(getContext());
         touristMap.setImageBitmap(touristMapBitmap);
-        touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+        touristMap.setScaleType(ImageView.ScaleType.FIT_START);
+        touristMap.setPivotX(0);
+        touristMap.setPivotY(0);
         rootLayout.addView(touristMap);
+
+        // set gpsMarker
+        gpsMarker = new ImageView(getContext());
+        gpsMarker.setImageDrawable(getResources().getDrawable(R.drawable.circle));
+        gpsMarker.setLayoutParams(new RelativeLayout.LayoutParams(gpsMarkerWidth, gpsMarkerHeight));
+        rootLayout.addView(gpsMarker);
+
+        // draw edge nodes
+        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
+        nodeList = edgeNode.getNodeList();
+        nodeImageList = new LinkedList<>();
+        for (int i = 0; i < nodeList.size(); i += 2) {
+            ImageView nodeImage = new ImageView(getContext());
+            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_trans));
+            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
+            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
+            nodeImageList.add(nodeImage);
+            rootLayout.addView(nodeImage);
+        }
+
+        // init objects
+        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+
+
+        // calculate screen initial offset
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity)getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        initialOffsetY = displayMetrics.heightPixels/2-touristMapHeight/2;
+        // transform to center vertical
+        transformMat = new Matrix();
+        transformMat.postTranslate(initialOffsetX, initialOffsetY);
+        reRender();
 
 
         searchBar.bringToFront();
-
-
-        transformMat = touristMap.getImageMatrix();
 
         setTouchListener();
     }
@@ -197,12 +251,15 @@ public class MapFragment extends Fragment {
     }
 
     private void reRender() {
-        Matrix nodeIconTransform = new Matrix();
         Matrix gpsMarkTransform = new Matrix();
-        nodeIconTransform.postTranslate(-8, -8);
-        gpsMarkTransform.postTranslate(-32, -32);
-
+        Matrix nodeIconTransform = new Matrix();
+        gpsMarkTransform.postTranslate(-gpsMarkerWidth / 2, -gpsMarkerHeight / 2);
+        nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
         float[] point = new float[]{0, 0};
+
+        // change scale type here to prevent image corp
+        touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+        // transform tourist map (ImageView)
         transformMat.mapPoints(point);
         touristMap.setScaleX(scale);
         touristMap.setScaleY(scale);
@@ -210,20 +267,23 @@ public class MapFragment extends Fragment {
         touristMap.setTranslationX(point[0]);
         touristMap.setTranslationY(point[1]);
 
-//        for (int i = 0; i < nodeImageList.size(); i++) {
-//            point[0] = nodeList.get(i * 2);
-//            point[1] = nodeList.get(i * 2 + 1);
-//            transformMat.mapPoints(point);
-//            nodeIconTransform.mapPoints(point);
-//            nodeImageList.get(i).setTranslationX(point[0]);
-//            nodeImageList.get(i).setTranslationY(point[1]);
-//        }
-//        point[0] = gpsDistortedX;
-//        point[1] = gpsDistortedY;
-//        transformMat.mapPoints(point);
-//        gpsMarkTransform.mapPoints(point);
-//        gpsMarker.setTranslationX(point[0]);
-//        gpsMarker.setTranslationY(point[1]);
+        // transform gpsMarker
+        point[0] = gpsDistortedX;
+        point[1] = gpsDistortedY;
+        transformMat.mapPoints(point);
+        gpsMarkTransform.mapPoints(point);
+        gpsMarker.setTranslationX(point[0]);
+        gpsMarker.setTranslationY(point[1]);
+
+        // transform nodeImage
+        for (int i = 0; i < nodeImageList.size(); i++) {
+            point[0] = nodeList.get(i * 2);
+            point[1] = nodeList.get(i * 2 + 1);
+            transformMat.mapPoints(point);
+            nodeIconTransform.mapPoints(point);
+            nodeImageList.get(i).setTranslationX(point[0]);
+            nodeImageList.get(i).setTranslationY(point[1]);
+        }
     }
 
     private int getStatusBarHeight() {
@@ -233,5 +293,29 @@ public class MapFragment extends Fragment {
             result = getResources().getDimensionPixelSize(resourceId);
         }
         return result;
+    }
+
+    public void handleLocationChange(Location currentLocation) {
+
+        lat = (float) currentLocation.getLatitude();
+        lng = (float) currentLocation.getLongitude();
+        double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+        double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
+
+        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+        if (idxWeights.idx >= 0) {
+            double[] newPos = warpMesh.interpolatePosition(idxWeights);
+            gpsDistortedX = (float) newPos[0];
+            gpsDistortedY = (float) newPos[1];
+        }
+
+        // transform gps marker
+        Matrix gpsMarkTransform = new Matrix();
+        gpsMarkTransform.postTranslate(-32, -32);
+        float[] point = new float[]{gpsDistortedX, gpsDistortedY};
+        transformMat.mapPoints(point);
+        gpsMarkTransform.mapPoints(point);
+        gpsMarker.setTranslationX(point[0]);
+        gpsMarker.setTranslationY(point[1]);
     }
 }

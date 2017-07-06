@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="viewBg">#f1f5f8</color>
     <color name="colorLocation">#1e90ff</color>
     <color name="blackOverlay">#8c8c8c</color>
+    <color name="mapBackground">#F0EDE5</color>
 
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
