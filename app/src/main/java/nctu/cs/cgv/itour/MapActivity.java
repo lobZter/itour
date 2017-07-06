@@ -16,6 +16,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -28,6 +29,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -59,13 +62,15 @@ import nctu.cs.cgv.itour.map.IdxWeights;
 import nctu.cs.cgv.itour.map.Mesh;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
+
 public class MapActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
     private static final String TAG = "MapActivity";
-    private String mapTag = "nctu";
+    private String mapTag;
     public LinkedList<Float> nodeList;
     public LinkedList<Float> edgeList;
     public LinkedList<ImageView> nodeImageList;
@@ -149,9 +154,14 @@ public class MapActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Window window = getWindow();
+            window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+
         Intent intent = getIntent();
 //        mapTag = intent.getStringExtra("MAP");
-        mapTag = "nctu";
+        mapTag = "Tamsui";
 
         // Set Location API.
         buildGoogleApiClient();
@@ -164,7 +174,6 @@ public class MapActivity extends AppCompatActivity implements
 
         transformMat = new Matrix();
 
-        String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour/";
         String touristMapPath = dirPath + mapTag + "_distorted_map.png";
         Log.d(TAG, touristMapPath);
 
@@ -188,12 +197,12 @@ public class MapActivity extends AppCompatActivity implements
         nodeList = new LinkedList<Float>();
         edgeList = new LinkedList<Float>();
         nodeImageList = new LinkedList<ImageView>();
-        drawEdgeNode(parentLayout);
+//        drawEdgeNode(parentLayout);
         setTouchListener();
 
-        String realMeshDir = Environment.getExternalStorageDirectory().toString() + "/iTour/" + mapTag + "_mesh.txt";
-        String warpMeshDir = Environment.getExternalStorageDirectory().toString() + "/iTour/" + mapTag + "_warpMesh.txt";
-        String boundBoxDir = Environment.getExternalStorageDirectory().toString() + "/iTour/" + mapTag + "_bound_box.txt";
+        String realMeshDir = dirPath + mapTag + "_mesh.txt";
+        String warpMeshDir = dirPath + mapTag + "_warpMesh.txt";
+        String boundBoxDir = dirPath + mapTag + "_bound_box.txt";
 
         File realMeshFile = new File(realMeshDir);
         File boundBoxFile = new File(boundBoxDir);
@@ -218,6 +227,9 @@ public class MapActivity extends AppCompatActivity implements
         gpsMarker.setLayoutParams(lp);
         parentLayout.addView(gpsMarker);
 
+        findViewById(R.id.scrim_status_bar).bringToFront();
+        findViewById(R.id.scrim_navigation_bar).bringToFront();
+
         floatingActionButton = (FloatingActionButton) findViewById(R.id.btn_nav);
         floatingActionButton.bringToFront();
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -226,6 +238,7 @@ public class MapActivity extends AppCompatActivity implements
                 translateToCurrent();
             }
         });
+        floatingActionButton.setVisibility(View.GONE);
 
         compassButton = (FloatingActionButton) findViewById(R.id.btn_compass);
         compassButton.bringToFront();
@@ -235,6 +248,7 @@ public class MapActivity extends AppCompatActivity implements
                 rotateToNorth();
             }
         });
+        compassButton.setVisibility(View.GONE);
 
         checkinButton = (FloatingActionButton) findViewById(R.id.btn_checkin);
         checkinButton.bringToFront();
@@ -247,8 +261,11 @@ public class MapActivity extends AppCompatActivity implements
                 startActivity(intent);
             }
         });
+        checkinButton.setVisibility(View.GONE);
 
-        updateCheckin();
+
+
+//        updateCheckin();
 
         parentLayout.post(new Runnable() {
             @Override

@@ -16,7 +16,10 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import nctu.cs.cgv.itour.MapActivity;
 import nctu.cs.cgv.itour.MapListActivity;
+
+import static nctu.cs.cgv.itour.MyApplication.serverURL;
 
 /**
  * Created by lobZter on 2017/6/21.
@@ -25,7 +28,6 @@ import nctu.cs.cgv.itour.MapListActivity;
 public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
 
     private static final String TAG = "DownloadFileAsyncTask";
-    private final String url = "http://140.113.210.3/map/json_maps/";
     private ProgressDialog progressDialog;
     private Context context;
 
@@ -62,11 +64,11 @@ public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
 
         try {
             URL[] urls = {
-                    new URL(url + mapTag + "_distorted_map.png"),
-                    new URL(url + mapTag + "_mesh.txt"),
-                    new URL(url + mapTag + "_warpMesh.txt"),
-                    new URL(url + mapTag + "_bound_box.txt"),
-                    new URL(url + mapTag + "_edge_length.txt")};
+                    new URL(serverURL + mapTag + "_distorted_map.png"),
+                    new URL(serverURL + mapTag + "_mesh.txt"),
+                    new URL(serverURL + mapTag + "_warpMesh.txt"),
+                    new URL(serverURL + mapTag + "_bound_box.txt"),
+                    new URL(serverURL + mapTag + "_edge_length.txt")};
 
             for (URL url : urls) {
                 URLConnection urlConnection = url.openConnection();
@@ -127,7 +129,7 @@ public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String unused) {
         progressDialog.dismiss();
-        Intent intent = new Intent(context, MapListActivity.class);
+        Intent intent = new Intent(context, MapActivity.class);
         intent.putExtra("MAP", MapListActivity.mapTag);
         context.startActivity(intent);
     }

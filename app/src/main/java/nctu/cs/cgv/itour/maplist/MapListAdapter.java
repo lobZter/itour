@@ -1,7 +1,6 @@
 package nctu.cs.cgv.itour.maplist;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -19,7 +18,7 @@ import java.util.List;
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 
-import static nctu.cs.cgv.itour.MyApplication.URL;
+import static nctu.cs.cgv.itour.MyApplication.serverURL;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
 /**
@@ -54,21 +53,21 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
         MapListItem currentItem = mapList.get(position);
         holder.title.setText(currentItem.mapName);
 
-        String thumbURL = URL + currentItem.mapThumb;
+        final String thumbURL = serverURL + currentItem.mapThumb;
         final String thumbPath = dirPath + currentItem.mapThumb;
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         File thumbFile = new File(thumbPath);
 
         if(thumbFile.exists()) {
-            holder.thumb.setImageBitmap(BitmapFactory.decodeFile(thumbPath, options));
+            // load thumb from storage
+            holder.thumb.setImageBitmap(BitmapFactory.decodeFile(thumbPath));
         }
         else {
+            // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
             client.get(thumbURL, new FileAsyncHttpResponseHandler(thumbFile) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    holder.thumb.setImageBitmap(BitmapFactory.decodeFile(thumbPath, options));
+                    holder.thumb.setImageBitmap(BitmapFactory.decodeFile(thumbPath));
                 }
 
                 @Override

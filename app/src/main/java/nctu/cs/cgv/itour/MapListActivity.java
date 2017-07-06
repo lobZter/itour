@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.AppBarLayout;
@@ -21,7 +20,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -47,7 +45,7 @@ import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
 import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
-import static nctu.cs.cgv.itour.MyApplication.URL;
+import static nctu.cs.cgv.itour.MyApplication.serverURL;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.config.Utility.dpToPx;
 
@@ -155,7 +153,7 @@ public class MapListActivity extends AppCompatActivity {
         // download then call updateAdapter()
         // TODO automatic download at the first time
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get(URL + "jsonexample.json", new AsyncHttpResponseHandler() {
+        client.get(serverURL + "jsonexample.json", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 try {

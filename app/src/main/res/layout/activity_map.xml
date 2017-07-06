@@ -3,7 +3,21 @@
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blackOverlay">
+    android:background="@color/black">
+
+    <View
+        android:id="@+id/scrim_status_bar"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:background="@drawable/scrim" />
+
+    <View
+        android:id="@+id/scrim_navigation_bar"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/scrim"
+        android:rotation="180" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_checkin"
