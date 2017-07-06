@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tabs>
+    <tab
+        id="@+id/tab_favorites"
+        icon="@drawable/ic_map_white_24dp"
+        title="Map" />
+    <tab
+        id="@+id/tab_nearby"
+        icon="@drawable/ic_format_list_bulleted_white_24dp"
+        title="Plan" />
+    <tab
+        id="@+id/tab_friends"
+        icon="@drawable/ic_settings_white_24dp"
+        title="Settings" />
+</tabs>
