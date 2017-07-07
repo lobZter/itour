@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -23,11 +23,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.firebase.database.DatabaseReference;
 import com.ncapdevi.fragnav.FragNavController;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
+
+import nctu.cs.cgv.itour.fragment.MapFragment;
+import nctu.cs.cgv.itour.fragment.PlanFragment;
+import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.fragment.SettingsFragment;
 
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
@@ -68,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements
         // get mapTag passed from MapList
         Intent intent = getIntent();
         mapTag = intent.getStringExtra("mapTag");
-        mapTag = "nctu";
+//        mapTag = "nctu";
 
         // set Location API
         buildGoogleApiClient();

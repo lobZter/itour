@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.object;
 
 import android.content.Context;
 import android.widget.ImageView;

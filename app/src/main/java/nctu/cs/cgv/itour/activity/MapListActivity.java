@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
@@ -56,7 +57,7 @@ public class MapListActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private MapListAdapter mapListAdapter;
     private List<MapListItem> mapListItems;
-    public static String mapTag;
+    private String mapTag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +126,7 @@ public class MapListActivity extends AppCompatActivity {
                         File boundBoxFile = new File(dirPath + mapTag + "_bound_box.txt");
                         File edgeLengthFile = new File(dirPath + mapTag + "_edge_length.txt");
                         if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
-                            Intent intent = new Intent(MapListActivity.this, MapActivity.class);
+                            Intent intent = new Intent(MapListActivity.this, MainActivity.class);
                             intent.putExtra("mapTag", mapTag);
                             startActivity(intent);
                         } else {

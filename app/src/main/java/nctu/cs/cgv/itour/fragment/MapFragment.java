@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.fragment;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -34,8 +34,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.LinkedList;
 
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
-import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
@@ -138,19 +138,19 @@ public class MapFragment extends Fragment {
         rootLayout.addView(touristMap);
 
         // draw edge nodes
-        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
-//        nodeList = new LinkedList<>();
-        nodeList = edgeNode.getNodeList();
+//        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
+//        nodeList = edgeNode.getNodeList();
+        nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
-        for (int i = 0; i < nodeList.size(); i += 2) {
-            ImageView nodeImage = new ImageView(getContext());
-            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
-            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
-            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
-            nodeImageList.add(nodeImage);
-            rootLayout.addView(nodeImage);
-        }
+//        for (int i = 0; i < nodeList.size(); i += 2) {
+//            ImageView nodeImage = new ImageView(getContext());
+//            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
+//            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+//            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
+//            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
+//            nodeImageList.add(nodeImage);
+//            rootLayout.addView(nodeImage);
+//        }
 
         // set gpsMarker
         gpsMarker = new ImageView(getContext());
@@ -190,9 +190,9 @@ public class MapFragment extends Fragment {
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
-                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
                 // transform to center vertical
                 transformMat.postTranslate(initialOffsetX, initialOffsetY);
+                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
                 reRender();
             }
         });
@@ -461,7 +461,7 @@ public class MapFragment extends Fragment {
 
         // add new icon ImageView
         ImageView nodeImage = new ImageView(getContext());
-        nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        nodeImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
         nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
         rootLayout.addView(nodeImage);
 

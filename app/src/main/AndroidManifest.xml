@@ -17,26 +17,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:screenOrientation="portrait"
         android:theme="@style/AppTheme">
-        <activity android:name=".MapListActivity"></activity>
-        <activity android:name=".MapActivity"
-            android:theme="@style/TransparentTheme">
-        </activity>
-        <activity android:name=".MainActivity"
-            android:theme="@style/TransparentStatusBarTheme">
+        <activity android:name=".activity.MapListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".CheckinActivity"></activity>
+        <activity android:name=".activity.MapActivity"
+            android:theme="@style/TransparentTheme">
+        </activity>
+        <activity android:name=".activity.MainActivity"
+            android:theme="@style/TransparentStatusBarTheme">
+        </activity>
+        <activity android:name=".activity.CheckinActivity"></activity>
 
-        <service android:name=".MyFirebaseInstanceIDService">
+        <service android:name=".service.MyFirebaseInstanceIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".MyFirebaseMessagingService">
+        <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

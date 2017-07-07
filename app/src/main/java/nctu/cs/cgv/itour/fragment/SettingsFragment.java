@@ -1,12 +1,12 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.fragment;
 
-import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import nctu.cs.cgv.itour.R;
 
 public class SettingsFragment extends Fragment {
 

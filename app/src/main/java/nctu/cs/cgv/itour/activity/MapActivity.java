@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -54,6 +54,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;

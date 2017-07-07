@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.activity;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,8 +14,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -27,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 

@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.service;
 
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;

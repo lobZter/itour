@@ -16,8 +16,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import nctu.cs.cgv.itour.MapActivity;
-import nctu.cs.cgv.itour.MapListActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
 
 import static nctu.cs.cgv.itour.MyApplication.serverURL;
 
@@ -25,9 +24,10 @@ import static nctu.cs.cgv.itour.MyApplication.serverURL;
  * Created by lobZter on 2017/6/21.
  */
 
-public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
+public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
 
     private static final String TAG = "DownloadFileAsyncTask";
+    private String mapTag;
     private ProgressDialog progressDialog;
     private Context context;
 
@@ -51,7 +51,7 @@ public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
     @Override
     protected String doInBackground(String... args) {
 
-        String mapTag = args[0];
+        mapTag = args[0];
         ArrayList<Integer> fileLength = new ArrayList<>();
         ArrayList<InputStream> inputStreams = new ArrayList<>();
         ArrayList<FileOutputStream> fileOutputStreams = new ArrayList<>();
@@ -129,8 +129,8 @@ public class DownloadFileAsyncTask  extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String unused) {
         progressDialog.dismiss();
-        Intent intent = new Intent(context, MapActivity.class);
-        intent.putExtra("MAP", MapListActivity.mapTag);
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra("MAP", mapTag);
         context.startActivity(intent);
     }
 
