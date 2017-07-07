@@ -23,14 +23,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.ncapdevi.fragnav.FragNavController;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
-import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 
 public class MainActivity extends AppCompatActivity implements
@@ -40,14 +41,14 @@ public class MainActivity extends AppCompatActivity implements
         FragNavController.RootFragmentListener {
 
     private static final String TAG = "MainActivity";
-    private String mapTag;
-    // view objects
-    private BottomBar bottomBar;
-    private FragNavController fragNavController;
     // fragment index
     private final int INDEX_MAP = FragNavController.TAB1;
     private final int INDEX_PLAN = FragNavController.TAB2;
     private final int INDEX_SETTINGS = FragNavController.TAB3;
+    private String mapTag;
+    // view objects
+    private BottomBar bottomBar;
+    private FragNavController fragNavController;
     // Google Services Location API
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements
         // get mapTag passed from MapList
         Intent intent = getIntent();
         mapTag = intent.getStringExtra("mapTag");
-//        mapTag = "nctu";
+        mapTag = "nctu";
 
         // set Location API
         buildGoogleApiClient();
@@ -81,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
 
         setView(savedInstanceState);
+
+
     }
 
     private void setView(Bundle savedInstanceState) {
@@ -117,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setBroadcastReceiver() {
+        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
+
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -196,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Register mMessageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
-                new IntentFilter("my-event"));
+                new IntentFilter("checkin"));
 
         googleApiClient.connect();
 

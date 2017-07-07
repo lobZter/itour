@@ -276,7 +276,7 @@ public class MapActivity extends AppCompatActivity implements
             }
         });
 
-        FirebaseMessaging.getInstance().subscribeToTopic("checkin");
+        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
         String token = FirebaseInstanceId.getInstance().getToken();
         Log.d(TAG, "token: " + token);
 
@@ -743,7 +743,6 @@ public class MapActivity extends AppCompatActivity implements
         return true;
     }
 
-    // handler for received Intents for the "my-event" event
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -831,7 +830,7 @@ public class MapActivity extends AppCompatActivity implements
 
         // Register mMessageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
-                new IntentFilter("my-event"));
+                new IntentFilter("checkin"));
 
         googleApiClient.connect();
 

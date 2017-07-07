@@ -36,6 +36,7 @@ import java.util.LinkedList;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
@@ -138,19 +139,19 @@ public class MapFragment extends Fragment {
         rootLayout.addView(touristMap);
 
         // draw edge nodes
-//        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
-//        nodeList = edgeNode.getNodeList();
-        nodeList = new LinkedList<>();
+        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
+        nodeList = edgeNode.getNodeList();
+//        nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
-//        for (int i = 0; i < nodeList.size(); i += 2) {
-//            ImageView nodeImage = new ImageView(getContext());
-//            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
-//            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-//            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
-//            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
-//            nodeImageList.add(nodeImage);
-//            rootLayout.addView(nodeImage);
-//        }
+        for (int i = 0; i < nodeList.size(); i += 2) {
+            ImageView nodeImage = new ImageView(getContext());
+            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
+            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
+            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
+            nodeImageList.add(nodeImage);
+            rootLayout.addView(nodeImage);
+        }
 
         // set gpsMarker
         gpsMarker = new ImageView(getContext());
@@ -191,9 +192,9 @@ public class MapFragment extends Fragment {
             @Override
             public void run() {
                 // transform to center vertical
-                transformMat.postTranslate(initialOffsetX, initialOffsetY);
+//                transformMat.postTranslate(initialOffsetX, initialOffsetY);
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
-                reRender();
+//                reRender();
             }
         });
     }
@@ -335,13 +336,12 @@ public class MapFragment extends Fragment {
 
     private void updateCheckin() {
         databaseReference = FirebaseDatabase.getInstance().getReference();
-        Query query = databaseReference.child("checkin");
+        Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
-
                         try {
                             JSONObject jsonObject = new JSONObject(issue.getValue().toString());
                             handleCheckinMsg((float)jsonObject.getDouble("lat"), (float)jsonObject.getDouble("lng"));
