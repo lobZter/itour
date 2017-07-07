@@ -6,8 +6,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -32,12 +35,22 @@ import static nctu.cs.cgv.itour.MyApplication.dirPath;
 public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
+    // constants
+    private final float MIN_ZOOM = 1.0f;
+    private final float MAX_ZOOM = 6.0f;
+    private final int gpsMarkerWidth = 48;
+    private final int gpsMarkerHeight = 48;
+    private final int nodeIconWidth = 16;
+    private final int nodeIconHeight = 16;
+    private final int checkinIconWidth = 64;
+    private final int checkinIconHeight = 64;
     private String mapTag;
     // views
     private RelativeLayout rootLayout;
     private FloatingSearchView searchBar;
     private ImageView touristMap;
     private ImageView gpsMarker;
+    private FloatingActionButton gpsBtn;
     private RelativeLayout.LayoutParams layoutParams;
     // objects
     private LinkedList<Float> nodeList;
@@ -48,15 +61,10 @@ public class MapFragment extends Fragment {
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-    // constants
-    private final float MIN_ZOOM = 1.0f;
-    private final float MAX_ZOOM = 6.0f;
-    private final int gpsMarkerWidth = 48;
-    private final int gpsMarkerHeight = 48;
-    private final int nodeIconWidth = 16;
-    private final int nodeIconHeight = 16;
     private int touristMapWidth = 0;
     private int touristMapHeight = 0;
+    private int screenWidth = 0;
+    private int screenHeight = 0;
     // variables
     private Matrix transformMat;
     private float scale = 1;
@@ -64,6 +72,8 @@ public class MapFragment extends Fragment {
     private float lat = 0, lng = 0;
     private float gpsDistortedX = 0, gpsDistortedY = 0;
     private int initialOffsetX = 0, initialOffsetY = 0;
+    // flags
+    private boolean isGpsCurrent = false;
 
 
     public static MapFragment newInstance(String mapTag) {
@@ -116,12 +126,6 @@ public class MapFragment extends Fragment {
         touristMap.setPivotY(0);
         rootLayout.addView(touristMap);
 
-        // set gpsMarker
-        gpsMarker = new ImageView(getContext());
-        gpsMarker.setImageDrawable(getResources().getDrawable(R.drawable.circle));
-        gpsMarker.setLayoutParams(new RelativeLayout.LayoutParams(gpsMarkerWidth, gpsMarkerHeight));
-        rootLayout.addView(gpsMarker);
-
         // draw edge nodes
         EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
         nodeList = edgeNode.getNodeList();
@@ -136,21 +140,40 @@ public class MapFragment extends Fragment {
             rootLayout.addView(nodeImage);
         }
 
+        // set gpsMarker
+        gpsMarker = new ImageView(getContext());
+        gpsMarker.setImageDrawable(getResources().getDrawable(R.drawable.circle));
+        gpsMarker.setLayoutParams(new RelativeLayout.LayoutParams(gpsMarkerWidth, gpsMarkerHeight));
+        rootLayout.addView(gpsMarker);
+
         // init objects
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
 
-
         // calculate screen initial offset
         DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity)getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        initialOffsetY = displayMetrics.heightPixels/2-touristMapHeight/2;
+        ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
+        initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
         // transform to center vertical
         transformMat = new Matrix();
         transformMat.postTranslate(initialOffsetX, initialOffsetY);
         reRender();
 
+        // set buttons
+        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
+        gpsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isGpsCurrent)
+                    rotateToNorth();
+                else {
+                    translateToCurrent();
+                }
+            }
+        });
 
         searchBar.bringToFront();
 
@@ -169,6 +192,8 @@ public class MapFragment extends Fragment {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 transformMat.postTranslate(-distanceX, -distanceY);
+                isGpsCurrent = false;
+                gpsBtn.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_gps_fixed_black_24dp));
                 reRender();
 
                 return true;
@@ -286,13 +311,63 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private int getStatusBarHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
+    private void translateToCurrent() {
+        final float transX = screenWidth / 2 - gpsMarker.getTranslationX();
+        final float transY = screenHeight / 2 - gpsMarker.getTranslationY();
+        final float deltaTransX = transX / 10;
+        final float deltaTransY = transY / 10;
+
+        final Handler translationHandler = new Handler();
+        Runnable translationInterpolation = new Runnable() {
+            @Override
+            public void run() {
+                if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
+                    transformMat.postTranslate(
+                            screenWidth / 2 - gpsMarker.getTranslationX(),
+                            screenHeight / 2 - gpsMarker.getTranslationY());
+                    reRender();
+                    translationHandler.removeCallbacks(this);
+                } else {
+                    transformMat.postTranslate(deltaTransX, deltaTransY);
+                    reRender();
+                    if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < screenHeight / 4) {
+                        translationHandler.postDelayed(this, 5);
+                    } else {
+                        translationHandler.postDelayed(this, 2);
+                    }
+                }
+            }
+        };
+        translationHandler.postDelayed(translationInterpolation, 2);
+        isGpsCurrent = true;
+        gpsBtn.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_gps_fixed_blue_24dp));
+    }
+
+    private void rotateToNorth() {
+        final float deltaAngle = rotation / 10;
+
+        final Handler rotationHandler = new Handler();
+        Runnable rotationInterpolation = new Runnable() {
+            @Override
+            public void run() {
+                transformMat.postTranslate(-screenWidth / 2, -screenHeight / 2);
+                transformMat.postRotate(-deltaAngle);
+                transformMat.postTranslate(screenWidth / 2, screenHeight / 2);
+                rotation -= deltaAngle;
+                reRender();
+                if (Math.abs(rotation) <= Math.abs(deltaAngle)) {
+                    transformMat.postTranslate(-screenWidth / 2, -screenHeight / 2);
+                    transformMat.postRotate(-rotation);
+                    transformMat.postTranslate(screenWidth / 2, screenHeight / 2);
+                    rotation = 0;
+                    reRender();
+                    rotationHandler.removeCallbacks(this);
+                } else {
+                    rotationHandler.postDelayed(this, 1);
+                }
+            }
+        };
+        rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
     public void handleLocationChange(Location currentLocation) {
@@ -318,4 +393,47 @@ public class MapFragment extends Fragment {
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
     }
+
+    public void handleCheckinMsg(float lat, float lng) {
+
+        // calculate distorted gps value
+        float latDistorted = 0;
+        float lngDistorted = 0;
+        double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+        double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
+        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+        if (idxWeights.idx >= 0) {
+            double[] newPos = warpMesh.interpolatePosition(idxWeights);
+            lngDistorted = (float) newPos[0];
+            latDistorted = (float) newPos[1];
+        }
+        nodeList.add(lngDistorted);
+        nodeList.add(latDistorted);
+
+        // add new icon ImageView
+        ImageView nodeImage = new ImageView(getContext());
+        nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_circle_red_400_24dp));
+        nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
+        rootLayout.addView(nodeImage);
+
+        // transform to distorted gps value
+        Matrix checkInIconTransform = new Matrix();
+        checkInIconTransform.postTranslate(-checkinIconWidth/2, -checkinIconHeight/2);
+        float[] point = new float[]{lngDistorted, latDistorted};
+        transformMat.mapPoints(point);
+        checkInIconTransform.mapPoints(point);
+        nodeImage.setTranslationX(point[0]);
+        nodeImage.setTranslationY(point[1]);
+        nodeImageList.add(nodeImage);
+    }
+
+    private int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
 }
