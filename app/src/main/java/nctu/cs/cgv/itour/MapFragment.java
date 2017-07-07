@@ -21,6 +21,15 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -57,6 +66,8 @@ public class MapFragment extends Fragment {
     private LinkedList<ImageView> nodeImageList;
     private Mesh realMesh;
     private Mesh warpMesh;
+    // Firebase real-time database
+    private DatabaseReference databaseReference;
     // gestures
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
@@ -128,11 +139,12 @@ public class MapFragment extends Fragment {
 
         // draw edge nodes
         EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
+//        nodeList = new LinkedList<>();
         nodeList = edgeNode.getNodeList();
         nodeImageList = new LinkedList<>();
         for (int i = 0; i < nodeList.size(); i += 2) {
             ImageView nodeImage = new ImageView(getContext());
-            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_trans));
+            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
             nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
             nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
             nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
@@ -151,33 +163,39 @@ public class MapFragment extends Fragment {
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
 
+        // set buttons
+        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
+        gpsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isGpsCurrent) rotateToNorth();
+                else              translateToCurrent();
+            }
+        });
+
+        setTouchListener();
+
+        updateCheckin();
+
+        bringViewsToFront();
+
         // calculate screen initial offset
         DisplayMetrics displayMetrics = new DisplayMetrics();
         ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenWidth = displayMetrics.widthPixels;
         screenHeight = displayMetrics.heightPixels;
         initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
-        // transform to center vertical
         transformMat = new Matrix();
-        transformMat.postTranslate(initialOffsetX, initialOffsetY);
-        reRender();
 
-        // set buttons
-        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
-        gpsBtn.setOnClickListener(new View.OnClickListener() {
+        rootLayout.post(new Runnable() {
             @Override
-            public void onClick(View v) {
-                if (isGpsCurrent)
-                    rotateToNorth();
-                else {
-                    translateToCurrent();
-                }
+            public void run() {
+                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+                // transform to center vertical
+                transformMat.postTranslate(initialOffsetX, initialOffsetY);
+                reRender();
             }
         });
-
-        searchBar.bringToFront();
-
-        setTouchListener();
     }
 
     private void setTouchListener() {
@@ -282,8 +300,6 @@ public class MapFragment extends Fragment {
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
         float[] point = new float[]{0, 0};
 
-        // change scale type here to prevent image corp
-        touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         // transform tourist map (ImageView)
         transformMat.mapPoints(point);
         touristMap.setScaleX(scale);
@@ -309,6 +325,39 @@ public class MapFragment extends Fragment {
             nodeImageList.get(i).setTranslationX(point[0]);
             nodeImageList.get(i).setTranslationY(point[1]);
         }
+    }
+
+    private void bringViewsToFront() {
+        gpsMarker.bringToFront();
+        searchBar.bringToFront();
+        gpsBtn.bringToFront();
+    }
+
+    private void updateCheckin() {
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        Query query = databaseReference.child("checkin");
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(issue.getValue().toString());
+                            handleCheckinMsg((float)jsonObject.getDouble("lat"), (float)jsonObject.getDouble("lng"));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            }
+        });
     }
 
     private void translateToCurrent() {
@@ -412,7 +461,7 @@ public class MapFragment extends Fragment {
 
         // add new icon ImageView
         ImageView nodeImage = new ImageView(getContext());
-        nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_check_circle_red_400_24dp));
+        nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
         nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
         rootLayout.addView(nodeImage);
 
@@ -425,6 +474,8 @@ public class MapFragment extends Fragment {
         nodeImage.setTranslationX(point[0]);
         nodeImage.setTranslationY(point[1]);
         nodeImageList.add(nodeImage);
+
+        bringViewsToFront();
     }
 
     private int getStatusBarHeight() {
