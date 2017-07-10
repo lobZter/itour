@@ -2,14 +2,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context="nctu.cs.cgv.itour.fragment.PlanFragment">
 
-    <TextView
+    <ListView
+        android:id="@+id/plan_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="plan"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_height="match_parent" />
 
 </RelativeLayout>
