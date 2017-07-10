@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,6 +30,10 @@ import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import nctu.cs.cgv.itour.MyViewPager;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
@@ -47,8 +52,12 @@ public class MainActivity extends AppCompatActivity implements
     private final int INDEX_SETTINGS = FragNavController.TAB3;
     private String mapTag;
     // view objects
-    private BottomBar bottomBar;
-    private FragNavController fragNavController;
+    private MyViewPager viewPager;
+    private List<Fragment> fragmentList;
+    // MapFragment: communicate by calling fragment method
+    private MapFragment mapFragment;
+    // use broadcast to send received checkin data(fbc topic message) to activity
+    private BroadcastReceiver messageReceiver;
     // Google Services Location API
     private GoogleApiClient googleApiClient;
     private LocationRequest locationRequest;
@@ -60,10 +69,6 @@ public class MainActivity extends AppCompatActivity implements
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
-    // use broadcast to send received checkin data(fbc topic message) to activity
-    private BroadcastReceiver messageReceiver;
-    // MapFragment: communicate by calling fragment method
-    private MapFragment mapFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,31 +86,45 @@ public class MainActivity extends AppCompatActivity implements
         setSensors();
         setBroadcastReceiver();
 
-        setView(savedInstanceState);
-
-
+        setView();
     }
 
-    private void setView(Bundle savedInstanceState) {
+    private void setView() {
         mapFragment = MapFragment.newInstance(mapTag);
+        fragmentList = new ArrayList<>();
+        fragmentList.add(mapFragment);
+        fragmentList.add(PlanFragment.newInstance());
+        fragmentList.add(SettingsFragment.newInstance());
 
-        fragNavController = FragNavController.newBuilder(savedInstanceState, getSupportFragmentManager(), R.id.fragment_content)
-                .rootFragmentListener(this, 3)
-                .build();
+        viewPager = (MyViewPager) findViewById(R.id.viewpager);
+        viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
 
-        bottomBar = (BottomBar) findViewById(R.id.bottomBar);
+            @Override
+            public Fragment getItem(int position) {
+                return fragmentList.get(position);
+            }
+
+            @Override
+            public int getCount() {
+                return fragmentList.size();
+            }
+        });
+        // disable swipe
+        viewPager.setPagingEnabled(false);
+
+        BottomBar bottomBar = (BottomBar) findViewById(R.id.bottomBar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
                 switch (tabId) {
                     case R.id.tab_map:
-                        fragNavController.switchTab(INDEX_MAP);
+                        viewPager.setCurrentItem(0);
                         break;
                     case R.id.tab_plan:
-                        fragNavController.switchTab(INDEX_PLAN);
+                        viewPager.setCurrentItem(1);
                         break;
                     case R.id.tab_settings:
-                        fragNavController.switchTab(INDEX_SETTINGS);
+                        viewPager.setCurrentItem(2);
                         break;
                 }
             }
@@ -114,7 +133,6 @@ public class MainActivity extends AppCompatActivity implements
         bottomBar.setOnTabReselectListener(new OnTabReselectListener() {
             @Override
             public void onTabReSelected(@IdRes int tabId) {
-                fragNavController.clearStack();
             }
         });
     }
@@ -163,23 +181,6 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         };
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (!fragNavController.isRootFragment()) {
-            fragNavController.popFragment();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (fragNavController != null) {
-            fragNavController.onSaveInstanceState(outState);
-        }
     }
 
     @Override
@@ -291,4 +292,6 @@ public class MainActivity extends AppCompatActivity implements
         currentLocation = location;
         mapFragment.handleLocationChange(location);
     }
+
+
 }
