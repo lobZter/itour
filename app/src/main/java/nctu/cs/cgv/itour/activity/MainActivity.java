@@ -25,7 +25,6 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.ncapdevi.fragnav.FragNavController;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
@@ -42,14 +41,9 @@ import nctu.cs.cgv.itour.fragment.SettingsFragment;
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener,
-        FragNavController.RootFragmentListener {
+        LocationListener {
 
     private static final String TAG = "MainActivity";
-    // fragment index
-    private final int INDEX_MAP = FragNavController.TAB1;
-    private final int INDEX_PLAN = FragNavController.TAB2;
-    private final int INDEX_SETTINGS = FragNavController.TAB3;
     private String mapTag;
     // view objects
     private MyViewPager viewPager;
@@ -181,19 +175,6 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         };
-    }
-
-    @Override
-    public Fragment getRootFragment(int index) {
-        switch (index) {
-            case INDEX_MAP:
-                return mapFragment;
-            case INDEX_PLAN:
-                return PlanFragment.newInstance();
-            case INDEX_SETTINGS:
-                return SettingsFragment.newInstance();
-        }
-        throw new IllegalStateException("Unexpected tab index");
     }
 
     @Override

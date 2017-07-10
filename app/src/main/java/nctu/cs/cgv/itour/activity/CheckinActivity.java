@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.mime.content.StringBody;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
@@ -32,15 +33,19 @@ import static nctu.cs.cgv.itour.MyApplication.audioPath;
 public class CheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "CheckinActivity";
+    private String mapTag;
+    // mediaRecorder
     private Boolean isRecording = false;
     private MediaRecorder mediaRecorder;
+    private String filename = " ";
+    // view objects
     private EditText locationEdit;
     private EditText descriptionEdit;
     private ImageButton recordBtn;
     private TextView recordFilename;
     private Button submitBtn;
     private ProgressBar progressBar;
-    private String filename = " ";
+
     private double latitude = 0, longitude = 0;
 
     @Override
@@ -52,6 +57,7 @@ public class CheckinActivity extends AppCompatActivity {
         Intent intent = getIntent();
         latitude = intent.getDoubleExtra("lat", 0);
         longitude = intent.getDoubleExtra("lng", 0);
+        mapTag = intent.getStringExtra("mapTag");
 
         setView();
     }

@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -21,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,6 +37,9 @@ import java.io.File;
 import java.util.LinkedList;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.activity.CheckinActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
+import nctu.cs.cgv.itour.activity.MapListActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
@@ -61,6 +66,9 @@ public class MapFragment extends Fragment {
     private ImageView touristMap;
     private ImageView gpsMarker;
     private FloatingActionButton gpsBtn;
+    private FloatingActionButton audioBtn;
+    private FloatingActionButton photoBtn;
+    private FloatingActionsMenu floatingActionsMenu;
     private RelativeLayout.LayoutParams layoutParams;
     // objects
     private LinkedList<Float> nodeList;
@@ -171,6 +179,39 @@ public class MapFragment extends Fragment {
             public void onClick(View v) {
                 if (isGpsCurrent) rotateToNorth();
                 else              translateToCurrent();
+            }
+        });
+        audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
+        audioBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), CheckinActivity.class);
+                intent.putExtra("mapTag", mapTag);
+                startActivity(intent);
+            }
+        });
+        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
+        photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
+        photoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
+        floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
+        floatingActionsMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
+            @Override
+            public void onMenuExpanded() {
+                // make it clickable
+                audioBtn.setVisibility(View.VISIBLE);
+                photoBtn.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onMenuCollapsed() {
+                // prevent intercepting touch event for float action menu
+                audioBtn.setVisibility(View.GONE);
+                photoBtn.setVisibility(View.GONE);
             }
         });
 

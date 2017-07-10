@@ -24,23 +24,41 @@
         android:id="@+id/btn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/btn_add"
-        android:layout_alignStart="@+id/btn_add"
+        android:layout_above="@+id/menu_add"
+        android:layout_alignParentEnd="true"
         android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="24dp"
         android:backgroundTint="@color/white"
         android:src="@drawable/ic_gps_fixed_blue_24dp" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_add"
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/menu_add"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="64dp"
         android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/colorLocation"
-        android:src="@drawable/ic_add_white_24dp" />
+        app:fab_addButtonColorNormal="@color/colorLocation"
+        app:fab_addButtonColorPressed="@color/colorLocation"
+        app:fab_addButtonPlusIconColor="@color/white"
+        app:fab_expandDirection="left">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_photo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/ic_photo_camera_black_24dp" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/ic_mic_black_24dp" />
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
 
 </RelativeLayout>
