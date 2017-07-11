@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -514,6 +515,12 @@ public class MapFragment extends Fragment {
         ImageView nodeImage = new ImageView(getContext());
         nodeImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
         nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
+        nodeImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog();
+            }
+        });
         rootLayout.addView(nodeImage);
 
         // transform to distorted gps value
@@ -527,6 +534,12 @@ public class MapFragment extends Fragment {
         nodeImageList.add(nodeImage);
 
         bringViewsToFront();
+    }
+
+    private void showDialog() {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance("Some Title");
+        editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
     }
 
     private int getStatusBarHeight() {
