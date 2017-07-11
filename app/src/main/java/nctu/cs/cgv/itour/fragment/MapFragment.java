@@ -31,9 +31,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.util.LinkedList;
 
@@ -41,7 +38,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
-import nctu.cs.cgv.itour.object.CheckinIcon;
+import nctu.cs.cgv.itour.object.CheckinInfo;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
@@ -396,14 +393,8 @@ public class MapFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                        try {
-                            JSONObject jsonObject = new JSONObject(issue.getValue().toString());
-//                            CheckinIcon checkinIcon = issue.getValue(CheckinIcon.class);
-                            handleCheckinMsg(issue.getKey(), (float) jsonObject.getDouble("lat"), (float) jsonObject.getDouble("lng"));
-//                            handleCheckinMsg(issue.getKey(), checkinIcon.lat, checkinIcon.lng);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+                        CheckinInfo checkinInfo = issue.getValue(CheckinInfo.class);
+                        handleCheckinMsg(issue.getKey(), Float.valueOf(checkinInfo.lat), Float.valueOf(checkinInfo.lng));
                     }
                 }
             }
@@ -547,19 +538,14 @@ public class MapFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    try {
-                        JSONObject jsonObject = new JSONObject(dataSnapshot.getValue().toString());
-                        String location = jsonObject.getString("location");
-                        String description = jsonObject.getString("description");
-                        String filename = jsonObject.getString("filename");
-                        String type = jsonObject.getString("type");
-
-                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                        CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance(location, description, filename, type);
-                        editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance(
+                            checkinInfo.location,
+                            checkinInfo.description,
+                            checkinInfo.filename,
+                            checkinInfo.type);
+                    editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
                 }
             }
 
