@@ -137,9 +137,10 @@ public class MainActivity extends AppCompatActivity implements
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                String postId = intent.getStringExtra("postId");
                 String lat = intent.getStringExtra("lat");
                 String lng = intent.getStringExtra("lng");
-                mapFragment.handleCheckinMsg(Float.valueOf(lat), Float.valueOf(lng));
+                mapFragment.handleCheckinMsg(postId, Float.valueOf(lat), Float.valueOf(lng));
                 Log.d(TAG, "Got message: " + lat + ", " + lng);
             }
         };

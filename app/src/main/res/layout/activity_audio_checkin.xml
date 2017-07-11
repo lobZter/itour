@@ -15,7 +15,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:indeterminate="true"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
     </FrameLayout>
 
@@ -29,51 +29,41 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/imageView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:layout_marginTop="22dp"
                 app:srcCompat="@drawable/ic_location_on_black_24dp" />
 
-            <com.wrapp.floatlabelededittext.FloatLabeledEditText
+            <EditText
+                android:id="@+id/et_location"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <EditText
-                    android:id="@+id/et_location"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="地點" />
-            </com.wrapp.floatlabelededittext.FloatLabeledEditText>
+                android:layout_height="wrap_content"
+                android:hint="地點"
+                android:imeOptions="actionNext"
+                android:singleLine="true" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:layout_marginTop="22dp"
                 app:srcCompat="@drawable/ic_mode_edit_black_24dp" />
 
-            <com.wrapp.floatlabelededittext.FloatLabeledEditText
+            <EditText
+                android:id="@+id/et_description"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <EditText
-                    android:id="@+id/et_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="輸入說明文字......" />
-            </com.wrapp.floatlabelededittext.FloatLabeledEditText>
+                android:layout_height="wrap_content"
+                android:hint="輸入說明文字......" />
 
         </LinearLayout>
 

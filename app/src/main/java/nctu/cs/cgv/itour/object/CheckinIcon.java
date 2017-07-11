@@ -9,24 +9,29 @@ import android.widget.ImageView;
 
 public class CheckinIcon {
     public ImageView icon;
-    public double latitude;
-    public double longitude;
-    public String path;
+    public float lat;
+    public float lng;
+    public String location;
+    public String description;
+    public String filename;
     public String type;
 
-    public CheckinIcon(Context context) {
-        this.icon = new ImageView(context);
-        this.latitude = 0;
-        this.longitude = 0;
-        this.path = null;
-        this.type = null;
+    public CheckinIcon() {
+//        this.icon = new ImageView(context);
+        this.lat = 0;
+        this.lng = 0;
+        this.location = "title";
+        this.description = "...";
+        this.filename = "";
+        this.type = "";
     }
 
-    public CheckinIcon(Context context, double latitude, double longitude, String type, String path) {
-        this.icon = new ImageView(context);
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.path = path;
+    public CheckinIcon(float lat, float lng, String location, String description, String filename, String type) {
+        this.lat = lat;
+        this.lng = lng;
+        this.location = location;
+        this.description = description;
+        this.filename = filename;
         this.type = type;
     }
 }

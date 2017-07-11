@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaRecorder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,8 +13,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -34,16 +31,15 @@ import java.util.Calendar;
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 
-import static nctu.cs.cgv.itour.MyApplication.audioPath;
-import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.photoPath;
 
-public class PhotoActivity extends AppCompatActivity {
+public class PhotoCheckinActivity extends AppCompatActivity {
 
-    private static final String TAG = "PhotoActivity";
+    private static final String TAG = "PhotoCheckinActivity";
     private String mapTag;
-    private double latitude = 0;
-    private double longitude = 0;
+    private float latitude = 0;
+    private float longitude = 0;
     private String filename = " ";
     // pick image
     private static final int PICK_PHOTO_FOR_AVATAR = 1024;
@@ -61,8 +57,8 @@ public class PhotoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_photo);
 
         Intent intent = getIntent();
-        latitude = intent.getDoubleExtra("lat", 0);
-        longitude = intent.getDoubleExtra("lng", 0);
+        latitude = intent.getFloatExtra("lat", 0);
+        longitude = intent.getFloatExtra("lng", 0);
         mapTag = intent.getStringExtra("mapTag");
 
         setView();
@@ -92,12 +88,12 @@ public class PhotoActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    params.put("checkIn-audio", new File(filename));
+                    params.put("file", new File(filename));
                     params.put("lat", latitude);
                     params.put("lng", longitude);
                     params.put("type", "photo");
 
-                    client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+                    client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
                         @Override
                         public void onStart() {
                             progressBar.setVisibility(View.VISIBLE);
@@ -112,7 +108,7 @@ public class PhotoActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                             progressBar.setVisibility(View.GONE);
-                            Toast.makeText(PhotoActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
+                            Toast.makeText(PhotoCheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (FileNotFoundException e) {

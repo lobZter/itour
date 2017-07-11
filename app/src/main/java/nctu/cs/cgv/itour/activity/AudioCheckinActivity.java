@@ -25,17 +25,16 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.entity.mime.content.StringBody;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 
-public class CheckinActivity extends AppCompatActivity {
+public class AudioCheckinActivity extends AppCompatActivity {
 
-    private static final String TAG = "CheckinActivity";
+    private static final String TAG = "AudioCheckinActivity";
     private String mapTag;
-    private double latitude = 0;
-    private double longitude = 0;
+    private float lat = 0;
+    private float lng = 0;
     // mediaRecorder
     private Boolean isRecording = false;
     private MediaRecorder mediaRecorder;
@@ -52,11 +51,11 @@ public class CheckinActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_checkin);
+        setContentView(R.layout.activity_audio_checkin);
 
         Intent intent = getIntent();
-        latitude = intent.getDoubleExtra("lat", 0);
-        longitude = intent.getDoubleExtra("lng", 0);
+        lat = intent.getFloatExtra("lat", 0);
+        lng = intent.getFloatExtra("lng", 0);
         mapTag = intent.getStringExtra("mapTag");
 
         setView();
@@ -92,14 +91,23 @@ public class CheckinActivity extends AppCompatActivity {
         submitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (locationEdit.getText().toString().matches("")) {
+                    Toast.makeText(AudioCheckinActivity.this, "打卡要給位置啊", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
                 AsyncHttpClient client = new AsyncHttpClient();
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    params.put("checkIn-audio", new File(filename));
-                    params.put("lat", latitude);
-                    params.put("lng", longitude);
+                    File audioFile = new File(filename);
+                    if(audioFile.exists())
+                        params.put("file", audioFile);
+                    params.put("mapTag", mapTag);
+                    params.put("location", locationEdit.getText().toString());
+                    params.put("description", descriptionEdit.getText().toString());
+                    params.put("lat", lat);
+                    params.put("lng", lng);
                     params.put("type", "audio");
 
                     client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
@@ -117,11 +125,12 @@ public class CheckinActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                             progressBar.setVisibility(View.GONE);
-                            Toast.makeText(CheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
+                            Toast.makeText(AudioCheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
                         }
                     });
+
                 } catch (FileNotFoundException e) {
-                    Log.d(TAG, e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });

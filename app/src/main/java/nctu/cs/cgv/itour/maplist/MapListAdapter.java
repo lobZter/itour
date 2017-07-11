@@ -18,7 +18,7 @@ import java.util.List;
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 
-import static nctu.cs.cgv.itour.MyApplication.serverURL;
+import static nctu.cs.cgv.itour.MyApplication.fileServerURL;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
 /**
@@ -53,7 +53,7 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
         MapListItem currentItem = mapList.get(position);
         holder.title.setText(currentItem.mapName);
 
-        final String thumbURL = serverURL + currentItem.mapThumb;
+        final String thumbURL = fileServerURL + currentItem.mapThumb;
         final String thumbPath = dirPath + currentItem.mapThumb;
         File thumbFile = new File(thumbPath);
 
@@ -84,7 +84,7 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
 
         ViewHolder(View view) {
             super(view);
-            title = (TextView) view.findViewById(R.id.title);
+            title = (TextView) view.findViewById(R.id.tv_title);
             thumb = (ImageView) view.findViewById(R.id.thumb);
         }
     }

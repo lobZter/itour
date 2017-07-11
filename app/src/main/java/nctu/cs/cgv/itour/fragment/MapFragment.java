@@ -38,11 +38,10 @@ import java.io.File;
 import java.util.LinkedList;
 
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.CheckinActivity;
-import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.activity.MapListActivity;
-import nctu.cs.cgv.itour.activity.PhotoActivity;
+import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
+import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.object.CheckinIcon;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
@@ -180,7 +179,7 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (isGpsCurrent) rotateToNorth();
-                else              translateToCurrent();
+                else translateToCurrent();
             }
         });
         audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
@@ -188,7 +187,8 @@ public class MapFragment extends Fragment {
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), CheckinActivity.class);
+                Intent intent = new Intent(getContext(), AudioCheckinActivity.class);
+                Log.d(TAG, "lat: " + lat + ", lng" + lng);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
@@ -201,7 +201,8 @@ public class MapFragment extends Fragment {
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), PhotoActivity.class);
+                Intent intent = new Intent(getContext(), PhotoCheckinActivity.class);
+                Log.d(TAG, "lat: " + lat + ", lng" + lng);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
@@ -384,6 +385,7 @@ public class MapFragment extends Fragment {
         gpsMarker.bringToFront();
         searchBar.bringToFront();
         gpsBtn.bringToFront();
+        floatingActionsMenu.bringToFront();
     }
 
     private void updateCheckin() {
@@ -396,13 +398,14 @@ public class MapFragment extends Fragment {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         try {
                             JSONObject jsonObject = new JSONObject(issue.getValue().toString());
-                            handleCheckinMsg((float)jsonObject.getDouble("lat"), (float)jsonObject.getDouble("lng"));
+//                            CheckinIcon checkinIcon = issue.getValue(CheckinIcon.class);
+                            handleCheckinMsg(issue.getKey(), (float) jsonObject.getDouble("lat"), (float) jsonObject.getDouble("lng"));
+//                            handleCheckinMsg(issue.getKey(), checkinIcon.lat, checkinIcon.lng);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
                 }
-
             }
 
             @Override
@@ -495,7 +498,7 @@ public class MapFragment extends Fragment {
         gpsMarker.setTranslationY(point[1]);
     }
 
-    public void handleCheckinMsg(float lat, float lng) {
+    public void handleCheckinMsg(final String postId, float lat, float lng) {
 
         // calculate distorted gps value
         float latDistorted = 0;
@@ -518,14 +521,14 @@ public class MapFragment extends Fragment {
         nodeImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog();
+                showDialog(postId);
             }
         });
         rootLayout.addView(nodeImage);
 
         // transform to distorted gps value
         Matrix checkInIconTransform = new Matrix();
-        checkInIconTransform.postTranslate(-checkinIconWidth/2, -checkinIconHeight/2);
+        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight / 2);
         float[] point = new float[]{lngDistorted, latDistorted};
         transformMat.mapPoints(point);
         checkInIconTransform.mapPoints(point);
@@ -536,10 +539,35 @@ public class MapFragment extends Fragment {
         bringViewsToFront();
     }
 
-    private void showDialog() {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance("Some Title");
-        editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
+    private void showDialog(String postId) { // postId: unique key for data query
+
+
+        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(dataSnapshot.getValue().toString());
+                        String location = jsonObject.getString("location");
+                        String description = jsonObject.getString("description");
+                        String filename = jsonObject.getString("filename");
+                        String type = jsonObject.getString("type");
+
+                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                        CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance(location, description, filename, type);
+                        editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            }
+        });
     }
 
     private int getStatusBarHeight() {

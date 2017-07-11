@@ -21,9 +21,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+            String postId = remoteMessage.getData().get("postId");
             String lat = remoteMessage.getData().get("lat");
             String lng = remoteMessage.getData().get("lng");
-            sendMessage(lat, lng);
+            sendMessage(postId, lat, lng);
         }
 
         if (remoteMessage.getNotification() != null) {
@@ -31,9 +32,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
     }
 
-    private void sendMessage(String lat, String lng) {
+    private void sendMessage(String postId, String lat, String lng) {
         // send message to activities by broadcasting
         Intent intent = new Intent("checkin");
+        intent.putExtra("postId", postId);
         intent.putExtra("lat", lat);
         intent.putExtra("lng", lng);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

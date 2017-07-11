@@ -252,7 +252,7 @@ public class MapActivity extends AppCompatActivity implements
         checkinButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MapActivity.this, CheckinActivity.class);
+                Intent intent = new Intent(MapActivity.this, AudioCheckinActivity.class);
                 intent.putExtra("lat", latitude);
                 intent.putExtra("lng", longitude);
                 startActivity(intent);

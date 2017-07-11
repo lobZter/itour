@@ -46,7 +46,7 @@ import nctu.cs.cgv.itour.maplist.MapListAdapter;
 import nctu.cs.cgv.itour.maplist.MapListItem;
 import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
-import static nctu.cs.cgv.itour.MyApplication.serverURL;
+import static nctu.cs.cgv.itour.MyApplication.fileServerURL;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.config.Utility.dpToPx;
 
@@ -154,7 +154,7 @@ public class MapListActivity extends AppCompatActivity {
         // download then call updateAdapter()
         // TODO automatic download at the first time
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get(serverURL + "jsonexample.json", new AsyncHttpResponseHandler() {
+        client.get(fileServerURL + "jsonexample.json", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 try {

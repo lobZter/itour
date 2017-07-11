@@ -28,7 +28,7 @@ public class PlanItemAdapter extends ArrayAdapter<PlanItem> {
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_plan, parent, false);
         }
 
-        TextView title = (TextView) convertView.findViewById(R.id.title);
+        TextView title = (TextView) convertView.findViewById(R.id.tv_title);
         title.setText(planItem != null ? planItem.title : null);
 
         return convertView;

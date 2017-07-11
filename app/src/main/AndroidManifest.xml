@@ -30,7 +30,7 @@
         <activity
             android:name=".activity.MainActivity"
             android:theme="@style/TransparentStatusBarTheme"></activity>
-        <activity android:name=".activity.CheckinActivity" />
+        <activity android:name=".activity.AudioCheckinActivity" />
 
         <service android:name=".service.MyFirebaseInstanceIDService">
             <intent-filter>
@@ -43,7 +43,7 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".activity.PhotoActivity"></activity>
+        <activity android:name=".activity.PhotoCheckinActivity"></activity>
     </application>
 
 </manifest>
