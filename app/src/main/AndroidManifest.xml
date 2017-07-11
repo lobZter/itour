@@ -24,13 +24,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.MapActivity"
-            android:theme="@style/TransparentTheme">
-        </activity>
-        <activity android:name=".activity.MainActivity"
-            android:theme="@style/TransparentStatusBarTheme">
-        </activity>
-        <activity android:name=".activity.CheckinActivity"></activity>
+        <activity
+            android:name=".activity.MapActivity"
+            android:theme="@style/TransparentTheme"></activity>
+        <activity
+            android:name=".activity.MainActivity"
+            android:theme="@style/TransparentStatusBarTheme"></activity>
+        <activity android:name=".activity.CheckinActivity" />
 
         <service android:name=".service.MyFirebaseInstanceIDService">
             <intent-filter>
@@ -42,6 +42,8 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <activity android:name=".activity.PhotoActivity"></activity>
     </application>
 
 </manifest>

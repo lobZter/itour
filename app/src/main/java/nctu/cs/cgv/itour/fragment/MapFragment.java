@@ -40,6 +40,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.MapListActivity;
+import nctu.cs.cgv.itour.activity.PhotoActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
@@ -182,22 +183,31 @@ public class MapFragment extends Fragment {
             }
         });
         audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
+        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getContext(), CheckinActivity.class);
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
                 startActivity(intent);
+                floatingActionsMenu.collapseImmediately();
             }
         });
-        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
         photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
+        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(getContext(), PhotoActivity.class);
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
+                intent.putExtra("mapTag", mapTag);
+                startActivity(intent);
+                floatingActionsMenu.collapseImmediately();
             }
         });
-        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
         floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
         floatingActionsMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
             @Override

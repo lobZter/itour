@@ -1,16 +1,20 @@
 package nctu.cs.cgv.itour.activity;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaRecorder;
-import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,39 +24,41 @@ import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.entity.mime.content.StringBody;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.photoPath;
 
-public class CheckinActivity extends AppCompatActivity {
+public class PhotoActivity extends AppCompatActivity {
 
-    private static final String TAG = "CheckinActivity";
+    private static final String TAG = "PhotoActivity";
     private String mapTag;
     private double latitude = 0;
     private double longitude = 0;
-    // mediaRecorder
-    private Boolean isRecording = false;
-    private MediaRecorder mediaRecorder;
     private String filename = " ";
+    // pick image
+    private static final int PICK_PHOTO_FOR_AVATAR = 1024;
     // view objects
     private EditText locationEdit;
     private EditText descriptionEdit;
     private ImageButton recordBtn;
-    private TextView recordFilename;
     private Button submitBtn;
     private ProgressBar progressBar;
-
+    private ImageView pickedImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_checkin);
+        setContentView(R.layout.activity_photo);
 
         Intent intent = getIntent();
         latitude = intent.getDoubleExtra("lat", 0);
@@ -67,25 +73,14 @@ public class CheckinActivity extends AppCompatActivity {
         locationEdit = (EditText) findViewById(R.id.et_location);
         descriptionEdit = (EditText) findViewById(R.id.et_description);
         recordBtn = (ImageButton) findViewById(R.id.btn_record);
-        recordFilename = (TextView) findViewById(R.id.tv_record_filename);
         submitBtn = (Button) findViewById(R.id.btn_submit);
         progressBar = (ProgressBar) findViewById(R.id.loading_circle);
-
-        // Verify that the device has a mic first
-        PackageManager packageManager = this.getPackageManager();
-        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
-            recordBtn.setEnabled(false);
-            submitBtn.setEnabled(false);
-            Toast.makeText(this, "找不到麥克風QQ", Toast.LENGTH_LONG).show();
-        }
+        pickedImage = (ImageView) findViewById(R.id.picked_image);
 
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isRecording)
-                    startAudioRecord();
-                else
-                    stopAudioRecord();
+                pickImage();
             }
         });
 
@@ -100,7 +95,7 @@ public class CheckinActivity extends AppCompatActivity {
                     params.put("checkIn-audio", new File(filename));
                     params.put("lat", latitude);
                     params.put("lng", longitude);
-                    params.put("type", "audio");
+                    params.put("type", "photo");
 
                     client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
                         @Override
@@ -117,7 +112,7 @@ public class CheckinActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
                             progressBar.setVisibility(View.GONE);
-                            Toast.makeText(CheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
+                            Toast.makeText(PhotoActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
                         }
                     });
                 } catch (FileNotFoundException e) {
@@ -127,36 +122,39 @@ public class CheckinActivity extends AppCompatActivity {
         });
     }
 
-    private void startAudioRecord() {
-        // TODO prevent name collision
-        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
-        Log.d(TAG, filename);
-
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(filename);
-
-        try {
-            mediaRecorder.prepare();
-            mediaRecorder.start();
-            recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_stop_black_24dp));
-            recordFilename.setText("錄音中...");
-            isRecording = true;
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
-        }
-
+    public void pickImage() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(intent, PICK_PHOTO_FOR_AVATAR);
     }
 
-    private void stopAudioRecord() {
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
-        isRecording = false;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_PHOTO_FOR_AVATAR && resultCode == Activity.RESULT_OK) {
+            if (data == null) {
+                //Display an error
+                return;
+            }
 
-        recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_black_24dp));
-        recordFilename.setText(filename);
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(data.getData());
+                //Now you can do whatever you want with your inpustream, save it as file, upload to a server, decode a bitmap...
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                pickedImage.setImageBitmap(bitmap);
+
+                // save file
+                byte[] buffer = new byte[inputStream.available()];
+                inputStream.read(buffer);
+
+                filename = photoPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
+                File targetFile = new File(filename);
+                OutputStream outStream = new FileOutputStream(targetFile);
+                outStream.write(buffer);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
