@@ -8,7 +8,8 @@ import android.widget.ImageView;
  */
 
 public class CheckinInfo {
-    public ImageView icon;
+
+//    public ImageView icon;
     public String lat;
     public String lng;
     public String location;

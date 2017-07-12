@@ -19,6 +19,8 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -62,6 +64,7 @@ public class MapFragment extends Fragment {
     private RelativeLayout rootLayout;
     private FloatingSearchView searchBar;
     private ImageView touristMap;
+    private ImageView fogMap;
     private ImageView gpsMarker;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
@@ -144,6 +147,10 @@ public class MapFragment extends Fragment {
         touristMap.setPivotY(0);
         rootLayout.addView(touristMap);
 
+        // draw fog
+
+        fogMap = new ImageView(getContext());
+
         // draw edge nodes
         EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
         nodeList = edgeNode.getNodeList();
@@ -185,7 +192,6 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getContext(), AudioCheckinActivity.class);
-                Log.d(TAG, "lat: " + lat + ", lng" + lng);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
@@ -199,7 +205,6 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getContext(), PhotoCheckinActivity.class);
-                Log.d(TAG, "lat: " + lat + ", lng" + lng);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
@@ -532,7 +537,6 @@ public class MapFragment extends Fragment {
 
     private void showDialog(String postId) { // postId: unique key for data query
 
-
         Query query = databaseReference.child("checkin").child(mapTag).child(postId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -540,12 +544,12 @@ public class MapFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    CheckinDialogFragment editNameDialogFragment = CheckinDialogFragment.newInstance(
+                    CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(
                             checkinInfo.location,
                             checkinInfo.description,
                             checkinInfo.filename,
                             checkinInfo.type);
-                    editNameDialogFragment.show(fragmentManager, "fragment_edit_name");
+                    checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
                 }
             }
 

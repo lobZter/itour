@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements
         });
         // disable swipe
         viewPager.setPagingEnabled(false);
+        // set keep all three pages alive
+        viewPager.setOffscreenPageLimit(3);
 
         BottomBar bottomBar = (BottomBar) findViewById(R.id.bottomBar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
@@ -141,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements
                 String lat = intent.getStringExtra("lat");
                 String lng = intent.getStringExtra("lng");
                 mapFragment.handleCheckinMsg(postId, Float.valueOf(lat), Float.valueOf(lng));
-                Log.d(TAG, "Got message: " + lat + ", " + lng);
+                Log.d(TAG, "Got message: " + postId + ", " + lat + ", " + lng);
             }
         };
     }

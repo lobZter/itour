@@ -39,6 +39,8 @@
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="64dp"
         android:layout_marginEnd="16dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:fab_addButtonColorNormal="@color/colorLocation"
         app:fab_addButtonColorPressed="@color/colorLocation"
         app:fab_addButtonPlusIconColor="@color/white"
