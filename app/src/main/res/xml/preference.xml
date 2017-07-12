@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="地圖設定">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="switch_preference"
+            android:title="路線比例" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="switch_preference"
+            android:title="迷霧系統" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
