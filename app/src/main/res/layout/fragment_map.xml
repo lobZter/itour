@@ -20,14 +20,13 @@
         app:floatingSearch_showSearchKey="false"
         app:floatingSearch_suggestionsListAnimDuration="250" />
 
-    <android.support.design.widget.FloatingActionButton
+    <com.getbase.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/menu_add"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="24dp"
+        android:layout_marginEnd="16dp"
         android:backgroundTint="@color/white"
         android:src="@drawable/ic_gps_fixed_blue_24dp" />
 
@@ -45,20 +44,25 @@
         app:fab_addButtonColorPressed="@color/colorLocation"
         app:fab_addButtonPlusIconColor="@color/white"
         app:fab_expandDirection="left">
+        <!--fab:fab_labelStyle="@style/MenuLabel">-->
 
-        <android.support.design.widget.FloatingActionButton
+        <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btn_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
-            android:src="@drawable/ic_photo_camera_black_24dp" />
+            android:src="@drawable/ic_edit_black_24dp"
+            app:fab_size="mini"/>
+            <!--fab:fab_title="新增打卡" />-->
 
-        <android.support.design.widget.FloatingActionButton
+        <com.getbase.floatingactionbutton.FloatingActionButton
             android:id="@+id/btn_audio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
-            android:src="@drawable/ic_mic_black_24dp" />
+            android:src="@drawable/ic_mic_black_24dp"
+            app:fab_size="mini"/>
+            <!--fab:fab_title="新增音訊" />-->
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 

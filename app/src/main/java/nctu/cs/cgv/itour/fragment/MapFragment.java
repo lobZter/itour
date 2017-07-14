@@ -1,14 +1,15 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.location.Location;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.util.DisplayMetrics;
@@ -21,8 +22,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,10 +33,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.LinkedList;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
@@ -43,6 +54,7 @@ import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
+import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
 public class MapFragment extends Fragment {
@@ -58,12 +70,27 @@ public class MapFragment extends Fragment {
     private final int checkinIconWidth = 64;
     private final int checkinIconHeight = 64;
     private String mapTag;
+    private Context context;
+    // variables
+    private Matrix transformMat;
+    private float scale = 1;
+    private float rotation = 0;
+    private float lat = 0, lng = 0;
+    private float gpsDistortedX = 0;
+    private float gpsDistortedY = 0;
+    private int initialOffsetX = 0;
+    private int initialOffsetY = 0;
+    private int touristMapWidth = 0;
+    private int touristMapHeight = 0;
+    private int screenWidth = 0;
+    private int screenHeight = 0;
     // views
     private RelativeLayout rootLayout;
     private FloatingSearchView searchBar;
     private ImageView touristMap;
     private ImageView fogMap;
     private ImageView gpsMarker;
+    private ImageView mapCenter;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
     private FloatingActionButton photoBtn;
@@ -80,19 +107,13 @@ public class MapFragment extends Fragment {
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-    private int touristMapWidth = 0;
-    private int touristMapHeight = 0;
-    private int screenWidth = 0;
-    private int screenHeight = 0;
-    // variables
-    private Matrix transformMat;
-    private float scale = 1;
-    private float rotation = 0;
-    private float lat = 0, lng = 0;
-    private float gpsDistortedX = 0, gpsDistortedY = 0;
-    private int initialOffsetX = 0, initialOffsetY = 0;
+    // mediaRecorder
+    private MediaRecorder mediaRecorder;
+    private String filename = " ";
     // flags
     private boolean isGpsCurrent = false;
+    private Boolean isRecording = false;
+    private Boolean audioReady = false;
 
 
     public static MapFragment newInstance(String mapTag) {
@@ -107,6 +128,14 @@ public class MapFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mapTag = getArguments().getString("mapTag", "nctu");
+        context = getContext();
+
+        // get screen size
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        screenWidth = displayMetrics.widthPixels;
+        screenHeight = displayMetrics.heightPixels;
+        Log.d(TAG, "W: " + screenWidth + ", H: " + screenHeight);
     }
 
     @Override
@@ -138,7 +167,7 @@ public class MapFragment extends Fragment {
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
-        touristMap = new ImageView(getContext());
+        touristMap = new ImageView(context);
         touristMap.setImageBitmap(touristMapBitmap);
         touristMap.setScaleType(ImageView.ScaleType.FIT_START);
         touristMap.setPivotX(0);
@@ -146,8 +175,7 @@ public class MapFragment extends Fragment {
         rootLayout.addView(touristMap);
 
         // draw fog
-
-        fogMap = new ImageView(getContext());
+        fogMap = new ImageView(context);
 
         // draw edge nodes
         EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
@@ -155,8 +183,8 @@ public class MapFragment extends Fragment {
 //        nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
         for (int i = 0; i < nodeList.size(); i += 2) {
-            ImageView nodeImage = new ImageView(getContext());
-            nodeImage.setImageDrawable(getResources().getDrawable(R.drawable.ftprint_black_trans));
+            ImageView nodeImage = new ImageView(context);
+            nodeImage.setImageResource(R.drawable.ftprint_black_trans);
             nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
             nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
             nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
@@ -165,15 +193,21 @@ public class MapFragment extends Fragment {
         }
 
         // set gpsMarker
-        gpsMarker = new ImageView(getContext());
-        gpsMarker.setImageDrawable(getResources().getDrawable(R.drawable.circle));
+        gpsMarker = new ImageView(context);
+        gpsMarker.setImageResource(R.drawable.circle);
         gpsMarker.setLayoutParams(new RelativeLayout.LayoutParams(gpsMarkerWidth, gpsMarkerHeight));
         rootLayout.addView(gpsMarker);
 
-        // init objects
-        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
-        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
-        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        // map center marker for checkin
+        layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.setMargins(screenWidth/2, screenHeight/2, 0, 0);
+        mapCenter = new ImageView(context);
+//            mapCenter.setImageResource(R.drawable.speech_bubble);
+        mapCenter.setImageResource(R.drawable.center);
+        mapCenter.setLayoutParams(layoutParams);
+        mapCenter.setVisibility(View.GONE);
+        rootLayout.addView(mapCenter);
+
 
         // set buttons
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
@@ -189,12 +223,7 @@ public class MapFragment extends Fragment {
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), AudioCheckinActivity.class);
-                intent.putExtra("lat", lat);
-                intent.putExtra("lng", lng);
-                intent.putExtra("mapTag", mapTag);
-                startActivity(intent);
-                floatingActionsMenu.collapseImmediately();
+                audioCheckin();
             }
         });
         photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
@@ -202,7 +231,7 @@ public class MapFragment extends Fragment {
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), PhotoCheckinActivity.class);
+                Intent intent = new Intent(context, PhotoCheckinActivity.class);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("mapTag", mapTag);
@@ -224,8 +253,21 @@ public class MapFragment extends Fragment {
                 // prevent intercepting touch event for float action menu
                 audioBtn.setVisibility(View.GONE);
                 photoBtn.setVisibility(View.GONE);
+
+                if(isRecording) stopAudioRecord();
+                isRecording = false;
+                audioReady = false;
+                mapCenter.setVisibility(View.GONE);
+                audioBtn.setImageResource(R.drawable.ic_mic_black_24dp);
             }
         });
+
+
+        // init objects
+        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        transformMat = new Matrix();
 
         setTouchListener();
 
@@ -233,18 +275,11 @@ public class MapFragment extends Fragment {
 
         bringViewsToFront();
 
-        // calculate screen initial offset
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenWidth = displayMetrics.widthPixels;
-        screenHeight = displayMetrics.heightPixels;
-        initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
-        transformMat = new Matrix();
-
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
                 // transform to center vertical
+//                initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
 //                transformMat.postTranslate(initialOffsetX, initialOffsetY);
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
 //                reRender();
@@ -254,7 +289,7 @@ public class MapFragment extends Fragment {
 
     private void setTouchListener() {
         gestureDetector = new GestureDetector(
-                getContext(), new GestureDetector.SimpleOnGestureListener() {
+                context, new GestureDetector.SimpleOnGestureListener() {
 
             @Override
             public boolean onDown(MotionEvent e) {
@@ -265,7 +300,7 @@ public class MapFragment extends Fragment {
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 transformMat.postTranslate(-distanceX, -distanceY);
                 isGpsCurrent = false;
-                gpsBtn.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_gps_fixed_black_24dp));
+                gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
                 reRender();
 
                 return true;
@@ -278,7 +313,7 @@ public class MapFragment extends Fragment {
         });
 
         scaleGestureDetector = new ScaleGestureDetector(
-                getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
 
             @Override
             public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
@@ -388,6 +423,74 @@ public class MapFragment extends Fragment {
         floatingActionsMenu.bringToFront();
     }
 
+    private void audioCheckin() {
+
+        if (isRecording) {
+            stopAudioRecord();
+            audioBtn.setImageResource(R.drawable.ic_send_black_24dp);
+        } else if (audioReady) {
+
+            float[] point = new float[]{0, 0}; // tourist map position
+            float latCenter = lat;
+            float lngCenter = lng;
+            Matrix temp = transformMat;
+
+            // calculate lat lng
+            temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
+            temp.postRotate(-rotation);
+            temp.postTranslate(screenWidth / 2, screenHeight / 2);
+            temp.mapPoints(point);
+            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx(screenWidth/2 - point[0], screenHeight/2 - point[1]);
+            if (idxWeights.idx >= 0) {
+                double[] newPos = realMesh.interpolatePosition(idxWeights);
+                lngCenter = (float)(newPos[0]/realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
+                latCenter = (float)(realMesh.maxLat - newPos[1]/realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
+            }
+
+            // close menu
+            floatingActionsMenu.collapse();
+
+            // upload audio
+            AsyncHttpClient client = new AsyncHttpClient();
+            RequestParams params = new RequestParams();
+            params.setForceMultipartEntityContentType(true);
+            try {
+                File audioFile = new File(filename);
+                if(audioFile.exists())
+                    params.put("file", audioFile);
+                params.put("mapTag", mapTag);
+                params.put("location", "null");
+                params.put("description", "null");
+                params.put("lat", latCenter);
+                params.put("lng", lngCenter);
+                params.put("type", "audio");
+
+                client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onStart() {
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        Toast.makeText(context, "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            mapCenter.setVisibility(View.VISIBLE);
+            audioBtn.setImageResource(R.drawable.ic_stop_red_a700_24dp);
+
+            startAudioRecord();
+        }
+    }
+
     private void updateCheckin() {
         databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
@@ -438,7 +541,7 @@ public class MapFragment extends Fragment {
         };
         translationHandler.postDelayed(translationInterpolation, 2);
         isGpsCurrent = true;
-        gpsBtn.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_gps_fixed_blue_24dp));
+        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
     }
 
     private void rotateToNorth() {
@@ -509,8 +612,8 @@ public class MapFragment extends Fragment {
         nodeList.add(latDistorted);
 
         // add new icon ImageView
-        ImageView nodeImage = new ImageView(getContext());
-        nodeImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        ImageView nodeImage = new ImageView(context);
+        nodeImage.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
         nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
         nodeImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -565,6 +668,35 @@ public class MapFragment extends Fragment {
             result = getResources().getDimensionPixelSize(resourceId);
         }
         return result;
+    }
+
+    private void startAudioRecord() {
+        // TODO prevent name collision
+        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
+        Log.d(TAG, filename);
+
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setOutputFile(filename);
+
+        try {
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+            isRecording = true;
+        } catch (IOException e) {
+            Log.e(TAG, "prepare() failed");
+        }
+
+    }
+
+    private void stopAudioRecord() {
+        mediaRecorder.stop();
+        mediaRecorder.release();
+        mediaRecorder = null;
+        isRecording = false;
+        audioReady = true;
     }
 
 }
