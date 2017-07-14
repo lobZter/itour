@@ -3,15 +3,23 @@ package nctu.cs.cgv.itour.fragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlurMaskFilter;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.location.Location;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -46,7 +54,6 @@ import java.util.LinkedList;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.CheckinInfo;
@@ -78,6 +85,8 @@ public class MapFragment extends Fragment {
     private float lat = 0, lng = 0;
     private float gpsDistortedX = 0;
     private float gpsDistortedY = 0;
+    private float lastFogClearPosX = 0;
+    private float lastFogClearPosY = 0;
     private int initialOffsetX = 0;
     private int initialOffsetY = 0;
     private int touristMapWidth = 0;
@@ -96,6 +105,7 @@ public class MapFragment extends Fragment {
     private FloatingActionButton photoBtn;
     private FloatingActionsMenu floatingActionsMenu;
     private RelativeLayout.LayoutParams layoutParams;
+    private Bitmap fogBitmap;
     // objects
     private LinkedList<Float> nodeList;
     private LinkedList<ImageView> nodeImageList;
@@ -110,10 +120,12 @@ public class MapFragment extends Fragment {
     // mediaRecorder
     private MediaRecorder mediaRecorder;
     private String filename = " ";
+    // settings
+    private SharedPreferences preferences;
     // flags
     private boolean isGpsCurrent = false;
-    private Boolean isRecording = false;
-    private Boolean audioReady = false;
+    private boolean isRecording = false;
+    private boolean audioReady = false;
 
 
     public static MapFragment newInstance(String mapTag) {
@@ -135,7 +147,8 @@ public class MapFragment extends Fragment {
         ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         screenWidth = displayMetrics.widthPixels;
         screenHeight = displayMetrics.heightPixels;
-        Log.d(TAG, "W: " + screenWidth + ", H: " + screenHeight);
+
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     @Override
@@ -175,7 +188,18 @@ public class MapFragment extends Fragment {
         rootLayout.addView(touristMap);
 
         // draw fog
+
+        fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
+        if (preferences.getBoolean("fog", false)) {
+            Canvas canvas = new Canvas(fogBitmap);
+            canvas.drawARGB(180, 0, 0, 0);
+        }
         fogMap = new ImageView(context);
+        fogMap.setImageBitmap(fogBitmap);
+        fogMap.setPivotX(0);
+        fogMap.setPivotY(0);
+        rootLayout.addView(fogMap);
+
 
         // draw edge nodes
         EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
@@ -200,14 +224,13 @@ public class MapFragment extends Fragment {
 
         // map center marker for checkin
         layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(screenWidth/2, screenHeight/2, 0, 0);
+        layoutParams.setMargins(screenWidth / 2, screenHeight / 2, 0, 0);
         mapCenter = new ImageView(context);
 //            mapCenter.setImageResource(R.drawable.speech_bubble);
         mapCenter.setImageResource(R.drawable.center);
         mapCenter.setLayoutParams(layoutParams);
         mapCenter.setVisibility(View.GONE);
         rootLayout.addView(mapCenter);
-
 
         // set buttons
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
@@ -254,7 +277,7 @@ public class MapFragment extends Fragment {
                 audioBtn.setVisibility(View.GONE);
                 photoBtn.setVisibility(View.GONE);
 
-                if(isRecording) stopAudioRecord();
+                if (isRecording) stopAudioRecord();
                 isRecording = false;
                 audioReady = false;
                 mapCenter.setVisibility(View.GONE);
@@ -282,6 +305,7 @@ public class MapFragment extends Fragment {
 //                initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
 //                transformMat.postTranslate(initialOffsetX, initialOffsetY);
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+                fogMap.setScaleType(ImageView.ScaleType.MATRIX);
 //                reRender();
             }
         });
@@ -396,6 +420,12 @@ public class MapFragment extends Fragment {
         touristMap.setRotation(rotation);
         touristMap.setTranslationX(point[0]);
         touristMap.setTranslationY(point[1]);
+        // transform fog map
+        fogMap.setScaleX(scale);
+        fogMap.setScaleY(scale);
+        fogMap.setRotation(rotation);
+        fogMap.setTranslationX(point[0]);
+        fogMap.setTranslationY(point[1]);
 
         // transform gpsMarker
         point[0] = gpsDistortedX;
@@ -440,11 +470,11 @@ public class MapFragment extends Fragment {
             temp.postRotate(-rotation);
             temp.postTranslate(screenWidth / 2, screenHeight / 2);
             temp.mapPoints(point);
-            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx(screenWidth/2 - point[0], screenHeight/2 - point[1]);
+            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx(screenWidth / 2 - point[0], screenHeight / 2 - point[1]);
             if (idxWeights.idx >= 0) {
                 double[] newPos = realMesh.interpolatePosition(idxWeights);
-                lngCenter = (float)(newPos[0]/realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
-                latCenter = (float)(realMesh.maxLat - newPos[1]/realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
+                lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
+                latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
             }
 
             // close menu
@@ -456,7 +486,7 @@ public class MapFragment extends Fragment {
             params.setForceMultipartEntityContentType(true);
             try {
                 File audioFile = new File(filename);
-                if(audioFile.exists())
+                if (audioFile.exists())
                     params.put("file", audioFile);
                 params.put("mapTag", mapTag);
                 params.put("location", "null");
@@ -593,6 +623,22 @@ public class MapFragment extends Fragment {
         gpsMarkTransform.mapPoints(point);
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
+
+        // check whether it should update fog or not
+        double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
+        if (distance > 5.0) {
+            // update fog map
+            Paint paint = new Paint();
+            paint.setColor(Color.TRANSPARENT);
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+            paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
+            Canvas canvas = new Canvas(fogBitmap);
+            canvas.drawCircle(gpsDistortedX, gpsDistortedY, 25, paint);
+            fogMap.postInvalidate();
+
+            lastFogClearPosX = gpsDistortedX;
+            lastFogClearPosY = gpsDistortedY;
+        }
     }
 
     public void handleCheckinMsg(final String postId, float lat, float lng) {
