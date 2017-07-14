@@ -164,9 +164,9 @@ public class MapFragment extends Fragment {
         // set search bar
         searchBar = (FloatingSearchView) view.findViewById(R.id.floating_search_view);
         // set search bar margin-top with status bar height
-        layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-        layoutParams.setMargins(0, getStatusBarHeight(), 0, 0);
-        searchBar.setLayoutParams(layoutParams);
+//        layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+//        layoutParams.setMargins(0, getStatusBarHeight(), 0, 0);
+//        searchBar.setLayoutParams(layoutParams);
         searchBar.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
@@ -200,20 +200,21 @@ public class MapFragment extends Fragment {
         fogMap.setPivotY(0);
         rootLayout.addView(fogMap);
 
-
         // draw edge nodes
-        EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
-        nodeList = edgeNode.getNodeList();
-//        nodeList = new LinkedList<>();
+        nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
-        for (int i = 0; i < nodeList.size(); i += 2) {
-            ImageView nodeImage = new ImageView(context);
-            nodeImage.setImageResource(R.drawable.ftprint_black_trans);
-            nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-            nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
-            nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
-            nodeImageList.add(nodeImage);
-            rootLayout.addView(nodeImage);
+        if (preferences.getBoolean("distance_indicator", false)) {
+            EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
+            nodeList = edgeNode.getNodeList();
+            for (int i = 0; i < nodeList.size(); i += 2) {
+                ImageView nodeImage = new ImageView(context);
+                nodeImage.setImageResource(R.drawable.ftprint_black_trans);
+                nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+                nodeImage.setTranslationX(nodeList.get(i) - nodeIconWidth / 2);
+                nodeImage.setTranslationY(nodeList.get(i + 1) - nodeIconHeight / 2);
+                nodeImageList.add(nodeImage);
+                rootLayout.addView(nodeImage);
+            }
         }
 
         // set gpsMarker
@@ -463,14 +464,15 @@ public class MapFragment extends Fragment {
             float[] point = new float[]{0, 0}; // tourist map position
             float latCenter = lat;
             float lngCenter = lng;
-            Matrix temp = transformMat;
+            Matrix temp = new Matrix();
+            temp.set(transformMat);
 
             // calculate lat lng
             temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
             temp.postRotate(-rotation);
             temp.postTranslate(screenWidth / 2, screenHeight / 2);
             temp.mapPoints(point);
-            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx(screenWidth / 2 - point[0], screenHeight / 2 - point[1]);
+            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth/2-point[0])/scale, (screenHeight/2-point[1])/scale);
             if (idxWeights.idx >= 0) {
                 double[] newPos = realMesh.interpolatePosition(idxWeights);
                 lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
