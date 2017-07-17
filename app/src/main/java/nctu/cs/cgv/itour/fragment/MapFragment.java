@@ -17,6 +17,7 @@ import android.location.Location;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.preference.PreferenceManager;
@@ -29,11 +30,11 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
-import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -72,6 +73,8 @@ public class MapFragment extends Fragment {
     private final float MAX_ZOOM = 6.0f;
     private final int gpsMarkerWidth = 48;
     private final int gpsMarkerHeight = 48;
+    private final int gpsDirectionWidth = 32;
+    private final int gpsDirectionHeight = 32;
     private final int nodeIconWidth = 16;
     private final int nodeIconHeight = 16;
     private final int checkinIconWidth = 64;
@@ -98,8 +101,8 @@ public class MapFragment extends Fragment {
     private FloatingSearchView searchBar;
     private ImageView touristMap;
     private ImageView fogMap;
-    private ImageView gpsMarker;
     private ImageView mapCenter;
+    private LinearLayout gpsMarker;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
     private FloatingActionButton photoBtn;
@@ -163,10 +166,6 @@ public class MapFragment extends Fragment {
 
         // set search bar
         searchBar = (FloatingSearchView) view.findViewById(R.id.floating_search_view);
-        // set search bar margin-top with status bar height
-//        layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-//        layoutParams.setMargins(0, getStatusBarHeight(), 0, 0);
-//        searchBar.setLayoutParams(layoutParams);
         searchBar.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
@@ -188,7 +187,6 @@ public class MapFragment extends Fragment {
         rootLayout.addView(touristMap);
 
         // draw fog
-
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
         if (preferences.getBoolean("fog", false)) {
             Canvas canvas = new Canvas(fogBitmap);
@@ -218,10 +216,9 @@ public class MapFragment extends Fragment {
         }
 
         // set gpsMarker
-        gpsMarker = new ImageView(context);
-        gpsMarker.setImageResource(R.drawable.circle);
-        gpsMarker.setLayoutParams(new RelativeLayout.LayoutParams(gpsMarkerWidth, gpsMarkerHeight));
-        rootLayout.addView(gpsMarker);
+        gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
+        gpsMarker.setPivotX(gpsMarkerWidth / 2);
+        gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
 
         // map center marker for checkin
         layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -410,7 +407,7 @@ public class MapFragment extends Fragment {
     private void reRender() {
         Matrix gpsMarkTransform = new Matrix();
         Matrix nodeIconTransform = new Matrix();
-        gpsMarkTransform.postTranslate(-gpsMarkerWidth / 2, -gpsMarkerHeight / 2);
+        gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
         float[] point = new float[]{0, 0};
 
@@ -472,7 +469,7 @@ public class MapFragment extends Fragment {
             temp.postRotate(-rotation);
             temp.postTranslate(screenWidth / 2, screenHeight / 2);
             temp.mapPoints(point);
-            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth/2-point[0])/scale, (screenHeight/2-point[1])/scale);
+            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
             if (idxWeights.idx >= 0) {
                 double[] newPos = realMesh.interpolatePosition(idxWeights);
                 lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
@@ -603,6 +600,60 @@ public class MapFragment extends Fragment {
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
+    private void showDialog(String postId) { // postId: unique key for data query
+
+        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(
+                            checkinInfo.location,
+                            checkinInfo.description,
+                            checkinInfo.filename,
+                            checkinInfo.type);
+                    checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            }
+        });
+    }
+
+    private void startAudioRecord() {
+        // TODO prevent name collision
+        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
+        Log.d(TAG, filename);
+
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        mediaRecorder.setOutputFile(filename);
+
+        try {
+            mediaRecorder.prepare();
+            mediaRecorder.start();
+            isRecording = true;
+        } catch (IOException e) {
+            Log.e(TAG, "prepare() failed");
+        }
+
+    }
+
+    private void stopAudioRecord() {
+        mediaRecorder.stop();
+        mediaRecorder.release();
+        mediaRecorder = null;
+        isRecording = false;
+        audioReady = true;
+    }
+
     public void handleLocationChange(Location currentLocation) {
 
         lat = (float) currentLocation.getLatitude();
@@ -618,13 +669,14 @@ public class MapFragment extends Fragment {
         }
 
         // transform gps marker
-        Matrix gpsMarkTransform = new Matrix();
-        gpsMarkTransform.postTranslate(-32, -32);
         float[] point = new float[]{gpsDistortedX, gpsDistortedY};
+        Matrix gpsMarkTransform = new Matrix();
+        gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
         transformMat.mapPoints(point);
         gpsMarkTransform.mapPoints(point);
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
+
 
         // check whether it should update fog or not
         double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
@@ -641,6 +693,11 @@ public class MapFragment extends Fragment {
             lastFogClearPosX = gpsDistortedX;
             lastFogClearPosY = gpsDistortedY;
         }
+    }
+
+    public void handleSensorChange(float rotation) {
+        final float RADIAN = 57.296f;
+        gpsMarker.setRotation(rotation * RADIAN);
     }
 
     public void handleCheckinMsg(final String postId, float lat, float lng) {
@@ -684,67 +741,5 @@ public class MapFragment extends Fragment {
         bringViewsToFront();
     }
 
-    private void showDialog(String postId) { // postId: unique key for data query
-
-        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
-                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(
-                            checkinInfo.location,
-                            checkinInfo.description,
-                            checkinInfo.filename,
-                            checkinInfo.type);
-                    checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
-            }
-        });
-    }
-
-    private int getStatusBarHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
-    }
-
-    private void startAudioRecord() {
-        // TODO prevent name collision
-        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
-        Log.d(TAG, filename);
-
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(filename);
-
-        try {
-            mediaRecorder.prepare();
-            mediaRecorder.start();
-            isRecording = true;
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
-        }
-
-    }
-
-    private void stopAudioRecord() {
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
-        isRecording = false;
-        audioReady = true;
-    }
 
 }

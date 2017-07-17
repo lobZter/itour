@@ -20,13 +20,33 @@
         app:floatingSearch_showSearchKey="false"
         app:floatingSearch_suggestionsListAnimDuration="250" />
 
-    <com.getbase.floatingactionbutton.FloatingActionButton
+    <LinearLayout
+        android:id="@+id/gps_marker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:layout_width="32px"
+            android:layout_height="32px"
+            android:src="@drawable/triangle"/>
+
+        <ImageView
+            android:layout_width="48px"
+            android:layout_height="48px"
+            android:src="@drawable/circle"/>
+
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/menu_add"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
         android:backgroundTint="@color/white"
         android:src="@drawable/ic_gps_fixed_blue_24dp" />
 
@@ -46,23 +66,21 @@
         app:fab_expandDirection="left">
         <!--fab:fab_labelStyle="@style/MenuLabel">-->
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
-            android:src="@drawable/ic_edit_black_24dp"
-            app:fab_size="mini"/>
-            <!--fab:fab_title="新增打卡" />-->
+            android:src="@drawable/ic_edit_black_24dp" />
+        <!--fab:fab_title="新增打卡" />-->
 
-        <com.getbase.floatingactionbutton.FloatingActionButton
+        <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_audio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
-            android:src="@drawable/ic_mic_black_24dp"
-            app:fab_size="mini"/>
-            <!--fab:fab_title="新增音訊" />-->
+            android:src="@drawable/ic_mic_black_24dp" />
+        <!--fab:fab_title="新增音訊" />-->
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 

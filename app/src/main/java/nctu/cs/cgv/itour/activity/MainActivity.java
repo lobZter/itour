@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements
                     if (success) {
                         float orientation[] = new float[3];
                         SensorManager.getOrientation(R, orientation);
-//                    glRenderer.handleSensorChange(orientation[0]);
+                        mapFragment.handleSensorChange(orientation[0]);
                     }
                 }
             }
