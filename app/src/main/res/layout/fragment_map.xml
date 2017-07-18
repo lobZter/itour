@@ -11,6 +11,7 @@
         android:id="@+id/floating_search_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:elevation="4dp"
         app:floatingSearch_close_search_on_keyboard_dismiss="true"
         app:floatingSearch_leftActionMode="showHamburger"
         app:floatingSearch_searchBarMarginLeft="8dp"
@@ -20,34 +21,16 @@
         app:floatingSearch_showSearchKey="false"
         app:floatingSearch_suggestionsListAnimDuration="250" />
 
-    <LinearLayout
-        android:id="@+id/gps_marker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
-
-        <ImageView
-            android:layout_width="32px"
-            android:layout_height="32px"
-            android:src="@drawable/triangle"/>
-
-        <ImageView
-            android:layout_width="48px"
-            android:layout_height="48px"
-            android:src="@drawable/circle"/>
-
-    </LinearLayout>
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_gps"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/menu_add"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="24dp"
         android:layout_marginBottom="16dp"
+        android:layout_marginEnd="24dp"
         android:backgroundTint="@color/white"
+        android:elevation="8dp"
         android:src="@drawable/ic_gps_fixed_blue_24dp" />
 
     <com.getbase.floatingactionbutton.FloatingActionsMenu
@@ -60,11 +43,11 @@
         android:layout_marginEnd="16dp"
         android:clipChildren="false"
         android:clipToPadding="false"
+        android:elevation="8dp"
         app:fab_addButtonColorNormal="@color/colorLocation"
         app:fab_addButtonColorPressed="@color/colorLocation"
         app:fab_addButtonPlusIconColor="@color/white"
         app:fab_expandDirection="left">
-        <!--fab:fab_labelStyle="@style/MenuLabel">-->
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_photo"
@@ -72,7 +55,6 @@
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_edit_black_24dp" />
-        <!--fab:fab_title="新增打卡" />-->
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_audio"
@@ -80,9 +62,60 @@
             android:layout_height="wrap_content"
             android:backgroundTint="@color/white"
             android:src="@drawable/ic_mic_black_24dp" />
-        <!--fab:fab_title="新增音訊" />-->
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+    <LinearLayout
+        android:id="@+id/gps_marker"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="1px"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="32px"
+            android:layout_height="32px"
+            android:src="@drawable/triangle" />
+
+        <ImageView
+            android:layout_width="48px"
+            android:layout_height="48px"
+            android:src="@drawable/circle" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/mask"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/semi_transparent"
+        android:elevation="6dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_margin="48dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_mic_grey_500_48dp" />
+
+            <ProgressBar
+                android:id="@+id/recordProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

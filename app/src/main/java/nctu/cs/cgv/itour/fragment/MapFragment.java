@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -103,6 +104,8 @@ public class MapFragment extends Fragment {
     private ImageView fogMap;
     private ImageView mapCenter;
     private LinearLayout gpsMarker;
+    private RelativeLayout mask;
+    private ProgressBar recordProgressBar;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
     private FloatingActionButton photoBtn;
@@ -190,7 +193,7 @@ public class MapFragment extends Fragment {
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
         if (preferences.getBoolean("fog", false)) {
             Canvas canvas = new Canvas(fogBitmap);
-            canvas.drawARGB(180, 0, 0, 0);
+            canvas.drawARGB(120, 0, 0, 0);
         }
         fogMap = new ImageView(context);
         fogMap.setImageBitmap(fogBitmap);
@@ -224,9 +227,9 @@ public class MapFragment extends Fragment {
         layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         layoutParams.setMargins(screenWidth / 2, screenHeight / 2, 0, 0);
         mapCenter = new ImageView(context);
-//            mapCenter.setImageResource(R.drawable.speech_bubble);
         mapCenter.setImageResource(R.drawable.center);
         mapCenter.setLayoutParams(layoutParams);
+        mapCenter.setElevation(2);
         mapCenter.setVisibility(View.GONE);
         rootLayout.addView(mapCenter);
 
@@ -278,11 +281,21 @@ public class MapFragment extends Fragment {
                 if (isRecording) stopAudioRecord();
                 isRecording = false;
                 audioReady = false;
+                mask.setVisibility(View.GONE);
                 mapCenter.setVisibility(View.GONE);
                 audioBtn.setImageResource(R.drawable.ic_mic_black_24dp);
             }
         });
 
+        // recording mask view
+        mask = (RelativeLayout) view.findViewById(R.id.mask);
+        mask.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // do not thing
+            }
+        });
+        recordProgressBar = (ProgressBar) view.findViewById(R.id.recordProgressBar);
 
         // init objects
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
@@ -294,17 +307,11 @@ public class MapFragment extends Fragment {
 
         updateCheckin();
 
-        bringViewsToFront();
-
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
-                // transform to center vertical
-//                initialOffsetY = screenHeight / 2 - touristMapHeight / 2;
-//                transformMat.postTranslate(initialOffsetX, initialOffsetY);
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
-//                reRender();
             }
         });
     }
@@ -444,20 +451,30 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void bringViewsToFront() {
-        gpsMarker.bringToFront();
-        searchBar.bringToFront();
-        gpsBtn.bringToFront();
-        floatingActionsMenu.bringToFront();
-    }
-
     private void audioCheckin() {
 
-        if (isRecording) {
-            stopAudioRecord();
-            audioBtn.setImageResource(R.drawable.ic_send_black_24dp);
-        } else if (audioReady) {
+        final Handler progressBarHandler = new Handler();
+        Runnable progressBarRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (recordProgressBar.getProgress() == 99) {
+                    audioCheckin();
+                } else {
+                    recordProgressBar.setProgress(recordProgressBar.getProgress()+1);
+                    progressBarHandler.postDelayed(this, 100);
+                }
+            }
+        };
 
+        if (isRecording) {
+            progressBarHandler.removeCallbacks(progressBarRunnable);
+            translateToCurrent();
+            mask.setVisibility(View.GONE);
+            mapCenter.setVisibility(View.VISIBLE);
+            audioBtn.setImageResource(R.drawable.ic_send_black_24dp);
+            stopAudioRecord();
+
+        } else if (audioReady) {
             float[] point = new float[]{0, 0}; // tourist map position
             float latCenter = lat;
             float lngCenter = lng;
@@ -513,10 +530,12 @@ public class MapFragment extends Fragment {
                 e.printStackTrace();
             }
         } else {
-            mapCenter.setVisibility(View.VISIBLE);
             audioBtn.setImageResource(R.drawable.ic_stop_red_a700_24dp);
-
+            mask.setVisibility(View.VISIBLE);
             startAudioRecord();
+
+
+            progressBarHandler.postDelayed(progressBarRunnable, 100);
         }
     }
 
@@ -737,8 +756,6 @@ public class MapFragment extends Fragment {
         nodeImage.setTranslationX(point[0]);
         nodeImage.setTranslationY(point[1]);
         nodeImageList.add(nodeImage);
-
-        bringViewsToFront();
     }
 
 

@@ -7,6 +7,7 @@
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
+    <color name="semi_transparent">#CC000000</color>
     <color name="black_semi_transparent">#B2000000</color>
 
 
