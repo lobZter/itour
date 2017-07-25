@@ -6,10 +6,12 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,9 +44,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
     // view objects
     private EditText locationEdit;
     private EditText descriptionEdit;
-    private ImageButton recordBtn;
-    private TextView recordFilename;
-    private Button submitBtn;
+    private ImageView recordBtn;
     private ProgressBar progressBar;
 
 
@@ -61,20 +61,24 @@ public class AudioCheckinActivity extends AppCompatActivity {
         setView();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu_search; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_submit, menu);
+        return true;
+    }
+
     private void setView() {
 
         locationEdit = (EditText) findViewById(R.id.et_location);
         descriptionEdit = (EditText) findViewById(R.id.et_description);
-        recordBtn = (ImageButton) findViewById(R.id.btn_record);
-        recordFilename = (TextView) findViewById(R.id.tv_record_filename);
-        submitBtn = (Button) findViewById(R.id.btn_submit);
         progressBar = (ProgressBar) findViewById(R.id.loading_circle);
+        recordBtn = (ImageView) findViewById(R.id.btn_record);
 
         // Verify that the device has a mic first
         PackageManager packageManager = this.getPackageManager();
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
             recordBtn.setEnabled(false);
-            submitBtn.setEnabled(false);
             Toast.makeText(this, "找不到麥克風QQ", Toast.LENGTH_LONG).show();
         }
 
@@ -88,52 +92,52 @@ public class AudioCheckinActivity extends AppCompatActivity {
             }
         });
 
-        submitBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (locationEdit.getText().toString().matches("")) {
-                    Toast.makeText(AudioCheckinActivity.this, "打卡要給位置啊", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.setForceMultipartEntityContentType(true);
-                try {
-                    File audioFile = new File(filename);
-                    if(audioFile.exists())
-                        params.put("file", audioFile);
-                    params.put("mapTag", mapTag);
-                    params.put("location", locationEdit.getText().toString());
-                    params.put("description", descriptionEdit.getText().toString());
-                    params.put("lat", lat);
-                    params.put("lng", lng);
-                    params.put("type", "audio");
-
-                    client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onStart() {
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            progressBar.setVisibility(View.GONE);
-                            finish();
-                        }
-
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            progressBar.setVisibility(View.GONE);
-                            Toast.makeText(AudioCheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
-                        }
-                    });
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        submitBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (locationEdit.getText().toString().matches("")) {
+//                    Toast.makeText(AudioCheckinActivity.this, "打卡要給位置啊", Toast.LENGTH_LONG).show();
+//                    return;
+//                }
+//
+//                AsyncHttpClient client = new AsyncHttpClient();
+//                RequestParams params = new RequestParams();
+//                params.setForceMultipartEntityContentType(true);
+//                try {
+//                    File audioFile = new File(filename);
+//                    if(audioFile.exists())
+//                        params.put("file", audioFile);
+//                    params.put("mapTag", mapTag);
+//                    params.put("location", locationEdit.getText().toString());
+//                    params.put("description", descriptionEdit.getText().toString());
+//                    params.put("lat", lat);
+//                    params.put("lng", lng);
+//                    params.put("type", "audio");
+//
+//                    client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+//                        @Override
+//                        public void onStart() {
+//                            progressBar.setVisibility(View.VISIBLE);
+//                        }
+//
+//                        @Override
+//                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+//                            progressBar.setVisibility(View.GONE);
+//                            finish();
+//                        }
+//
+//                        @Override
+//                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+//                            progressBar.setVisibility(View.GONE);
+//                            Toast.makeText(AudioCheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
+//                        }
+//                    });
+//
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
     }
 
     private void startAudioRecord() {
@@ -151,7 +155,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
             mediaRecorder.prepare();
             mediaRecorder.start();
             recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_stop_black_24dp));
-            recordFilename.setText("錄音中...");
             isRecording = true;
         } catch (IOException e) {
             Log.e(TAG, "prepare() failed");
@@ -166,6 +169,5 @@ public class AudioCheckinActivity extends AppCompatActivity {
         isRecording = false;
 
         recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_black_24dp));
-        recordFilename.setText(filename);
     }
 }

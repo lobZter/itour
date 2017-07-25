@@ -25,6 +25,8 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -35,7 +37,6 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.arlib.floatingsearchview.FloatingSearchView;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -53,9 +54,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.LinkedList;
+import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.CheckinInfo;
@@ -232,15 +235,20 @@ public class MapFragment extends Fragment {
             }
         });
         audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
-        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
+        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu_search
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                audioCheckin();
+                Intent intent = new Intent(context, AudioCheckinActivity.class);
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
+                intent.putExtra("mapTag", mapTag);
+                startActivity(intent);
+                floatingActionsMenu.collapseImmediately();
             }
         });
         photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
-        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu
+        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu_search
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -263,7 +271,7 @@ public class MapFragment extends Fragment {
 
             @Override
             public void onMenuCollapsed() {
-                // prevent intercepting touch event for float action menu
+                // prevent intercepting touch event for float action menu_search
                 audioBtn.setVisibility(View.GONE);
                 photoBtn.setVisibility(View.GONE);
 
@@ -303,6 +311,14 @@ public class MapFragment extends Fragment {
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
             }
         });
+
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void  onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_search, menu);
+        super.onCreateOptionsMenu(menu,inflater);
     }
 
     private void setTouchListener() {
@@ -482,7 +498,7 @@ public class MapFragment extends Fragment {
                 latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
             }
 
-            // close menu
+            // close menu_search
             floatingActionsMenu.collapse();
 
             // upload audio
@@ -617,12 +633,17 @@ public class MapFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(
-                            checkinInfo.location,
-                            checkinInfo.description,
-                            checkinInfo.filename,
-                            checkinInfo.type);
-                    checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
+                    if (Objects.equals(checkinInfo.type, "audio")) {
+                        Log.d(TAG, "audio checkin dialog");
+                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance();
+                        audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
+                    } else if (Objects.equals(checkinInfo.type, "photo")) {
+                        Log.d(TAG, "photo checkin dialog");
+                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance();
+                        photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
+                    } else {
+                        Log.d(TAG, "WTF");
+                    }
                 }
             }
 

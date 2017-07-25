@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -46,15 +47,13 @@ public class PhotoCheckinActivity extends AppCompatActivity {
     // view objects
     private EditText locationEdit;
     private EditText descriptionEdit;
-    private ImageButton recordBtn;
-    private Button submitBtn;
     private ProgressBar progressBar;
     private ImageView pickedImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_photo);
+        setContentView(R.layout.activity_photo_checkin);
 
         Intent intent = getIntent();
         latitude = intent.getFloatExtra("lat", 0);
@@ -64,58 +63,19 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         setView();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu_search; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_submit, menu);
+        return true;
+    }
+
     private void setView() {
 
         locationEdit = (EditText) findViewById(R.id.et_location);
         descriptionEdit = (EditText) findViewById(R.id.et_description);
-        recordBtn = (ImageButton) findViewById(R.id.btn_record);
-        submitBtn = (Button) findViewById(R.id.btn_submit);
         progressBar = (ProgressBar) findViewById(R.id.loading_circle);
-        pickedImage = (ImageView) findViewById(R.id.picked_image);
 
-        recordBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pickImage();
-            }
-        });
-
-        submitBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.setForceMultipartEntityContentType(true);
-                try {
-                    params.put("file", new File(filename));
-                    params.put("lat", latitude);
-                    params.put("lng", longitude);
-                    params.put("type", "photo");
-
-                    client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onStart() {
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            progressBar.setVisibility(View.GONE);
-                            finish();
-                        }
-
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            progressBar.setVisibility(View.GONE);
-                            Toast.makeText(PhotoCheckinActivity.this, "網路錯誤QQ", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                } catch (FileNotFoundException e) {
-                    Log.d(TAG, e.getMessage());
-                }
-            }
-        });
     }
 
     public void pickImage() {

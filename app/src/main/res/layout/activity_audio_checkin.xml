@@ -34,7 +34,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_mode_edit_black_24dp" />
+                android:src="@drawable/ic_mode_edit_black_24dp" />
 
             <EditText
                 android:id="@+id/et_name"
@@ -57,7 +57,7 @@
                 android:id="@+id/imageView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_location_on_black_24dp" />
+                android:src="@drawable/ic_location_on_black_24dp" />
 
             <EditText
                 android:id="@+id/et_location"
@@ -77,39 +77,43 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_margin="48dp">
+                android:layout_margin="48dp"
+                android:orientation="vertical">
 
                 <ProgressBar
-                    android:id="@+id/record_progress"
+                    android:id="@+id/progress_record"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:progressDrawable="@drawable/progress_bar_color"/>
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:text="0:00"/>
+                    android:text="0:00"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
 
             <ImageView
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginStart="48dp"
-            android:layout_marginBottom="48dp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentStart="true"
-            android:src="@drawable/play"/>
+                android:id="@+id/btn_play"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginBottom="48dp"
+                android:layout_marginStart="48dp"
+                android:src="@drawable/play" />
 
             <ImageView
+                android:id="@+id/btn_record"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:layout_marginBottom="38dp"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
-                android:src="@drawable/record_circle"/>
+                android:layout_marginBottom="38dp"
+                android:src="@drawable/record_circle" />
 
         </RelativeLayout>
 
