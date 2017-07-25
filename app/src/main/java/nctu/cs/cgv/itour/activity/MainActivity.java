@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements
         // get mapTag passed from MapList
         Intent intent = getIntent();
         mapTag = intent.getStringExtra("mapTag");
-        mapTag = "nctu";
+//        mapTag = "nctu";
 
         // set Location API
         buildGoogleApiClient();

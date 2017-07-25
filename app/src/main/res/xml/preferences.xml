@@ -4,7 +4,7 @@
     <PreferenceCategory android:title="地圖設定">
 
         <SwitchPreferenceCompat
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="distance_indicator"
             android:title="路線比例" />
 

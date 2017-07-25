@@ -99,7 +99,6 @@ public class MapFragment extends Fragment {
     private int screenHeight = 0;
     // views
     private RelativeLayout rootLayout;
-    private FloatingSearchView searchBar;
     private ImageView touristMap;
     private ImageView fogMap;
     private ImageView mapCenter;
@@ -167,17 +166,6 @@ public class MapFragment extends Fragment {
 
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
 
-        // set search bar
-        searchBar = (FloatingSearchView) view.findViewById(R.id.floating_search_view);
-        searchBar.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-            @Override
-            public void onSearchTextChanged(String oldQuery, final String newQuery) {
-                // TODO: set search bar autocomplete suggestions
-                //get suggestions based on newQuery
-//                searchView.swapSuggestions(newSuggestions);
-            }
-        });
-
         // load image from disk and set tourist map
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
@@ -197,6 +185,7 @@ public class MapFragment extends Fragment {
         }
         fogMap = new ImageView(context);
         fogMap.setImageBitmap(fogBitmap);
+        fogMap.setScaleType(ImageView.ScaleType.FIT_START);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
         rootLayout.addView(fogMap);

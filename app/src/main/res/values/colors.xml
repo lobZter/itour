@@ -9,6 +9,7 @@
     <color name="transparent">#00000000</color>
     <color name="semi_transparent">#CC000000</color>
     <color name="black_semi_transparent">#B2000000</color>
+    <color name="red">#FF0000</color>
 
 
     <color name="colorPrimaryDark">#FFA000</color>
