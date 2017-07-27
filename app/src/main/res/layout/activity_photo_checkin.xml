@@ -20,7 +20,6 @@
 
     </FrameLayout>
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -29,27 +28,35 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ic_mode_edit_black_24dp" />
+                app:srcCompat="@drawable/ic_person_black_24dp" />
 
             <EditText
                 android:id="@+id/et_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="輸入名字"
+                android:background="@android:color/transparent"
+                android:hint="編輯名字"
                 android:imeOptions="actionNext"
-                android:singleLine="true"/>
+                android:singleLine="true" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
@@ -63,7 +70,8 @@
                 android:id="@+id/et_location"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="地點"
+                android:background="@android:color/transparent"
+                android:hint="編輯地點"
                 android:imeOptions="actionNext"
                 android:singleLine="true" />
 
@@ -75,25 +83,26 @@
 
             <ImageView
                 android:id="@+id/et_photo"
-                android:layout_height="match_parent"
                 android:layout_width="match_parent"
-                android:src="@drawable/dotted_line">
-            </ImageView>
+                android:layout_height="match_parent"
+                android:src="@drawable/dotted_line"></ImageView>
 
             <ImageView
-                android:layout_height="200px"
                 android:layout_width="200px"
+                android:layout_height="200px"
                 android:layout_centerInParent="true"
-                android:src="@drawable/cross">
-            </ImageView>
+                android:src="@drawable/cross"></ImageView>
 
         </RelativeLayout>
-
 
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 

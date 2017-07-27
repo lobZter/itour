@@ -100,7 +100,7 @@ public class MapFragment extends Fragment {
     private int touristMapHeight = 0;
     private int screenWidth = 0;
     private int screenHeight = 0;
-    // views
+    // UI references
     private RelativeLayout rootLayout;
     private ImageView touristMap;
     private ImageView fogMap;
@@ -634,15 +634,11 @@ public class MapFragment extends Fragment {
                     CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     if (Objects.equals(checkinInfo.type, "audio")) {
-                        Log.d(TAG, "audio checkin dialog");
                         AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance();
                         audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
                     } else if (Objects.equals(checkinInfo.type, "photo")) {
-                        Log.d(TAG, "photo checkin dialog");
                         PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance();
                         photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
-                    } else {
-                        Log.d(TAG, "WTF");
                     }
                 }
             }
