@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -27,10 +28,13 @@ import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -55,11 +59,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
@@ -293,12 +299,34 @@ public class MapFragment extends Fragment {
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
             }
         });
+
+
     }
 
     @Override
     public void  onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
         super.onCreateOptionsMenu(menu,inflater);
+
+
+
+        ArrayList<String> array = new ArrayList<>();
+        array.add("交大藝文中心");
+        array.add("交大圖書館");
+        array.add("交大游泳池");
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, array);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final ArrayAdapterSearchView searchView = (ArrayAdapterSearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                searchView.setText(adapter.getItem(position).toString());
+
+            }
+        });
+        searchView.setAdapter(adapter);
     }
 
     private void setTouchListener() {
