@@ -14,6 +14,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,12 +40,14 @@ public class AudioCheckinActivity extends AppCompatActivity {
     private float lat = 0;
     private float lng = 0;
     // mediaRecorder
-    private Boolean isRecording = false;
+    private boolean isRecording = false;
+    private boolean audioReady = false;
     private MediaRecorder mediaRecorder;
     private String filename = " ";
     // UI references
     private EditText locationEdit;
-    private ImageView playBtn;
+    private RelativeLayout playBtn;
+    private ImageView playBtnIcon;
     private ImageView recordBtn;
     private ProgressBar progressBar;
     private TextView progressText;
@@ -69,7 +72,8 @@ public class AudioCheckinActivity extends AppCompatActivity {
         locationEdit = (EditText) findViewById(R.id.et_location);
         progressBar = (ProgressBar) findViewById(R.id.progress_record);
         progressText = (TextView) findViewById(R.id.tv_progress);
-        playBtn = (ImageView) findViewById(R.id.btn_play);
+        playBtn = (RelativeLayout) findViewById(R.id.btn_play);
+        playBtnIcon = (ImageView) findViewById(R.id.btn_play_icon);
         recordBtn = (ImageView) findViewById(R.id.btn_record);
 
         recordBtn.setOnClickListener(new View.OnClickListener() {

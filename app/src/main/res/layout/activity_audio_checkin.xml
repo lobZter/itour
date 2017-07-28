@@ -25,27 +25,27 @@
         android:orientation="vertical">
 
         <!--<LinearLayout-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_marginEnd="16dp"-->
-            <!--android:layout_marginStart="16dp"-->
-            <!--android:layout_marginTop="16dp"-->
-            <!--android:gravity="center_vertical"-->
-            <!--android:orientation="horizontal">-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginEnd="16dp"-->
+        <!--android:layout_marginStart="16dp"-->
+        <!--android:layout_marginTop="16dp"-->
+        <!--android:gravity="center_vertical"-->
+        <!--android:orientation="horizontal">-->
 
-            <!--<ImageView-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:src="@drawable/ic_person_black_24dp" />-->
+        <!--<ImageView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:src="@drawable/ic_person_black_24dp" />-->
 
-            <!--<EditText-->
-                <!--android:id="@+id/et_name"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:background="@android:color/transparent"-->
-                <!--android:hint="編輯名字"-->
-                <!--android:imeOptions="actionNext"-->
-                <!--android:singleLine="true" />-->
+        <!--<EditText-->
+        <!--android:id="@+id/et_name"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:background="@android:color/transparent"-->
+        <!--android:hint="編輯名字"-->
+        <!--android:imeOptions="actionNext"-->
+        <!--android:singleLine="true" />-->
 
         <!--</LinearLayout>-->
 
@@ -53,11 +53,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="16dp"
             android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <ImageView
@@ -96,24 +96,37 @@
 
                 <TextView
                     android:id="@+id/tv_progress"
-                    android:layout_marginTop="4dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
                     android:gravity="end"
                     android:text="0:00/6:00"
                     android:textColor="@color/white" />
 
             </LinearLayout>
 
-            <ImageView
+            <RelativeLayout
                 android:id="@+id/btn_play"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
                 android:layout_marginBottom="48dp"
-                android:layout_marginStart="48dp"
-                android:src="@drawable/play" />
+                android:layout_marginStart="48dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/btn_circle" />
+
+                <ImageView
+                    android:id="@+id/btn_play_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/play"/>
+
+            </RelativeLayout>
+
 
             <ImageView
                 android:id="@+id/btn_record"

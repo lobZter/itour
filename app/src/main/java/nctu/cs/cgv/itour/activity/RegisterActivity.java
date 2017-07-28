@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Objects;
+
 import nctu.cs.cgv.itour.R;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -25,8 +27,8 @@ public class RegisterActivity extends AppCompatActivity {
     // UI references
     private EditText emailView;
     private EditText passwordView;
+    private EditText confirmPasswordView;
     private ProgressDialog progressDialog;
-
     private FirebaseAuth firebaseAuth;
 
     @Override
@@ -39,7 +41,8 @@ public class RegisterActivity extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         emailView = (EditText) findViewById(R.id.email);
         passwordView = (EditText) findViewById(R.id.password);
-        passwordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        confirmPasswordView = (EditText) findViewById(R.id.confirm_password);
+        confirmPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.register || id == EditorInfo.IME_NULL) {
@@ -49,7 +52,7 @@ public class RegisterActivity extends AppCompatActivity {
                 return false;
             }
         });
-        Button emailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        Button emailSignInButton = (Button) findViewById(R.id.btn_email_sign_in);
         emailSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -67,9 +70,17 @@ public class RegisterActivity extends AppCompatActivity {
         // Store values at the time of the login attempt.
         String email = emailView.getText().toString().trim();
         String password = passwordView.getText().toString().trim();
+        String passwordConfirmed = confirmPasswordView.getText().toString().trim();
 
         boolean cancel = false;
         View focusView = null;
+
+        // Confirm password again
+        if (!confirmPassword(password, passwordConfirmed)) {
+            confirmPasswordView.setError(getString(R.string.error_confirm_password));
+            focusView = confirmPasswordView;
+            cancel = true;
+        }
 
         // Check for a valid password, if the user entered one.
         if (TextUtils.isEmpty(password) || !isPasswordValid(password)) {
@@ -115,6 +126,10 @@ public class RegisterActivity extends AppCompatActivity {
 
     private boolean isPasswordValid(String password) {
         return true;
+    }
+
+    private boolean confirmPassword(String password, String passwordConfirmed) {
+        return Objects.equals(password, passwordConfirmed);
     }
 
 }

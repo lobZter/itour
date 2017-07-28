@@ -106,8 +106,6 @@ public class MapFragment extends Fragment {
     private ImageView fogMap;
     private ImageView mapCenter;
     private LinearLayout gpsMarker;
-    private RelativeLayout mask;
-    private ProgressBar recordProgressBar;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
     private FloatingActionButton photoBtn;
@@ -125,15 +123,10 @@ public class MapFragment extends Fragment {
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-    // mediaRecorder
-    private MediaRecorder mediaRecorder;
-    private String filename = " ";
     // settings
     private SharedPreferences preferences;
     // flags
     private boolean isGpsCurrent = false;
-    private boolean isRecording = false;
-    private boolean audioReady = false;
 
 
     public static MapFragment newInstance(String mapTag) {
@@ -274,25 +267,8 @@ public class MapFragment extends Fragment {
                 // prevent intercepting touch event for float action menu_search
                 audioBtn.setVisibility(View.GONE);
                 photoBtn.setVisibility(View.GONE);
-
-                if (isRecording) stopAudioRecord();
-                isRecording = false;
-                audioReady = false;
-                mask.setVisibility(View.GONE);
-                mapCenter.setVisibility(View.GONE);
-                audioBtn.setImageResource(R.drawable.ic_mic_black_24dp);
             }
         });
-
-        // recording mask view
-        mask = (RelativeLayout) view.findViewById(R.id.mask);
-        mask.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // do not thing
-            }
-        });
-        recordProgressBar = (ProgressBar) view.findViewById(R.id.recordProgressBar);
 
         // init objects
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
@@ -304,6 +280,8 @@ public class MapFragment extends Fragment {
 
         updateCheckin();
 
+        setHasOptionsMenu(true);
+
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
@@ -311,8 +289,6 @@ public class MapFragment extends Fragment {
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
             }
         });
-
-        setHasOptionsMenu(true);
     }
 
     @Override
@@ -456,94 +432,6 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void audioCheckin() {
-
-        final Handler progressBarHandler = new Handler();
-        Runnable progressBarRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (recordProgressBar.getProgress() == 99) {
-                    audioCheckin();
-                } else {
-                    recordProgressBar.setProgress(recordProgressBar.getProgress()+1);
-                    progressBarHandler.postDelayed(this, 100);
-                }
-            }
-        };
-
-        if (isRecording) {
-            progressBarHandler.removeCallbacks(progressBarRunnable);
-            translateToCurrent();
-            mask.setVisibility(View.GONE);
-            mapCenter.setVisibility(View.VISIBLE);
-            audioBtn.setImageResource(R.drawable.ic_send_black_24dp);
-            stopAudioRecord();
-
-        } else if (audioReady) {
-            float[] point = new float[]{0, 0}; // tourist map position
-            float latCenter = lat;
-            float lngCenter = lng;
-            Matrix temp = new Matrix();
-            temp.set(transformMat);
-
-            // calculate lat lng
-            temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
-            temp.postRotate(-rotation);
-            temp.postTranslate(screenWidth / 2, screenHeight / 2);
-            temp.mapPoints(point);
-            IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
-            if (idxWeights.idx >= 0) {
-                double[] newPos = realMesh.interpolatePosition(idxWeights);
-                lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
-                latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
-            }
-
-            // close menu_search
-            floatingActionsMenu.collapse();
-
-            // upload audio
-            AsyncHttpClient client = new AsyncHttpClient();
-            RequestParams params = new RequestParams();
-            params.setForceMultipartEntityContentType(true);
-            try {
-                File audioFile = new File(filename);
-                if (audioFile.exists())
-                    params.put("file", audioFile);
-                params.put("mapTag", mapTag);
-                params.put("location", "null");
-                params.put("description", "null");
-                params.put("lat", latCenter);
-                params.put("lng", lngCenter);
-                params.put("type", "audio");
-
-                client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onStart() {
-                    }
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        Toast.makeText(context, "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
-                    }
-                });
-
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        } else {
-            audioBtn.setImageResource(R.drawable.ic_stop_red_a700_24dp);
-            mask.setVisibility(View.VISIBLE);
-            startAudioRecord();
-
-
-            progressBarHandler.postDelayed(progressBarRunnable, 100);
-        }
-    }
-
     private void updateCheckin() {
         databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
@@ -648,35 +536,6 @@ public class MapFragment extends Fragment {
                 Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
             }
         });
-    }
-
-    private void startAudioRecord() {
-        // TODO prevent name collision
-        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
-        Log.d(TAG, filename);
-
-        mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(filename);
-
-        try {
-            mediaRecorder.prepare();
-            mediaRecorder.start();
-            isRecording = true;
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
-        }
-
-    }
-
-    private void stopAudioRecord() {
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
-        isRecording = false;
-        audioReady = true;
     }
 
     public void handleLocationChange(Location currentLocation) {

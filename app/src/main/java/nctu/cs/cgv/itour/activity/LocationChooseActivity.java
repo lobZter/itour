@@ -27,15 +27,21 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.IdxWeights;
@@ -531,4 +537,59 @@ public class LocationChooseActivity extends AppCompatActivity implements
         currentLocation = location;
         handleLocationChange(location);
     }
+
+//
+//    float[] point = new float[]{0, 0}; // tourist map position
+//    float latCenter = lat;
+//    float lngCenter = lng;
+//    Matrix temp = new Matrix();
+//            temp.set(transformMat);
+//
+//    // calculate lat lng
+//            temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
+//            temp.postRotate(-rotation);
+//            temp.postTranslate(screenWidth / 2, screenHeight / 2);
+//            temp.mapPoints(point);
+//    IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
+//            if (idxWeights.idx >= 0) {
+//        double[] newPos = realMesh.interpolatePosition(idxWeights);
+//        lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
+//        latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
+//    }
+//
+//    // close menu_search
+//            floatingActionsMenu.collapse();
+//
+//    // upload audio
+//    AsyncHttpClient client = new AsyncHttpClient();
+//    RequestParams params = new RequestParams();
+//            params.setForceMultipartEntityContentType(true);
+//            try {
+//        File audioFile = new File(filename);
+//        if (audioFile.exists())
+//            params.put("file", audioFile);
+//        params.put("mapTag", mapTag);
+//        params.put("location", "null");
+//        params.put("description", "null");
+//        params.put("lat", latCenter);
+//        params.put("lng", lngCenter);
+//        params.put("type", "audio");
+//
+//        client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+//            @Override
+//            public void onStart() {
+//            }
+//
+//            @Override
+//            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+//            }
+//
+//            @Override
+//            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+//                Toast.makeText(context, "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
+//            }
+//        });
+//
+//    } catch (FileNotFoundException e) {
+//        e.printStackTrace();
 }
