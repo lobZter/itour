@@ -8,12 +8,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -39,16 +41,14 @@ public class PhotoCheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "PhotoCheckinActivity";
     private String mapTag;
-    private float latitude = 0;
-    private float longitude = 0;
     private String filename = " ";
     // pick image
     private static final int PICK_PHOTO_FOR_AVATAR = 1024;
     // view objects
     private EditText locationEdit;
     private EditText descriptionEdit;
-    private ProgressBar progressBar;
-    private ImageView pickedImage;
+    private RelativeLayout photoEdit;
+    private ImageView pickedPhoto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +56,6 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         setContentView(R.layout.activity_photo_checkin);
 
         Intent intent = getIntent();
-        latitude = intent.getFloatExtra("lat", 0);
-        longitude = intent.getFloatExtra("lng", 0);
         mapTag = intent.getStringExtra("mapTag");
 
         setView();
@@ -70,12 +68,36 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         return true;
     }
 
-    private void setView() {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case R.id.btn_submit:
+                String location = locationEdit.getText().toString().trim();
+                String description = descriptionEdit.getText().toString().trim();
 
+                Intent intent = new Intent(PhotoCheckinActivity.this, LocationChooseActivity.class);
+                intent.putExtra("mapTag", mapTag);
+                intent.putExtra("location", location);
+                intent.putExtra("description", description);
+                intent.putExtra("filename", filename);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void setView() {
         locationEdit = (EditText) findViewById(R.id.et_location);
         descriptionEdit = (EditText) findViewById(R.id.et_description);
-        progressBar = (ProgressBar) findViewById(R.id.loading_circle);
-
+        photoEdit = (RelativeLayout) findViewById(R.id.et_photo);
+        photoEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickImage();
+            }
+        });
+        pickedPhoto = (ImageView) findViewById(R.id.picked_photo);
     }
 
     public void pickImage() {
@@ -97,7 +119,7 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                 InputStream inputStream = getContentResolver().openInputStream(data.getData());
                 //Now you can do whatever you want with your inpustream, save it as file, upload to a server, decode a bitmap...
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                pickedImage.setImageBitmap(bitmap);
+                pickedPhoto.setImageBitmap(bitmap);
 
                 // save file
                 byte[] buffer = new byte[inputStream.available()];

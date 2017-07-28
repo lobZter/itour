@@ -23,7 +23,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -39,14 +41,14 @@
                 android:layout_height="wrap_content"
                 app:srcCompat="@drawable/ic_person_black_24dp" />
 
-            <EditText
+            <TextView
                 android:id="@+id/et_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
-                android:hint="編輯名字"
-                android:imeOptions="actionNext"
-                android:singleLine="true" />
+                android:text="小綿羊"
+                android:textSize="18sp"/>
+
 
         </LinearLayout>
 
@@ -78,20 +80,23 @@
         </LinearLayout>
 
         <RelativeLayout
+            android:id="@+id/et_photo"
             android:layout_width="match_parent"
-            android:layout_height="400px">
-
-            <ImageView
-                android:id="@+id/et_photo"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/dotted_line"></ImageView>
+            android:layout_height="300dp">
 
             <ImageView
                 android:layout_width="200px"
                 android:layout_height="200px"
                 android:layout_centerInParent="true"
-                android:src="@drawable/cross"></ImageView>
+                android:src="@drawable/cross" />
+
+            <ImageView
+                android:id="@+id/picked_photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/dotted_line" />
+
+
 
         </RelativeLayout>
 
