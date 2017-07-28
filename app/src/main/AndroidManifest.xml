@@ -50,18 +50,15 @@
         <activity
             android:name=".activity.PhotoCheckinActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".activity.LocationChooseActivity" />
-
-
         <activity
             android:name=".activity.MapListActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar">
         </activity>
         <activity
-            android:name=".activity.MapActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/TransparentTheme" />
+            android:name=".activity.LocationChooseActivity"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>
