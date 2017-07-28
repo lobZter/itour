@@ -24,30 +24,30 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!--<LinearLayout-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginEnd="16dp"-->
-        <!--android:layout_marginStart="16dp"-->
-        <!--android:layout_marginTop="16dp"-->
-        <!--android:gravity="center_vertical"-->
-        <!--android:orientation="horizontal">-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <!--<ImageView-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:src="@drawable/ic_person_black_24dp" />-->
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_person_black_24dp" />
 
-        <!--<EditText-->
-        <!--android:id="@+id/et_name"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:background="@android:color/transparent"-->
-        <!--android:hint="編輯名字"-->
-        <!--android:imeOptions="actionNext"-->
-        <!--android:singleLine="true" />-->
+            <TextView
+                android:id="@+id/et_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:text="小綿羊"
+                android:textSize="18sp"/>
 
-        <!--</LinearLayout>-->
+
+        </LinearLayout>
 
 
         <LinearLayout

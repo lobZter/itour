@@ -35,6 +35,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
@@ -47,6 +48,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -66,6 +69,8 @@ import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
+import static android.content.Context.LAYOUT_INFLATER_SERVICE;
+import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 
@@ -100,6 +105,8 @@ public class MapFragment extends Fragment {
     private int touristMapHeight = 0;
     private int screenWidth = 0;
     private int screenHeight = 0;
+    private int rootLayoutWidth = 0;
+    private int rootLayoutHeight = 0;
     // UI references
     private RelativeLayout rootLayout;
     private ImageView touristMap;
@@ -115,6 +122,7 @@ public class MapFragment extends Fragment {
     // objects
     private LinkedList<Float> nodeList;
     private LinkedList<ImageView> nodeImageList;
+    private LinkedList<LinearLayout> spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
     // Firebase real-time database
@@ -128,7 +136,6 @@ public class MapFragment extends Fragment {
     // flags
     private boolean isGpsCurrent = false;
 
-
     public static MapFragment newInstance(String mapTag) {
         MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
@@ -140,7 +147,8 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mapTag = getArguments().getString("mapTag", "nctu");
+        mapTag = getArguments().getString("mapTag", "Tamsui");
+        mapTag = "nctu";
         context = getContext();
 
         // get screen size
@@ -150,6 +158,15 @@ public class MapFragment extends Fragment {
         screenHeight = displayMetrics.heightPixels;
 
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // init objects
+        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        nodeList = new LinkedList<>();
+        nodeImageList = new LinkedList<>();
+        spotList = new LinkedList<>();
+        transformMat = new Matrix();
     }
 
     @Override
@@ -187,8 +204,6 @@ public class MapFragment extends Fragment {
         rootLayout.addView(fogMap);
 
         // draw edge nodes
-        nodeList = new LinkedList<>();
-        nodeImageList = new LinkedList<>();
         if (preferences.getBoolean("distance_indicator", false)) {
             EdgeNode edgeNode = new EdgeNode(dirPath + mapTag + "_edge_length.txt");
             nodeList = edgeNode.getNodeList();
@@ -207,16 +222,6 @@ public class MapFragment extends Fragment {
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
         gpsMarker.setPivotX(gpsMarkerWidth / 2);
         gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
-
-        // map center marker for checkin
-        layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(screenWidth / 2, screenHeight / 2, 0, 0);
-        mapCenter = new ImageView(context);
-        mapCenter.setImageResource(R.drawable.center);
-        mapCenter.setLayoutParams(layoutParams);
-        mapCenter.setElevation(2);
-        mapCenter.setVisibility(View.GONE);
-        rootLayout.addView(mapCenter);
 
         // set buttons
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
@@ -270,11 +275,8 @@ public class MapFragment extends Fragment {
             }
         });
 
-        // init objects
-        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
-        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
-        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
-        transformMat = new Matrix();
+        addSpot(24.7878043f, 120.9958817f, "交大體育館");
+        addCheckins(24.786704f, 121.001845f, 7);
 
         setTouchListener();
 
@@ -285,6 +287,8 @@ public class MapFragment extends Fragment {
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
+                rootLayoutWidth = rootLayout.getWidth();
+                rootLayoutHeight = rootLayout.getHeight();
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
             }
@@ -432,6 +436,85 @@ public class MapFragment extends Fragment {
         }
     }
 
+    private void addCheckins(float spotLat, float spotLng, int checkNum) {
+
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+        View bigCheckin = inflater.inflate(R.layout.item_bigcheckin, null);
+        TextView checkinNumCircle = (TextView) bigCheckin.findViewById(R.id.checkin_num);
+        checkinNumCircle.setText(String.valueOf(checkNum));
+
+        float x = 0;
+        float y = 0;
+        double imgX = realMesh.mapWidth * (spotLng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+        double imgY = realMesh.mapHeight * (realMesh.maxLat - spotLat) / (realMesh.maxLat - realMesh.minLat);
+        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+        if (idxWeights.idx >= 0) {
+            double[] newPos = warpMesh.interpolatePosition(idxWeights);
+            x = (float) newPos[0];
+            y = (float) newPos[1];
+        }
+
+        // transform gps marker
+        Matrix iconTransform = new Matrix();
+        iconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48/2));
+        float[] point = new float[]{x, y};
+        transformMat.mapPoints(point);
+        iconTransform.mapPoints(point);
+        bigCheckin.setTranslationX(point[0]);
+        bigCheckin.setTranslationY(point[1]);
+        rootLayout.addView(bigCheckin);
+    }
+
+    private void addSpot(float spotLat, float spotLng, String spotName) {
+
+//        LinearLayout spot = new LinearLayout(context);
+//        ImageView spotDot = new ImageView(context);
+//        TextView spotText = new TextView(context);
+//
+//
+//        layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        spot.setLayoutParams(layoutParams);
+//        spot.setOrientation(LinearLayout.VERTICAL);
+//
+//        LinearLayout.LayoutParams spotDotLayoutParams = new LinearLayout.LayoutParams(30, 30);
+//        spotDot.setLayoutParams(spotDotLayoutParams);
+//        spotDot.setImageResource(R.drawable.spot_circle);
+//        spot.addView(spotDot);
+//
+//        LinearLayout.LayoutParams spotDesLayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+//        spotText.setLayoutParams(spotDesLayoutParams);
+//        spotText.setText(spotName);
+//        spotText.setTextColor(getResources().getColor(R.color.white));
+//        spot.addView(spotText);
+
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+        View spot = inflater.inflate(R.layout.item_spot, null);
+        TextView spotNameView = (TextView) spot.findViewById(R.id.spot_name);
+        spotNameView.setText(spotName);
+
+        float x = 0;
+        float y = 0;
+        double imgX = realMesh.mapWidth * (spotLng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+        double imgY = realMesh.mapHeight * (realMesh.maxLat - spotLat) / (realMesh.maxLat - realMesh.minLat);
+        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+        if (idxWeights.idx >= 0) {
+            double[] newPos = warpMesh.interpolatePosition(idxWeights);
+            x = (float) newPos[0];
+            y = (float) newPos[1];
+        }
+
+        // transform
+        Matrix iconTransform = new Matrix();
+        iconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
+        float[] point = new float[]{x, y};
+        transformMat.mapPoints(point);
+        iconTransform.mapPoints(point);
+        spot.setTranslationX(point[0]);
+        spot.setTranslationY(point[1]);
+//        spotList.add(spot);
+        rootLayout.addView(spot);
+    }
+
     private void updateCheckin() {
         databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
@@ -442,6 +525,32 @@ public class MapFragment extends Fragment {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         CheckinInfo checkinInfo = issue.getValue(CheckinInfo.class);
                         handleCheckinMsg(issue.getKey(), Float.valueOf(checkinInfo.lat), Float.valueOf(checkinInfo.lng));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            }
+        });
+    }
+
+    private void showDialog(String postId) { // postId: unique key for data query
+
+        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
+                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                    if (Objects.equals(checkinInfo.type, "audio")) {
+                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance();
+                        audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
+                    } else if (Objects.equals(checkinInfo.type, "photo")) {
+                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance();
+                        photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
                     }
                 }
             }
@@ -510,32 +619,6 @@ public class MapFragment extends Fragment {
             }
         };
         rotationHandler.postDelayed(rotationInterpolation, 1);
-    }
-
-    private void showDialog(String postId) { // postId: unique key for data query
-
-        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
-                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    if (Objects.equals(checkinInfo.type, "audio")) {
-                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance();
-                        audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
-                    } else if (Objects.equals(checkinInfo.type, "photo")) {
-                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance();
-                        photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
-            }
-        });
     }
 
     public void handleLocationChange(Location currentLocation) {

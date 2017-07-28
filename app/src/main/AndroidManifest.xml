@@ -31,12 +31,6 @@
         <activity
             android:name=".activity.LoginActivity"
             android:screenOrientation="portrait" >
-
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name=".activity.RegisterActivity"
             android:screenOrientation="portrait" >
@@ -44,13 +38,20 @@
         <activity
             android:name=".activity.MainActivity"
             android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".activity.AudioCheckinActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:label="Audio Checkin" />
         <activity
             android:name=".activity.PhotoCheckinActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:label="Photo Checkin" />
         <activity
             android:name=".activity.MapListActivity"
             android:screenOrientation="portrait"
@@ -58,7 +59,8 @@
         </activity>
         <activity
             android:name=".activity.LocationChooseActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:label="Choose Location">
         </activity>
     </application>
 

@@ -82,6 +82,8 @@ public class LocationChooseActivity extends AppCompatActivity implements
     private int touristMapHeight = 0;
     private int screenWidth = 0;
     private int screenHeight = 0;
+    private int rootLayoutWidth = 0;
+    private int rootLayoutHeight = 0;
     // UI references
     private FloatingActionButton gpsBtn;
     private LinearLayout gpsMarker;
@@ -153,11 +155,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
         gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
 
         // map center marker for checkin
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.setMargins(screenWidth / 2, screenHeight / 2, 0, 0);
+
         mapCenter = new ImageView(this);
         mapCenter.setImageResource(R.drawable.ic_location_on_red_600_24dp);
-        mapCenter.setLayoutParams(layoutParams);
         mapCenter.setElevation(2);
         rootLayout.addView(mapCenter);
 
@@ -178,6 +178,19 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
         setTouchListener();
         setSensors();
+
+        rootLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                rootLayoutWidth = rootLayout.getWidth();
+                rootLayoutHeight = rootLayout.getHeight();
+                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+
+                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                layoutParams.setMargins(rootLayoutWidth / 2, rootLayoutHeight / 3, 0, 0);
+                mapCenter.setLayoutParams(layoutParams);
+            }
+        });
     }
 
     @Override
@@ -190,7 +203,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
     public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case R.id.btn_submit:
-                finish();
+                Intent intent = new Intent(this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -313,7 +328,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
                         float orientation[] = new float[3];
                         SensorManager.getOrientation(R, orientation);
                         final float RADIAN = 57.296f;
-                        gpsMarker.setRotation(rotation * RADIAN);
+                        gpsMarker.setRotation(orientation[0] * RADIAN);
                     }
                 }
             }

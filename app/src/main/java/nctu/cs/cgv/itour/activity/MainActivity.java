@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements
         // get mapTag passed from MapList
         Intent intent = getIntent();
         mapTag = intent.getStringExtra("mapTag");
-        mapTag = "nctu";
+        mapTag = "Tamsui";
 
         // set Location API
         buildGoogleApiClient();
@@ -263,7 +263,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onConnectionSuspended(int cause) {
         Log.d(TAG, "onConnectionSuspended(), errorCode: " + String.valueOf(cause));
-
     }
 
     @Override

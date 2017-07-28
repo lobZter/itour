@@ -101,7 +101,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 intent.putExtra("mapTag", mapTag);
                 intent.putExtra("audioFileName", filename);
                 startActivity(intent);
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

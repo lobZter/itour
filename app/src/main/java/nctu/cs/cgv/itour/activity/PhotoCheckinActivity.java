@@ -81,7 +81,6 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                 intent.putExtra("description", description);
                 intent.putExtra("filename", filename);
                 startActivity(intent);
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
