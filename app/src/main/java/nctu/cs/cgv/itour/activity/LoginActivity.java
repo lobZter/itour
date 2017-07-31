@@ -12,6 +12,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -35,6 +36,13 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         firebaseAuth = FirebaseAuth.getInstance();
+
+        if (firebaseAuth.getCurrentUser() != null) {
+            finish();
+            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+            intent.putExtra("mapTag", "Tamsui");
+            startActivity(intent);
+        }
 
         progressDialog = new ProgressDialog(this);
         emailView = (EditText) findViewById(R.id.email);
@@ -90,28 +98,33 @@ public class LoginActivity extends AppCompatActivity {
             emailView.setError(getString(R.string.error_field_required));
             focusView = emailView;
             cancel = true;
+        } else if (!isEmailValid(email)) {
+            emailView.setError(getString(R.string.error_invalid_email));
+            focusView = emailView;
+            cancel = true;
         }
-//        } else if (!isEmailValid(email)) {
-//            emailView.setError(getString(R.string.error_invalid_email));
-//            focusView = emailView;
-//            cancel = true;
-//        }
 
         if (cancel) {
             focusView.requestFocus();
             return;
         }
 
-        progressDialog.setMessage("Registering User...");
+        progressDialog.setMessage("Sign In...");
         progressDialog.show();
 
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.putExtra("mapTag", "nctu");
-                        startActivity(intent);
+                        progressDialog.dismiss();
+                        if (task.isSuccessful()) {
+                            finish();
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.putExtra("mapTag", "Tamsui");
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Sign in failed.", Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
     }

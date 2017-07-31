@@ -15,4 +15,12 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="帳號設定">
+
+        <Preference
+            android:key="signout"
+            android:title="登出" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>
