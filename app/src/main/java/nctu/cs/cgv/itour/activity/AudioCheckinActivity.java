@@ -2,33 +2,30 @@ package nctu.cs.cgv.itour.activity;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Timer;
 
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
@@ -42,15 +39,26 @@ public class AudioCheckinActivity extends AppCompatActivity {
     // mediaRecorder
     private boolean isRecording = false;
     private boolean audioReady = false;
+    private boolean isPlaying = false;
     private MediaRecorder mediaRecorder;
+    private MediaPlayer mediaPlayer;
     private String filename = " ";
     // UI references
     private EditText locationEdit;
-    private RelativeLayout playBtn;
-    private ImageView playBtnIcon;
-    private ImageView recordBtn;
     private ProgressBar progressBar;
-    private TextView progressText;
+    private TextView progressTextCurrent;
+    private TextView progressTextDuration;
+    private RelativeLayout playBtn;
+    private ImageView playBtnCircle;
+    private ImageView playBtnIcon;
+    private RelativeLayout recordBtn;
+    private ImageView recordBtnIcon;
+    private Chronometer chronometer;
+
+    private int timeTick = 0;
+    private CountDownTimer countDownTimer;
+    private Handler progressBarHandler;
+    private Runnable progressBarRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,27 +72,47 @@ public class AudioCheckinActivity extends AppCompatActivity {
             finish();
         }
 
+        // get information from previous activity
         Intent intent = getIntent();
         lat = intent.getFloatExtra("lat", 0);
         lng = intent.getFloatExtra("lng", 0);
         mapTag = intent.getStringExtra("mapTag");
 
+        // set view
+        chronometer = (Chronometer) findViewById(R.id.chronometer);
         locationEdit = (EditText) findViewById(R.id.et_location);
-        progressBar = (ProgressBar) findViewById(R.id.progress_record);
-        progressText = (TextView) findViewById(R.id.tv_progress);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+        progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
+        progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
         playBtn = (RelativeLayout) findViewById(R.id.btn_play);
         playBtnIcon = (ImageView) findViewById(R.id.btn_play_icon);
-        recordBtn = (ImageView) findViewById(R.id.btn_record);
+        playBtnCircle = (ImageView) findViewById(R.id.btn_play_circle);
+        recordBtn = (RelativeLayout) findViewById(R.id.btn_record);
+        recordBtnIcon = (ImageView) findViewById(R.id.btn_record_icon);
 
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isRecording)
-                    startAudioRecord();
+                    startRecording();
                 else
-                    stopAudioRecord();
+                    stopRecording();
             }
         });
+
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (audioReady) {
+                    if (isPlaying)
+                        pauseAudio();
+                    else
+                        playAudio();
+                }
+            }
+        });
+
+        progressBarHandler = new Handler();
     }
 
     @Override
@@ -94,8 +122,8 @@ public class AudioCheckinActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch(item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.btn_submit:
                 Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
                 intent.putExtra("mapTag", mapTag);
@@ -106,7 +134,14 @@ public class AudioCheckinActivity extends AppCompatActivity {
         }
     }
 
-    private void startAudioRecord() {
+    private void startRecording() {
+
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+            progressBarHandler.removeCallbacks(progressBarRunnable);
+        }
+
         // TODO prevent name collision
         filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
 
@@ -115,24 +150,122 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setOutputFile(filename);
-
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
-//            recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_stop_black_24dp));
-            isRecording = true;
         } catch (IOException e) {
             Log.e(TAG, "prepare() failed");
+            return;
         }
 
+        // set flags
+        isRecording = true;
+        isPlaying = false;
+        audioReady = false;
+
+        // set view
+        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_grey_700_48dp));
+        playBtnCircle.setImageDrawable(getDrawable(R.drawable.circle_btn_grey_700));
+        recordBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_stop_red_a700_24dp));
+        // set progress bar
+        timeTick = 0;
+        progressTextCurrent.setText("0:00");
+        progressTextDuration.setText("6:00");
+        countDownTimer = new CountDownTimer(6000, 60) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                timeTick++;
+                String str = String.format("%d:%02d", timeTick * 60 / 1000, ((timeTick * 60) % 1000) * 60 / 1000);
+                progressTextCurrent.setText(str);
+                progressBar.setProgress(timeTick * 100 / (6000 / 60));
+            }
+
+            @Override
+            public void onFinish() {
+                stopRecording();
+                timeTick++;
+                progressTextCurrent.setText("6:00");
+                progressBar.setProgress(100);
+            }
+        };
+        countDownTimer.start();
     }
 
-    private void stopAudioRecord() {
+    private void stopRecording() {
+        // stop recording
         mediaRecorder.stop();
         mediaRecorder.release();
         mediaRecorder = null;
-        isRecording = false;
 
-//        recordBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_black_24dp));
+        // stop timer
+        countDownTimer.cancel();
+        countDownTimer = null;
+
+        // set flags
+        isRecording = false;
+        audioReady = true;
+
+        // set view
+        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
+        playBtnCircle.setImageDrawable(getDrawable(R.drawable.circle_btn_white));
+        recordBtnIcon.setImageDrawable(getDrawable(R.drawable.circle_record));
+
+        initAudio();
+    }
+
+    private void initAudio() {
+        progressBar.setProgress(0);
+        progressTextCurrent.setText("0:00");
+        progressTextDuration.setText("0:00");
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        try {
+            mediaPlayer.setDataSource(filename);
+            mediaPlayer.prepare();
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    progressBarHandler.removeCallbacks(progressBarRunnable);
+
+                    isPlaying = false;
+                    playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
+                    initAudio();
+                }
+            });
+
+            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
+            progressTextDuration.setText(str);
+
+            progressBarRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    if (isPlaying && mediaPlayer != null) {
+                        progressBar.setProgress(mediaPlayer.getCurrentPosition() * 100 / mediaPlayer.getDuration());
+                        String str = String.format("%d:%02d", mediaPlayer.getCurrentPosition() / 1000, (mediaPlayer.getCurrentPosition() % 1000) * 60 / 1000);
+                        progressTextCurrent.setText(str);
+                    }
+                    progressBarHandler.postDelayed(this, 100);
+                }
+            };
+            progressBarRunnable.run();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void playAudio() {
+        mediaPlayer.start();
+
+        isPlaying = true;
+        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_pause_white_48dp));
+    }
+
+    private void pauseAudio() {
+        mediaPlayer.pause();
+
+        isPlaying = false;
+        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
     }
 }

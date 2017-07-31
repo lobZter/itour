@@ -67,7 +67,7 @@
         <ImageView
             android:layout_width="48px"
             android:layout_height="48px"
-            android:src="@drawable/circle" />
+            android:src="@drawable/circle_gps" />
 
     </LinearLayout>
 
