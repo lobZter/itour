@@ -41,6 +41,8 @@ public class PhotoCheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "PhotoCheckinActivity";
     private String mapTag;
+    private float lat = 0;
+    private float lng = 0;
     private String filename = " ";
     // pick image
     private static final int PICK_PHOTO_FOR_AVATAR = 1024;
@@ -55,7 +57,10 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_checkin);
 
+        // get information from previous activity
         Intent intent = getIntent();
+        lat = intent.getFloatExtra("lat", 0);
+        lng = intent.getFloatExtra("lng", 0);
         mapTag = intent.getStringExtra("mapTag");
 
         setView();
@@ -77,9 +82,12 @@ public class PhotoCheckinActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(PhotoCheckinActivity.this, LocationChooseActivity.class);
                 intent.putExtra("mapTag", mapTag);
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
                 intent.putExtra("location", location);
                 intent.putExtra("description", description);
                 intent.putExtra("filename", filename);
+                intent.putExtra("type", "photo");
                 startActivity(intent);
             default:
                 return super.onOptionsItemSelected(item);

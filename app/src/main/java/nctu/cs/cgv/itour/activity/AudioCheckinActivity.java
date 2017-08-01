@@ -53,7 +53,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
     private ImageView playBtnIcon;
     private RelativeLayout recordBtn;
     private ImageView recordBtnIcon;
-    private Chronometer chronometer;
 
     private int timeTick = 0;
     private CountDownTimer countDownTimer;
@@ -79,7 +78,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mapTag = intent.getStringExtra("mapTag");
 
         // set view
-        chronometer = (Chronometer) findViewById(R.id.chronometer);
         locationEdit = (EditText) findViewById(R.id.et_location);
         progressBar = (ProgressBar) findViewById(R.id.progress);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
@@ -127,7 +125,11 @@ public class AudioCheckinActivity extends AppCompatActivity {
             case R.id.btn_submit:
                 Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
                 intent.putExtra("mapTag", mapTag);
+                intent.putExtra("lat", lat);
+                intent.putExtra("lng", lng);
+                intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("audioFileName", filename);
+                intent.putExtra("type", "audio");
                 startActivity(intent);
             default:
                 return super.onOptionsItemSelected(item);

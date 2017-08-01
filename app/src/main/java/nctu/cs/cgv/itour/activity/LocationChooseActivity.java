@@ -66,7 +66,12 @@ public class LocationChooseActivity extends AppCompatActivity implements
     private final int nodeIconHeight = 16;
     private final int checkinIconWidth = 64;
     private final int checkinIconHeight = 64;
+    // intent info
     private String mapTag;
+    private String location;
+    private String filename;
+    private String description;
+    private String type;
     // variables
     private Matrix transformMat;
     private float scale = 1;
@@ -116,8 +121,15 @@ public class LocationChooseActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_choose);
 
+        // TODO handle null value
         Intent intent = getIntent();
         mapTag = intent.getStringExtra("MAP");
+        lat = intent.getFloatExtra("lat", 0);
+        lng = intent.getFloatExtra("lng", 0);
+        location = intent.getStringExtra("location");
+        filename = intent.getStringExtra("filename");
+        description = intent.getStringExtra("description");
+        type = intent.getStringExtra("type");
         mapTag = "nctu";
 
         // Set Location API.
@@ -186,9 +198,17 @@ public class LocationChooseActivity extends AppCompatActivity implements
                 rootLayoutHeight = rootLayout.getHeight();
                 touristMap.setScaleType(ImageView.ScaleType.MATRIX);
 
+                // transform mapcenter icon to center
                 RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                layoutParams.setMargins(rootLayoutWidth / 2, rootLayoutHeight / 3, 0, 0);
+                layoutParams.setMargins(rootLayoutWidth / 2 - checkinIconWidth / 2, rootLayoutHeight / 3 - checkinIconHeight, 0, 0);
                 mapCenter.setLayoutParams(layoutParams);
+
+
+                handleLocationChange();
+                transformMat.postTranslate(
+                        rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
+                        rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
+                reRender();
             }
         });
     }
@@ -200,12 +220,10 @@ public class LocationChooseActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-        switch(item.getItemId()){
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
             case R.id.btn_submit:
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                checkin();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -363,8 +381,8 @@ public class LocationChooseActivity extends AppCompatActivity implements
     }
 
     private void translateToCurrent() {
-        final float transX = screenWidth / 2 - gpsMarker.getTranslationX();
-        final float transY = screenHeight / 2 - gpsMarker.getTranslationY();
+        final float transX = rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2;
+        final float transY = rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2;
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -372,16 +390,17 @@ public class LocationChooseActivity extends AppCompatActivity implements
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
+                if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
                     transformMat.postTranslate(
-                            screenWidth / 2 - gpsMarker.getTranslationX(),
-                            screenHeight / 2 - gpsMarker.getTranslationY());
+                            rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
+                            rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
                     reRender();
                     translationHandler.removeCallbacks(this);
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < screenHeight / 4) {
+                    if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < rootLayoutHeight / 4) {
+                        // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
                         translationHandler.postDelayed(this, 2);
@@ -421,9 +440,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
-    private void handleLocationChange(Location currentLocation) {
-        lat = (float) currentLocation.getLatitude();
-        lng = (float) currentLocation.getLongitude();
+    private void handleLocationChange() {
         double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
         double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
 
@@ -451,7 +468,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
         googleApiClient.connect();
 
         if (currentLocation != null) {
-            handleLocationChange(currentLocation);
+            lat = (float) currentLocation.getLatitude();
+            lng = (float) currentLocation.getLongitude();
+            handleLocationChange();
         }
 
         if (accelerometer != null) {
@@ -550,61 +569,68 @@ public class LocationChooseActivity extends AppCompatActivity implements
     @Override
     public void onLocationChanged(Location location) {
         currentLocation = location;
-        handleLocationChange(location);
+        lat = (float) currentLocation.getLatitude();
+        lng = (float) currentLocation.getLongitude();
+        handleLocationChange();
     }
 
-//
-//    float[] point = new float[]{0, 0}; // tourist map position
-//    float latCenter = lat;
-//    float lngCenter = lng;
-//    Matrix temp = new Matrix();
-//            temp.set(transformMat);
-//
-//    // calculate lat lng
-//            temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
-//            temp.postRotate(-rotation);
-//            temp.postTranslate(screenWidth / 2, screenHeight / 2);
-//            temp.mapPoints(point);
-//    IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
-//            if (idxWeights.idx >= 0) {
-//        double[] newPos = realMesh.interpolatePosition(idxWeights);
-//        lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
-//        latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
-//    }
-//
-//    // close menu_search
-//            floatingActionsMenu.collapse();
-//
-//    // upload audio
-//    AsyncHttpClient client = new AsyncHttpClient();
-//    RequestParams params = new RequestParams();
-//            params.setForceMultipartEntityContentType(true);
-//            try {
-//        File audioFile = new File(filename);
-//        if (audioFile.exists())
-//            params.put("file", audioFile);
-//        params.put("mapTag", mapTag);
-//        params.put("location", "null");
-//        params.put("description", "null");
-//        params.put("lat", latCenter);
-//        params.put("lng", lngCenter);
-//        params.put("type", "audio");
-//
-//        client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-//            @Override
-//            public void onStart() {
-//            }
-//
-//            @Override
-//            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//            }
-//
-//            @Override
-//            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                Toast.makeText(context, "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
-//            }
-//        });
-//
-//    } catch (FileNotFoundException e) {
-//        e.printStackTrace();
+    private void checkin() {
+
+        float[] point = new float[]{0, 0}; // tourist map position
+        float latCenter = lat;
+        float lngCenter = lng;
+        Matrix temp = new Matrix();
+        temp.set(transformMat);
+
+        // calculate lat lng
+        temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
+        temp.postRotate(-rotation);
+        temp.postTranslate(screenWidth / 2, screenHeight / 2);
+        temp.mapPoints(point);
+        IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
+        if (idxWeights.idx >= 0) {
+            double[] newPos = realMesh.interpolatePosition(idxWeights);
+            lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
+            latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
+        }
+
+        // upload audio
+        AsyncHttpClient client = new AsyncHttpClient();
+        RequestParams params = new RequestParams();
+        params.setForceMultipartEntityContentType(true);
+        try {
+            File audioFile = new File(filename);
+            if (audioFile.exists())
+                params.put("file", audioFile);
+            params.put("mapTag", mapTag);
+            params.put("lat", latCenter);
+            params.put("lng", lngCenter);
+            params.put("location", location);
+            params.put("description", description);
+            params.put("type", type);
+
+            client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+                @Override
+                public void onStart() {
+                }
+
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                    Toast.makeText(getApplicationContext(), "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
+                }
+            });
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
+
