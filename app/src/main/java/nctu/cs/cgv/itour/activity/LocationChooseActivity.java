@@ -123,14 +123,13 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
         // TODO handle null value
         Intent intent = getIntent();
-        mapTag = intent.getStringExtra("MAP");
+        mapTag = intent.getStringExtra("mapTag");
         lat = intent.getFloatExtra("lat", 0);
         lng = intent.getFloatExtra("lng", 0);
         location = intent.getStringExtra("location");
         filename = intent.getStringExtra("filename");
         description = intent.getStringExtra("description");
         type = intent.getStringExtra("type");
-        mapTag = "nctu";
 
         // Set Location API.
         buildGoogleApiClient();
@@ -583,11 +582,11 @@ public class LocationChooseActivity extends AppCompatActivity implements
         temp.set(transformMat);
 
         // calculate lat lng
-        temp.postTranslate(-screenWidth / 2, -screenHeight / 2);
+        temp.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
         temp.postRotate(-rotation);
-        temp.postTranslate(screenWidth / 2, screenHeight / 2);
+        temp.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
         temp.mapPoints(point);
-        IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((screenWidth / 2 - point[0]) / scale, (screenHeight / 2 - point[1]) / scale);
+        IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((rootLayoutWidth / 2 - point[0]) / scale, (rootLayoutHeight / 3 - point[1]) / scale);
         if (idxWeights.idx >= 0) {
             double[] newPos = realMesh.interpolatePosition(idxWeights);
             lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
@@ -623,7 +622,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                    Toast.makeText(getApplicationContext(), "上傳失敗, 網路錯誤QQ", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "上傳失敗, 網路錯誤QQ " + statusCode, Toast.LENGTH_LONG).show();
                 }
             });
 

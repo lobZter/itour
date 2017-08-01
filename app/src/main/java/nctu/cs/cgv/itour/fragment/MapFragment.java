@@ -128,6 +128,8 @@ public class MapFragment extends Fragment {
     // objects
     private LinkedList<Float> nodeList;
     private LinkedList<ImageView> nodeImageList;
+    private LinkedList<Float> checkinList;
+    private LinkedList<ImageView> checkinIconList;
     private LinkedList<LinearLayout> spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
@@ -171,6 +173,8 @@ public class MapFragment extends Fragment {
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
         nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
+        checkinList = new LinkedList<>();
+        checkinIconList = new LinkedList<>();
         spotList = new LinkedList<>();
         transformMat = new Matrix();
     }
@@ -281,8 +285,8 @@ public class MapFragment extends Fragment {
             }
         });
 
-        addSpot(24.7878043f, 120.9958817f, "交大體育館");
-        addCheckins(24.786704f, 121.001845f, 7);
+//        addSpot(24.7878043f, 120.9958817f, "交大體育館");
+//        addCheckins(24.786704f, 121.001845f, 7);
 
         setTouchListener();
 
@@ -307,8 +311,6 @@ public class MapFragment extends Fragment {
     public void  onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
         super.onCreateOptionsMenu(menu,inflater);
-
-
 
         ArrayList<String> array = new ArrayList<>();
         array.add("交大藝文中心");
@@ -427,8 +429,10 @@ public class MapFragment extends Fragment {
     private void reRender() {
         Matrix gpsMarkTransform = new Matrix();
         Matrix nodeIconTransform = new Matrix();
+        Matrix checkinIconTransform = new Matrix();
         gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
+        checkinIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
         float[] point = new float[]{0, 0};
 
         // transform tourist map (ImageView)
@@ -461,6 +465,16 @@ public class MapFragment extends Fragment {
             nodeIconTransform.mapPoints(point);
             nodeImageList.get(i).setTranslationX(point[0]);
             nodeImageList.get(i).setTranslationY(point[1]);
+        }
+
+        // transform checkinIcon
+        for (int i = 0; i < checkinIconList.size(); i++) {
+            point[0] = checkinList.get(i * 2);
+            point[1] = checkinList.get(i * 2 + 1);
+            transformMat.mapPoints(point);
+            checkinIconTransform.mapPoints(point);
+            checkinIconList.get(i).setTranslationX(point[0]);
+            checkinIconList.get(i).setTranslationY(point[1]);
         }
     }
 
@@ -591,8 +605,8 @@ public class MapFragment extends Fragment {
     }
 
     private void translateToCurrent() {
-        final float transX = screenWidth / 2 - gpsMarker.getTranslationX();
-        final float transY = screenHeight / 2 - gpsMarker.getTranslationY();
+        final float transX = rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2;
+        final float transY = rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2;
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -600,16 +614,17 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
+                if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
                     transformMat.postTranslate(
-                            screenWidth / 2 - gpsMarker.getTranslationX(),
-                            screenHeight / 2 - gpsMarker.getTranslationY());
+                            rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
+                            rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
                     reRender();
                     translationHandler.removeCallbacks(this);
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(screenWidth / 2 - gpsMarker.getTranslationX()) < screenHeight / 4) {
+                    if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < rootLayoutHeight / 4) {
+                        // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
                         translationHandler.postDelayed(this, 2);
@@ -657,11 +672,15 @@ public class MapFragment extends Fragment {
         double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
 
         IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+//        Log.d(TAG, "handleLocationChange(): idxWeights.idx:" + idxWeights.idx);
         if (idxWeights.idx >= 0) {
             double[] newPos = warpMesh.interpolatePosition(idxWeights);
             gpsDistortedX = (float) newPos[0];
             gpsDistortedY = (float) newPos[1];
         }
+//        Log.d(TAG, "handleLocationChange(): gpsDistortedX:" + gpsDistortedX);
+//        Log.d(TAG, "handleLocationChange(): gpsDistortedY:" + gpsDistortedY);
+
 
         // transform gps marker
         float[] point = new float[]{gpsDistortedX, gpsDistortedY};
@@ -708,30 +727,30 @@ public class MapFragment extends Fragment {
             lngDistorted = (float) newPos[0];
             latDistorted = (float) newPos[1];
         }
-        nodeList.add(lngDistorted);
-        nodeList.add(latDistorted);
+        checkinList.add(lngDistorted);
+        checkinList.add(latDistorted);
 
         // add new icon ImageView
-        ImageView nodeImage = new ImageView(context);
-        nodeImage.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
-        nodeImage.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        nodeImage.setOnClickListener(new View.OnClickListener() {
+        ImageView checkinIcon = new ImageView(context);
+        checkinIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        checkinIcon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
+        checkinIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showDialog(postId);
             }
         });
-        rootLayout.addView(nodeImage);
+        rootLayout.addView(checkinIcon);
 
         // transform to distorted gps value
         Matrix checkInIconTransform = new Matrix();
-        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight / 2);
+        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
         float[] point = new float[]{lngDistorted, latDistorted};
         transformMat.mapPoints(point);
         checkInIconTransform.mapPoints(point);
-        nodeImage.setTranslationX(point[0]);
-        nodeImage.setTranslationY(point[1]);
-        nodeImageList.add(nodeImage);
+        checkinIcon.setTranslationX(point[0]);
+        checkinIcon.setTranslationY(point[1]);
+        checkinIconList.add(checkinIcon);
     }
 
 

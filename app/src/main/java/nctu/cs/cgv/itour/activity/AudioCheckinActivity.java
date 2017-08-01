@@ -128,7 +128,8 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
                 intent.putExtra("location", locationEdit.getText().toString().trim());
-                intent.putExtra("audioFileName", filename);
+                intent.putExtra("description", "");
+                intent.putExtra("filename", filename);
                 intent.putExtra("type", "audio");
                 startActivity(intent);
             default:
