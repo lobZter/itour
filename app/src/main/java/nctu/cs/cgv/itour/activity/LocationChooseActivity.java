@@ -1,5 +1,6 @@
 package nctu.cs.cgv.itour.activity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -575,6 +576,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
     private void checkin() {
 
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.show();
+
         float[] point = new float[]{0, 0}; // tourist map position
         float latCenter = lat;
         float lngCenter = lng;
@@ -615,6 +619,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                    progressDialog.dismiss();
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
@@ -622,6 +627,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                    progressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "上傳失敗, 網路錯誤QQ " + statusCode, Toast.LENGTH_LONG).show();
                 }
             });

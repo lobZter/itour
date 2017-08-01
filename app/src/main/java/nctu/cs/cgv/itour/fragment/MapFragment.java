@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -125,6 +126,7 @@ public class MapFragment extends Fragment {
     private FloatingActionsMenu floatingActionsMenu;
     private RelativeLayout.LayoutParams layoutParams;
     private Bitmap fogBitmap;
+    private ProgressDialog progressDialog;
     // objects
     private LinkedList<Float> nodeList;
     private LinkedList<ImageView> nodeImageList;
@@ -284,6 +286,8 @@ public class MapFragment extends Fragment {
                 photoBtn.setVisibility(View.GONE);
             }
         });
+
+        progressDialog = new ProgressDialog(context);
 
 //        addSpot(24.7878043f, 120.9958817f, "交大體育館");
 //        addCheckins(24.786704f, 121.001845f, 7);
@@ -580,18 +584,21 @@ public class MapFragment extends Fragment {
 
     private void showDialog(String postId) { // postId: unique key for data query
 
+        progressDialog.show();
+
         Query query = databaseReference.child("checkin").child(mapTag).child(postId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                progressDialog.dismiss();
                 if (dataSnapshot.exists()) {
                     CheckinInfo checkinInfo = dataSnapshot.getValue(CheckinInfo.class);
                     FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                     if (Objects.equals(checkinInfo.type, "audio")) {
-                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance();
+                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkinInfo);
                         audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
                     } else if (Objects.equals(checkinInfo.type, "photo")) {
-                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance();
+                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkinInfo);
                         photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
                     }
                 }

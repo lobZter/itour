@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -128,14 +129,33 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 pickedPhoto.setImageBitmap(bitmap);
 
-                // save file
-                byte[] buffer = new byte[inputStream.available()];
-                inputStream.read(buffer);
+                filename = photoPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".png";
 
-                filename = photoPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-                File targetFile = new File(filename);
-                OutputStream outStream = new FileOutputStream(targetFile);
-                outStream.write(buffer);
+                FileOutputStream outFile = null;
+                try {
+                    outFile = new FileOutputStream(filename);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outFile); // bmp is your Bitmap instance
+                    // PNG is a lossless format, the compression factor (100) is ignored
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (outFile != null) {
+                            outFile.close();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+//
+//                // save file
+//                byte[] buffer = new byte[inputStream.available()];
+//                inputStream.read(buffer);
+//
+//
+//                File targetFile = new File(filename);
+//                OutputStream outStream = new FileOutputStream(targetFile);
+//                outStream.write(buffer);
 
             } catch (IOException e) {
                 e.printStackTrace();

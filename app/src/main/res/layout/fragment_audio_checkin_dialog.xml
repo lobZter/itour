@@ -59,20 +59,40 @@
             android:paddingTop="20dp">
 
             <ProgressBar
-                android:id="@+id/progress"
+                android:id="@+id/progressbar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_marginStart="16dp" />
 
-            <TextView
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end"
                 android:layout_marginEnd="16dp"
-                android:gravity="right"
-                android:text="0:00/6:01"
-                android:textColor="@color/textColorPrimary" />
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tv_progress_current"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/" />
+
+                <TextView
+                    android:id="@+id/tv_progress_duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="6:00" />
+
+            </LinearLayout>
+
+
         </LinearLayout>
 
     </LinearLayout>
