@@ -38,13 +38,14 @@ import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
+
 public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
     private static final String TAG = "MainActivity";
-    private String mapTag;
     // view objects
     private MyViewPager viewPager;
     private List<Fragment> fragmentList;
@@ -69,11 +70,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // get mapTag passed from MapList
-        Intent intent = getIntent();
-        mapTag = intent.getStringExtra("mapTag");
-        mapTag = "Tamsui";
-
         // set Location API
         buildGoogleApiClient();
         createLocationRequest();
@@ -84,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setView() {
-        mapFragment = MapFragment.newInstance(mapTag);
+        mapFragment = MapFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
         fragmentList.add(PlanFragment.newInstance());

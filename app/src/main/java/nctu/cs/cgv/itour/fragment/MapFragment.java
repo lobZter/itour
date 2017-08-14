@@ -84,6 +84,7 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MapFragment extends Fragment {
@@ -100,7 +101,6 @@ public class MapFragment extends Fragment {
     private final int nodeIconHeight = 16;
     private final int checkinIconWidth = 64;
     private final int checkinIconHeight = 64;
-    private String mapTag;
     private Context context;
     // variables
     private Matrix transformMat;
@@ -152,19 +152,13 @@ public class MapFragment extends Fragment {
     private boolean isGpsCurrent = false;
     private boolean isMerged = true;
 
-    public static MapFragment newInstance(String mapTag) {
-        MapFragment fragment = new MapFragment();
-        Bundle args = new Bundle();
-        args.putString("mapTag", mapTag);
-        fragment.setArguments(args);
-        return fragment;
+    public static MapFragment newInstance() {
+        return new MapFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mapTag = getArguments().getString("mapTag", "Tamsui");
-        mapTag = "nctu";
         context = getContext();
 
         // get screen size

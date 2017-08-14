@@ -21,6 +21,8 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import nctu.cs.cgv.itour.R;
 
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
+
 public class LoginActivity extends AppCompatActivity {
 
     // UI references
@@ -119,9 +121,7 @@ public class LoginActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                         if (task.isSuccessful()) {
                             finish();
-                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                            intent.putExtra("mapTag", "Tamsui");
-                            startActivity(intent);
+                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
                         } else {
                             Toast.makeText(LoginActivity.this, "Sign in failed.", Toast.LENGTH_LONG).show();
                         }
