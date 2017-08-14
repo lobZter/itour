@@ -6,21 +6,21 @@ import android.widget.ImageView;
  * Created by lobst3rd on 2017/7/7.
  */
 
-public class PointF {
+public class ImageNode {
 
     public float x;
     public float y;
-    public ImageView nodeImage;
+    public ImageView icon;
 
-    public PointF() {
+    public ImageNode() {
         this.x = 0;
         this.y = 0;
-        this.nodeImage = null;
+        this.icon = null;
     }
 
-    public PointF(float x, float y) {
+    public ImageNode(float x, float y) {
         this.x = x;
         this.y = y;
-        this.nodeImage = null;
+        this.icon = null;
     }
 }

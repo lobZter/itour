@@ -48,7 +48,7 @@ import nctu.cs.cgv.itour.maplist.RecyclerItemClickListener;
 
 import static nctu.cs.cgv.itour.MyApplication.fileServerURL;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
-import static nctu.cs.cgv.itour.config.Utility.dpToPx;
+import static nctu.cs.cgv.itour.Utility.dpToPx;
 
 public class MapListActivity extends AppCompatActivity {
 

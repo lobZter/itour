@@ -62,7 +62,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
@@ -74,12 +76,15 @@ import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.CheckinInfo;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.IdxWeights;
+import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.SpotNode;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MapFragment extends Fragment {
 
@@ -106,8 +111,6 @@ public class MapFragment extends Fragment {
     private float gpsDistortedY = 0;
     private float lastFogClearPosX = 0;
     private float lastFogClearPosY = 0;
-    private int initialOffsetX = 0;
-    private int initialOffsetY = 0;
     private int touristMapWidth = 0;
     private int touristMapHeight = 0;
     private int screenWidth = 0;
@@ -118,7 +121,6 @@ public class MapFragment extends Fragment {
     private RelativeLayout rootLayout;
     private ImageView touristMap;
     private ImageView fogMap;
-    private ImageView mapCenter;
     private LinearLayout gpsMarker;
     private FloatingActionButton gpsBtn;
     private FloatingActionButton audioBtn;
@@ -130,9 +132,12 @@ public class MapFragment extends Fragment {
     // objects
     private LinkedList<Float> nodeList;
     private LinkedList<ImageView> nodeImageList;
-    private LinkedList<Float> checkinList;
-    private LinkedList<ImageView> checkinIconList;
-    private LinkedList<LinearLayout> spotList;
+//    private LinkedList<Float> checkinList;
+//    private LinkedList<ImageView> checkinIconList;
+//    private ArrayList<LinearLayout> spotList;
+    private Map<String, SpotNode> spotList;
+    private ArrayList<SpotNode> bigCheckinList;
+    private ArrayList<ImageNode> checkinList;
     private Mesh realMesh;
     private Mesh warpMesh;
     // Firebase real-time database
@@ -145,6 +150,7 @@ public class MapFragment extends Fragment {
     private SharedPreferences preferences;
     // flags
     private boolean isGpsCurrent = false;
+    private boolean isMerged = true;
 
     public static MapFragment newInstance(String mapTag) {
         MapFragment fragment = new MapFragment();
@@ -167,6 +173,7 @@ public class MapFragment extends Fragment {
         screenWidth = displayMetrics.widthPixels;
         screenHeight = displayMetrics.heightPixels;
 
+        // load preferences
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         // init objects
@@ -175,9 +182,11 @@ public class MapFragment extends Fragment {
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
         nodeList = new LinkedList<>();
         nodeImageList = new LinkedList<>();
-        checkinList = new LinkedList<>();
-        checkinIconList = new LinkedList<>();
-        spotList = new LinkedList<>();
+//        checkinList = new LinkedList<>();
+//        checkinIconList = new LinkedList<>();
+        checkinList = new ArrayList<>();
+        bigCheckinList = new ArrayList<>();
+        spotList = new HashMap<>();
         transformMat = new Matrix();
     }
 
@@ -289,8 +298,8 @@ public class MapFragment extends Fragment {
 
         progressDialog = new ProgressDialog(context);
 
-//        addSpot(24.7878043f, 120.9958817f, "交大體育館");
-//        addCheckins(24.786704f, 121.001845f, 7);
+        addSpot(24.78778f, 120.9984433f, "中正堂");
+        addCheckins(24.7875075f, 120.999106f, 4);
 
         setTouchListener();
 
@@ -472,14 +481,94 @@ public class MapFragment extends Fragment {
         }
 
         // transform checkinIcon
-        for (int i = 0; i < checkinIconList.size(); i++) {
-            point[0] = checkinList.get(i * 2);
-            point[1] = checkinList.get(i * 2 + 1);
-            transformMat.mapPoints(point);
-            checkinIconTransform.mapPoints(point);
-            checkinIconList.get(i).setTranslationX(point[0]);
-            checkinIconList.get(i).setTranslationY(point[1]);
+//        for (int i = 0; i < checkinIconList.size(); i++) {
+//            point[0] = checkinList.get(i * 2);
+//            point[1] = checkinList.get(i * 2 + 1);
+//            transformMat.mapPoints(point);
+//            checkinIconTransform.mapPoints(point);
+//            checkinIconList.get(i).setTranslationX(point[0]);
+//            checkinIconList.get(i).setTranslationY(point[1]);
+//        }
+
+
+        if(scale < 2.5 && isMerged == false) {
+            for (ImageNode imageNode : checkinList) {
+                imageNode.icon.setVisibility(View.GONE);
+            }
+
+            for(Map.Entry<String, SpotNode> spotNodeEntry : spotList.entrySet()) {
+                spotNodeEntry.getValue().checkin.setVisibility(View.VISIBLE);
+            }
+
+            for (SpotNode spotNode : bigCheckinList) {
+                spotNode.checkin.setVisibility(View.VISIBLE);
+            }
+
+            isMerged = true;
         }
+
+        if(scale >= 2.5 && isMerged == true) {
+            for (ImageNode imageNode : checkinList) {
+                imageNode.icon.setVisibility(View.VISIBLE);
+            }
+
+            for(Map.Entry<String, SpotNode> spotNodeEntry : spotList.entrySet()) {
+                spotNodeEntry.getValue().checkin.setVisibility(View.GONE);
+            }
+
+            for (SpotNode spotNode : bigCheckinList) {
+                spotNode.checkin.setVisibility(View.GONE);
+            }
+
+            isMerged = false;
+        }
+
+        // transform spot and its checkins
+        for(Map.Entry<String, SpotNode> spotNodeEntry : spotList.entrySet()) {
+            SpotNode spotNode = spotNodeEntry.getValue();
+            point[0] = spotNode.x;
+            point[1] = spotNode.y;
+            Matrix spotIconTransform = new Matrix();
+            spotIconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
+            transformMat.mapPoints(point);
+            spotIconTransform.mapPoints(point);
+            spotNode.icon.setTranslationX(point[0]);
+            spotNode.icon.setTranslationY(point[1]);
+            if (isMerged) {
+                Matrix bigCheckinIconTransform = new Matrix();
+                bigCheckinIconTransform.postTranslate(-dpToPx(48/2) + dpToPx(16/2), -dpToPx(48) + dpToPx(16/2));
+                bigCheckinIconTransform.mapPoints(point);
+                spotNode.checkin.setTranslationX(point[0]);
+                spotNode.checkin.setTranslationY(point[1]);
+            }
+        }
+
+        // transform checkins
+        if(!isMerged) {
+            for (ImageNode imageNode : checkinList) {
+                point[0] = imageNode.x;
+                point[1] = imageNode.y;
+                transformMat.mapPoints(point);
+                checkinIconTransform.mapPoints(point);
+                imageNode.icon.setTranslationX(point[0]);
+                imageNode.icon.setTranslationY(point[1]);
+            }
+        }
+
+        if(isMerged) {
+            for (SpotNode spotNode : bigCheckinList) {
+                point[0] = spotNode.x;
+                point[1] = spotNode.y;
+                transformMat.mapPoints(point);
+                Matrix bigCheckinIconTransform = new Matrix();
+                bigCheckinIconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48));
+                bigCheckinIconTransform.mapPoints(point);
+                spotNode.checkin.setTranslationX(point[0]);
+                spotNode.checkin.setTranslationY(point[1]);
+            }
+        }
+
+
     }
 
     private void addCheckins(float spotLat, float spotLng, int checkNum) {
@@ -489,79 +578,50 @@ public class MapFragment extends Fragment {
         TextView checkinNumCircle = (TextView) bigCheckin.findViewById(R.id.checkin_num);
         checkinNumCircle.setText(String.valueOf(checkNum));
 
-        float x = 0;
-        float y = 0;
-        double imgX = realMesh.mapWidth * (spotLng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
-        double imgY = realMesh.mapHeight * (realMesh.maxLat - spotLat) / (realMesh.maxLat - realMesh.minLat);
-        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
-        if (idxWeights.idx >= 0) {
-            double[] newPos = warpMesh.interpolatePosition(idxWeights);
-            x = (float) newPos[0];
-            y = (float) newPos[1];
-        }
+        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, spotLat, spotLng);
+        SpotNode spotNode = new SpotNode(gpsDistorted[0], gpsDistorted[1]);
+        spotNode.checkin = bigCheckin;
 
         // transform gps marker
         Matrix iconTransform = new Matrix();
         iconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48/2));
-        float[] point = new float[]{x, y};
-        transformMat.mapPoints(point);
-        iconTransform.mapPoints(point);
-        bigCheckin.setTranslationX(point[0]);
-        bigCheckin.setTranslationY(point[1]);
+        transformMat.mapPoints(gpsDistorted);
+        iconTransform.mapPoints(gpsDistorted);
+        bigCheckin.setTranslationX(gpsDistorted[0]);
+        bigCheckin.setTranslationY(gpsDistorted[1]);
         rootLayout.addView(bigCheckin);
+        bigCheckinList.add(spotNode);
     }
 
     private void addSpot(float spotLat, float spotLng, String spotName) {
 
-//        LinearLayout spot = new LinearLayout(context);
-//        ImageView spotDot = new ImageView(context);
-//        TextView spotText = new TextView(context);
-//
-//
-//        layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//        spot.setLayoutParams(layoutParams);
-//        spot.setOrientation(LinearLayout.VERTICAL);
-//
-//        LinearLayout.LayoutParams spotDotLayoutParams = new LinearLayout.LayoutParams(30, 30);
-//        spotDot.setLayoutParams(spotDotLayoutParams);
-//        spotDot.setImageResource(R.drawable.spot_circle);
-//        spot.addView(spotDot);
-//
-//        LinearLayout.LayoutParams spotDesLayoutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-//        spotText.setLayoutParams(spotDesLayoutParams);
-//        spotText.setText(spotName);
-//        spotText.setTextColor(getResources().getColor(R.color.white));
-//        spot.addView(spotText);
+        // calculate position
+        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, spotLat, spotLng);
+        SpotNode spotNode = new SpotNode(gpsDistorted[0], gpsDistorted[1], spotName);
 
+        // create icon
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         View spot = inflater.inflate(R.layout.item_spot, null);
         TextView spotNameView = (TextView) spot.findViewById(R.id.spot_name);
         spotNameView.setText(spotName);
-
-        float x = 0;
-        float y = 0;
-        double imgX = realMesh.mapWidth * (spotLng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
-        double imgY = realMesh.mapHeight * (realMesh.maxLat - spotLat) / (realMesh.maxLat - realMesh.minLat);
-        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
-        if (idxWeights.idx >= 0) {
-            double[] newPos = warpMesh.interpolatePosition(idxWeights);
-            x = (float) newPos[0];
-            y = (float) newPos[1];
-        }
-
-        // transform
+        // transform icon
         Matrix iconTransform = new Matrix();
         iconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
-        float[] point = new float[]{x, y};
-        transformMat.mapPoints(point);
-        iconTransform.mapPoints(point);
-        spot.setTranslationX(point[0]);
-        spot.setTranslationY(point[1]);
-//        spotList.add(spot);
+        transformMat.mapPoints(gpsDistorted);
+        iconTransform.mapPoints(gpsDistorted);
+        spot.setTranslationX(gpsDistorted[0]);
+        spot.setTranslationY(gpsDistorted[1]);
+        // add to rootlayout
         rootLayout.addView(spot);
+        // add into list
+        spotNode.icon = spot;
+        spotList.put(spotName, spotNode);
     }
 
     private void updateCheckin() {
+        progressDialog.setMessage("Load check-in...");
+        progressDialog.show();
+
         databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -570,9 +630,10 @@ public class MapFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         CheckinInfo checkinInfo = issue.getValue(CheckinInfo.class);
-                        handleCheckinMsg(issue.getKey(), Float.valueOf(checkinInfo.lat), Float.valueOf(checkinInfo.lng));
+                        handleCheckinMsg(issue.getKey(), checkinInfo);
                     }
                 }
+                progressDialog.dismiss();
             }
 
             @Override
@@ -609,6 +670,17 @@ public class MapFragment extends Fragment {
                 Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
             }
         });
+    }
+
+    private void showDialog(String postId, CheckinInfo checkinInfo) { // postId: unique key for data query
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        if (Objects.equals(checkinInfo.type, "audio")) {
+            AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkinInfo);
+            audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
+        } else if (Objects.equals(checkinInfo.type, "photo")) {
+            PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkinInfo);
+            photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
+        }
     }
 
     private void translateToCurrent() {
@@ -734,8 +806,8 @@ public class MapFragment extends Fragment {
             lngDistorted = (float) newPos[0];
             latDistorted = (float) newPos[1];
         }
-        checkinList.add(lngDistorted);
-        checkinList.add(latDistorted);
+//        checkinList.add(lngDistorted);
+//        checkinList.add(latDistorted);
 
         // add new icon ImageView
         ImageView checkinIcon = new ImageView(context);
@@ -757,8 +829,83 @@ public class MapFragment extends Fragment {
         checkInIconTransform.mapPoints(point);
         checkinIcon.setTranslationX(point[0]);
         checkinIcon.setTranslationY(point[1]);
-        checkinIconList.add(checkinIcon);
+//        checkinIconList.add(checkinIcon);
     }
 
+    public void handleCheckinMsg(final String postId, final CheckinInfo checkinInfo) {
+
+        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, Float.valueOf(checkinInfo.lat), Float.valueOf(checkinInfo.lng));
+        ImageNode imageNode = new ImageNode(gpsDistorted[0], gpsDistorted[1]);
+
+        // create icon ImageView
+        ImageView checkinIcon = new ImageView(context);
+        checkinIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        checkinIcon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
+        checkinIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog(postId, checkinInfo);
+            }
+        });
+        // transform icon
+        Matrix checkInIconTransform = new Matrix();
+        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
+        transformMat.mapPoints(gpsDistorted);
+        checkInIconTransform.mapPoints(gpsDistorted);
+        checkinIcon.setTranslationX(gpsDistorted[0]);
+        checkinIcon.setTranslationY(gpsDistorted[1]);
+        // add to rootlayout
+        rootLayout.addView(checkinIcon);
+        // add into list
+        imageNode.icon = checkinIcon;
+        checkinList.add(imageNode);
+
+        // add into spot
+        // find out whether the location is in spotlist or not.
+        SpotNode spotNode = spotList.get(checkinInfo.location);
+        if (spotNode != null) {
+            // this is the first checkin of this spot
+            if (spotNode.checkinList.size() == 0) {
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+                View bigCheckin = inflater.inflate(R.layout.item_bigcheckin, null);
+
+                // transform gps marker
+                Matrix bigCheckinIconTransform = new Matrix();
+                bigCheckinIconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48));
+                float[] point = new float[]{spotNode.x, spotNode.y};
+                transformMat.mapPoints(point);
+                bigCheckinIconTransform.mapPoints(point);
+                bigCheckin.setTranslationX(point[0]);
+                bigCheckin.setTranslationY(point[1]);
+                rootLayout.addView(bigCheckin);
+
+                spotNode.checkin = bigCheckin;
+            }
+
+            spotNode.checkinList.add(imageNode);
+            TextView checkinNumCircle = (TextView) spotNode.checkin.findViewById(R.id.checkin_num);
+            checkinNumCircle.setText(String.valueOf(spotNode.checkinList.size()));
+        }
+    }
+//
+//    // transform spot and its checkins
+//        for(Map.Entry<String, SpotNode> spotNodeEntry : spotList.entrySet()) {
+//        SpotNode spotNode = spotNodeEntry.getValue();
+//        point[0] = spotNode.x;
+//        point[1] = spotNode.y;
+//        Matrix spotIconTransform = new Matrix();
+//        spotIconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
+//        transformMat.mapPoints(point);
+//        spotIconTransform.mapPoints(point);
+//        spotNode.icon.setTranslationX(point[0]);
+//        spotNode.icon.setTranslationY(point[1]);
+//        if (isMerged) {
+//            Matrix bigCheckinIconTransform = new Matrix();
+//            bigCheckinIconTransform.postTranslate(-dpToPx(48/2) + dpToPx(16/2), -dpToPx(48) + dpToPx(16/2));
+//            bigCheckinIconTransform.mapPoints(point);
+//            spotNode.checkin.setTranslationX(point[0]);
+//            spotNode.checkin.setTranslationY(point[1]);
+//        }
+//    }
 
 }
