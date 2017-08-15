@@ -119,6 +119,7 @@ public class MapFragment extends Fragment {
     // objects
     private List<ImageNode> edgeNodeList;
     private List<MergedCheckinNode> mergedCheckinList;
+    private List<MergedCheckinNode> spotCheckinList;
     private List<ImageNode> checkinList;
     private SpotList spotList;
     private Mesh realMesh;
@@ -161,6 +162,7 @@ public class MapFragment extends Fragment {
         edgeNodeList = new ArrayList<>();
         checkinList = new ArrayList<>();
         mergedCheckinList = new ArrayList<>();
+        spotCheckinList = new ArrayList<>();
         transformMat = new Matrix();
         progressDialog = new ProgressDialog(context);
     }
@@ -273,7 +275,7 @@ public class MapFragment extends Fragment {
         // draw checkins
         updateCheckin();
 
-        addCheckins(24.7875075f, 120.999106f, 4);
+//        addCheckins(24.7875075f, 120.999106f, 4);
 
         setTouchListener();
 
@@ -464,8 +466,7 @@ public class MapFragment extends Fragment {
             spotNode.icon.setTranslationY(point[1]);
         }
 
-
-        if (scale < 2.5 && isMerged == false) {
+        if (scale < 2.2 && isMerged == false) {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.GONE);
             }
@@ -474,16 +475,24 @@ public class MapFragment extends Fragment {
                 mergedCheckinNode.icon.setVisibility(View.VISIBLE);
             }
 
+            for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
+                spotCheckinNode.icon.setVisibility(View.VISIBLE);
+            }
+
             isMerged = true;
         }
 
-        if (scale >= 2.5 && isMerged == true) {
+        if (scale >= 2.2 && isMerged == true) {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
             }
 
             for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
                 mergedCheckinNode.icon.setVisibility(View.GONE);
+            }
+
+            for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
+                spotCheckinNode.icon.setVisibility(View.GONE);
             }
 
             isMerged = false;
@@ -508,10 +517,21 @@ public class MapFragment extends Fragment {
                 point[1] = mergedCheckinNode.y;
                 transformMat.mapPoints(point);
                 Matrix mergedCheckinIconTransform = new Matrix();
-                mergedCheckinIconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
+                mergedCheckinIconTransform.postTranslate(-dpToPx(32 / 2), -dpToPx(32));
                 mergedCheckinIconTransform.mapPoints(point);
                 mergedCheckinNode.icon.setTranslationX(point[0]);
                 mergedCheckinNode.icon.setTranslationY(point[1]);
+            }
+
+            for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
+                point[0] = spotCheckinNode.x;
+                point[1] = spotCheckinNode.y;
+                transformMat.mapPoints(point);
+                Matrix mergedCheckinIconTransform = new Matrix();
+                mergedCheckinIconTransform.postTranslate(-dpToPx(32 / 2), -dpToPx(32));
+                mergedCheckinIconTransform.mapPoints(point);
+                spotCheckinNode.icon.setTranslationX(point[0]);
+                spotCheckinNode.icon.setTranslationY(point[1]);
             }
         }
     }
@@ -538,7 +558,7 @@ public class MapFragment extends Fragment {
 
         // transform gps marker
         Matrix iconTransform = new Matrix();
-        iconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48 / 2));
+        iconTransform.postTranslate(-dpToPx(32 / 2), -dpToPx(32));
         transformMat.mapPoints(gpsDistorted);
         iconTransform.mapPoints(gpsDistorted);
         icon.setTranslationX(gpsDistorted[0]);
@@ -583,7 +603,7 @@ public class MapFragment extends Fragment {
                     }
                 }
 
-                if (scale < 2.5) {
+                if (scale < 2.2) {
                     for (ImageNode imageNode : checkinList) {
                         imageNode.icon.setVisibility(View.GONE);
                     }
@@ -604,6 +624,9 @@ public class MapFragment extends Fragment {
 
                     isMerged = false;
                 }
+                // transform
+                reRender();
+
 
                 progressDialog.dismiss();
             }
@@ -850,13 +873,6 @@ public class MapFragment extends Fragment {
                 showDialog(postId, checkinInfo);
             }
         });
-        // transform icon
-        Matrix checkInIconTransform = new Matrix();
-        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
-        transformMat.mapPoints(gpsDistorted);
-        checkInIconTransform.mapPoints(gpsDistorted);
-        checkinIcon.setTranslationX(gpsDistorted[0]);
-        checkinIcon.setTranslationY(gpsDistorted[1]);
         // add to rootlayout
         rootLayout.addView(checkinIcon);
         // add into list
@@ -871,26 +887,50 @@ public class MapFragment extends Fragment {
             if (spotNode.checkins == null) {
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
                 View icon = inflater.inflate(R.layout.item_bigcheckin, null);
-
-                // transform gps marker
-                Matrix mergedCheckinIconTransform = new Matrix();
-                mergedCheckinIconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
-                float[] point = new float[]{spotNode.x, spotNode.y};
-                transformMat.mapPoints(point);
-                mergedCheckinIconTransform.mapPoints(point);
-                icon.setTranslationX(point[0]);
-                icon.setTranslationY(point[1]);
                 rootLayout.addView(icon);
 
                 MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(spotNode.x, spotNode.y);
                 mergedCheckinNode.icon = icon;
                 spotNode.checkins = mergedCheckinNode;
-                mergedCheckinList.add(mergedCheckinNode);
+                spotCheckinList.add(mergedCheckinNode);
             }
-
             spotNode.checkins.checkinList.add(checkinNode);
             TextView checkinNumCircle = (TextView) spotNode.checkins.icon.findViewById(R.id.checkin_num);
             checkinNumCircle.setText(String.valueOf(spotNode.checkins.checkinList.size()));
+        } else {
+            // find cluster to join or create a new one
+            boolean newCluster = true;
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
+                double distance = Math.pow(checkinNode.x - mergedCheckinNode.x, 2) + Math.pow(checkinNode.y - mergedCheckinNode.y, 2);
+                if (distance < 20500) {
+                    int clusterSize = mergedCheckinNode.checkinList.size();
+                    mergedCheckinNode.checkinList.add(checkinNode);
+                    TextView checkinNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+                    checkinNumCircle.setText(String.valueOf(clusterSize + 1));
+
+                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + checkinNode.x) / (clusterSize + 1);
+                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + checkinNode.y) / (clusterSize + 1);
+
+                    newCluster = false;
+                    break;
+                }
+            }
+
+            // cluster not found, create a new cluster
+            if (newCluster) {
+                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+                View icon = inflater.inflate(R.layout.item_bigcheckin, null);
+                rootLayout.addView(icon);
+
+                MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(checkinNode.x, checkinNode.y);
+                mergedCheckinNode.checkinList.add(checkinNode);
+                mergedCheckinNode.icon = icon;
+
+                mergedCheckinList.add(mergedCheckinNode);
+                TextView checkinNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+                checkinNumCircle.setText(String.valueOf(mergedCheckinNode.checkinList.size()));
+
+            }
         }
     }
 }
