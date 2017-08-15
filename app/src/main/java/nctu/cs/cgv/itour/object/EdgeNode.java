@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by lobst3rd on 2017/7/7.
@@ -23,13 +24,13 @@ public class EdgeNode {
     private float edgePixelLengthStd = 0;
     private float edgeRealLengthStd = 0;
 
-    private LinkedList<Float> edgeList;
-    private LinkedList<Float> nodeList;
+    private List<Float> edgeList;
+    private List<ImageNode> nodeList;
 
-    public EdgeNode(String edgeFilePath) {
+    public EdgeNode(File edgeFile) {
         edgeList = new LinkedList<>();
         nodeList = new LinkedList<>();
-        initEdge(new File(edgeFilePath));
+        initEdge(edgeFile);
     }
 
     private void initEdge(File edgeFile) {
@@ -311,6 +312,7 @@ public class EdgeNode {
         float distanceToAddorSubtractYStandard = distanceVectorYStandard / distanceRatioStandard;
         float distanceRatioRealLength = distanceRatioStandard * edgeRealLengthStandard / edgePixelLengthStandard;
         //Log.i("TAG", "PointF standard: " + distanceRatioRealLength + "," + distanceRatioStandard + "," + distanceVectorXStandard + "," + distanceVectorYStandard + "," + distanceToAddorSubtractXStandard + "," + distanceToAddorSubtractYStandard);
+
         for (int i = 0; i < edgeList.size(); i += 6) {
             x = edgeList.get(i);
             y = edgeList.get(i + 1);
@@ -329,35 +331,30 @@ public class EdgeNode {
             distanceToAddorSubtractX = (distanceVectorX / distanceRatio);
             distanceToAddorSubtractY = (distanceVectorY / distanceRatio);
             //Log.i("TAG", "PointF normal: " + distanceRatio + "," + distanceVectorX + "," + distanceVectorY + "," + distanceToAddorSubtractX + "," + distanceToAddorSubtractY);
-            nodeList.add(x);
-            nodeList.add(y);
+            nodeList.add(new ImageNode(x, y));
 
             if ((x == headStandardX && y == headStandardY && x2 == tailStandardX && y2 == tailStandardY) || (x2 == headStandardX && y2 == headStandardY && x == tailStandardX && y == tailStandardY)) {
                 if (headStandardX >= tailStandardX && headStandardY >= tailStandardY) {
                     while (headStandardY - distanceToAddorSubtractYStandard >= tailStandardY && headStandardX - distanceToAddorSubtractXStandard >= tailStandardX) {
-                        nodeList.add(headStandardX - distanceToAddorSubtractXStandard);
-                        nodeList.add(headStandardY - distanceToAddorSubtractYStandard);
+                        nodeList.add(new ImageNode(headStandardX - distanceToAddorSubtractXStandard, headStandardY - distanceToAddorSubtractYStandard));
                         headStandardX -= distanceToAddorSubtractXStandard;
                         headStandardY -= distanceToAddorSubtractYStandard;
                     }
                 } else if (headStandardX >= tailStandardX && headStandardY <= tailStandardY) {
                     while (headStandardY + distanceToAddorSubtractYStandard <= tailStandardY && headStandardX - distanceToAddorSubtractXStandard >= tailStandardX) {
-                        nodeList.add(headStandardX - distanceToAddorSubtractXStandard);
-                        nodeList.add(headStandardY + distanceToAddorSubtractYStandard);
+                        nodeList.add(new ImageNode(headStandardX - distanceToAddorSubtractXStandard, headStandardY + distanceToAddorSubtractYStandard));
                         headStandardX -= distanceToAddorSubtractXStandard;
                         headStandardY += distanceToAddorSubtractYStandard;
                     }
                 } else if (headStandardX <= tailStandardX && headStandardY <= tailStandardY) {
                     while (headStandardY + distanceToAddorSubtractYStandard <= tailStandardY && headStandardX + distanceToAddorSubtractXStandard <= tailStandardX) {
-                        nodeList.add(headStandardX + distanceToAddorSubtractXStandard);
-                        nodeList.add(headStandardY + distanceToAddorSubtractYStandard);
+                        nodeList.add(new ImageNode(headStandardX + distanceToAddorSubtractXStandard, headStandardY + distanceToAddorSubtractYStandard));
                         headStandardX += distanceToAddorSubtractXStandard;
                         headStandardY += distanceToAddorSubtractYStandard;
                     }
                 } else if (headStandardX <= tailStandardX && headStandardY >= tailStandardY) {
                     while (headStandardY - distanceToAddorSubtractYStandard >= tailStandardY && headStandardX + distanceToAddorSubtractXStandard <= tailStandardX) {
-                        nodeList.add(headStandardX + distanceToAddorSubtractXStandard);
-                        nodeList.add(headStandardY - distanceToAddorSubtractYStandard);
+                        nodeList.add(new ImageNode(headStandardX + distanceToAddorSubtractXStandard, headStandardY - distanceToAddorSubtractYStandard));
                         headStandardX += distanceToAddorSubtractXStandard;
                         headStandardY -= distanceToAddorSubtractYStandard;
                     }
@@ -375,8 +372,7 @@ public class EdgeNode {
                             x -= distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         } else {
-                            nodeList.add((x - distanceToAddorSubtractX));
-                            nodeList.add((y - distanceToAddorSubtractY));
+                            nodeList.add(new ImageNode(x - distanceToAddorSubtractX, y - distanceToAddorSubtractY));
                             x -= distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         }
@@ -394,8 +390,7 @@ public class EdgeNode {
                             x -= distanceToAddorSubtractX;
                             y += distanceToAddorSubtractY;
                         } else {
-                            nodeList.add(x - distanceToAddorSubtractX);
-                            nodeList.add(y + distanceToAddorSubtractY);
+                            nodeList.add(new ImageNode(x - distanceToAddorSubtractX, y + distanceToAddorSubtractY));
                             x -= distanceToAddorSubtractX;
                             y += distanceToAddorSubtractY;
                         }
@@ -414,8 +409,7 @@ public class EdgeNode {
                             x += distanceToAddorSubtractX;
                             y += distanceToAddorSubtractY;
                         } else {
-                            nodeList.add(x + distanceToAddorSubtractX);
-                            nodeList.add(y + distanceToAddorSubtractY);
+                            nodeList.add(new ImageNode(x + distanceToAddorSubtractX, y + distanceToAddorSubtractY));
                             x += distanceToAddorSubtractX;
                             y += distanceToAddorSubtractY;
                         }
@@ -436,8 +430,7 @@ public class EdgeNode {
                             x += distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         } else {
-                            nodeList.add(x + distanceToAddorSubtractX);
-                            nodeList.add(y - distanceToAddorSubtractY);
+                            nodeList.add(new ImageNode(x + distanceToAddorSubtractX, y - distanceToAddorSubtractY));
                             x += distanceToAddorSubtractX;
                             y -= distanceToAddorSubtractY;
                         }
@@ -449,11 +442,11 @@ public class EdgeNode {
         return true;
     }
 
-    public LinkedList<Float> getEdgeList() {
+    public List<Float> getEdgeList() {
         return edgeList;
     }
 
-    public LinkedList<Float> getNodeList() {
+    public List<ImageNode> getNodeList() {
         return nodeList;
     }
 

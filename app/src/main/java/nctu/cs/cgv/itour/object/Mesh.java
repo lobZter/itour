@@ -96,7 +96,7 @@ public class Mesh {
         return true;
     }
 
-    public boolean readBoundingBox(File boundBoxFile ) {
+    public boolean readBoundingBox(File boundBoxFile) {
         try {
             FileInputStream inputStream  = new FileInputStream(boundBoxFile);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);

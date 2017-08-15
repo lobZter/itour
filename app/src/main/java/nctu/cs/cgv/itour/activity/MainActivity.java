@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements
     private List<Fragment> fragmentList;
     // MapFragment: communicate by calling fragment method
     private MapFragment mapFragment;
-    // use broadcast to send received checkin data(fbc topic message) to activity
+    // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;
     // Google Services Location API
     private GoogleApiClient googleApiClient;
@@ -182,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements
 
         // Register mMessageReceiver to receive messages.
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
-                new IntentFilter("checkin"));
+                new IntentFilter("checkinIcon"));
 
         googleApiClient.connect();
 

@@ -166,7 +166,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
         gpsMarker.setPivotX(gpsMarkerWidth / 2);
         gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
 
-        // map center marker for checkin
+        // map center marker for checkinIcon
 
         mapCenter = new ImageView(this);
         mapCenter.setImageResource(R.drawable.ic_location_on_red_600_24dp);

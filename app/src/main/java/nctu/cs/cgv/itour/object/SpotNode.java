@@ -14,16 +14,14 @@ public class SpotNode {
     public float y;
     public String name;
     public View icon;
-    public View checkin;
-    public ArrayList<ImageNode> checkinList;
+    public MergedCheckinNode checkins;
 
     public SpotNode() {
         this.x = 0;
         this.y = 0;
         this.name = "";
         this.icon = null;
-        this.checkin = null;
-        this.checkinList = new ArrayList<>();
+        this.checkins = null;
     }
 
     public SpotNode(float x, float y) {
@@ -31,8 +29,7 @@ public class SpotNode {
         this.y = y;
         this.name = "";
         this.icon = null;
-        this.checkin = null;
-        this.checkinList = new ArrayList<>();
+        this.checkins = null;
     }
 
     public SpotNode(float x, float y, String name) {
@@ -40,7 +37,6 @@ public class SpotNode {
         this.y = y;
         this.name = name;
         this.icon = null;
-        this.checkin = null;
-        this.checkinList = new ArrayList<>();
+        this.checkins = null;
     }
 }

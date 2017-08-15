@@ -13,7 +13,7 @@ import java.io.File;
 public class MyApplication extends Application {
 
     private static final String TAG = "MyApplication";
-    public static final String mapTag = "TamSuiNew";
+    public static final String mapTag = "nctu";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps/";
     public static final String APPServerURL = "https://itour-lobst3rd.c9users.io";
     public static final String fileUploadURL = APPServerURL + "/upload";

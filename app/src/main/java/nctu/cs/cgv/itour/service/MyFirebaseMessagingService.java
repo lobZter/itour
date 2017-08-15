@@ -34,7 +34,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private void sendMessage(String postId, String lat, String lng) {
         // send message to activities by broadcasting
-        Intent intent = new Intent("checkin");
+        Intent intent = new Intent("checkinIcon");
         intent.putExtra("postId", postId);
         intent.putExtra("lat", lat);
         intent.putExtra("lng", lng);
