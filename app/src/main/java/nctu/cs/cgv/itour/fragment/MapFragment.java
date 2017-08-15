@@ -50,7 +50,6 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +65,7 @@ import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
@@ -118,9 +118,9 @@ public class MapFragment extends Fragment {
     private ProgressDialog progressDialog;
     // objects
     private List<ImageNode> edgeNodeList;
-    private Map<String, SpotNode> spotList;
     private List<MergedCheckinNode> mergedCheckinList;
     private List<ImageNode> checkinList;
+    private SpotList spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
     // Firebase real-time database
@@ -157,11 +157,12 @@ public class MapFragment extends Fragment {
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
         edgeNodeList = new ArrayList<>();
         checkinList = new ArrayList<>();
         mergedCheckinList = new ArrayList<>();
-        spotList = new HashMap<>();
         transformMat = new Matrix();
+        progressDialog = new ProgressDialog(context);
     }
 
     @Override
@@ -203,12 +204,7 @@ public class MapFragment extends Fragment {
             EdgeNode edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
             edgeNodeList = edgeNode.getNodeList();
             for (ImageNode imageNode : edgeNodeList) {
-                imageNode.icon = new ImageView(context);
-                imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
-                imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-                imageNode.icon.setTranslationX(imageNode.x - nodeIconWidth / 2);
-                imageNode.icon.setTranslationY(imageNode.y - nodeIconHeight / 2);
-                rootLayout.addView(imageNode.icon);
+                addEdgeNode(imageNode);
             }
         }
 
@@ -269,14 +265,17 @@ public class MapFragment extends Fragment {
             }
         });
 
-        progressDialog = new ProgressDialog(context);
+        // draw spots
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+            addSpot(spotNodeEntry.getValue());
+        }
 
-        addSpot(24.78778f, 120.9984433f, "中正堂");
+        // draw checkins
+        updateCheckin();
+
         addCheckins(24.7875075f, 120.999106f, 4);
 
         setTouchListener();
-
-        updateCheckin();
 
         setHasOptionsMenu(true);
 
@@ -294,14 +293,12 @@ public class MapFragment extends Fragment {
     }
 
     @Override
-    public void  onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_search, menu);
-        super.onCreateOptionsMenu(menu,inflater);
+        super.onCreateOptionsMenu(menu, inflater);
 
         ArrayList<String> array = new ArrayList<>();
-        array.add("交大藝文中心");
-        array.add("交大圖書館");
-        array.add("交大游泳池");
+        array.addAll(spotList.nodes.keySet());
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, array);
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
@@ -454,12 +451,12 @@ public class MapFragment extends Fragment {
         }
 
         // transform spot
-        for(Map.Entry<String, SpotNode> spotNodeEntry : spotList.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             point[0] = spotNode.x;
             point[1] = spotNode.y;
             Matrix spotIconTransform = new Matrix();
-            spotIconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
+            spotIconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
             transformMat.mapPoints(point);
             spotIconTransform.mapPoints(point);
             spotNode.icon.setTranslationX(point[0]);
@@ -467,7 +464,7 @@ public class MapFragment extends Fragment {
         }
 
 
-        if(scale < 2.5 && isMerged == false) {
+        if (scale < 2.5 && isMerged == false) {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.GONE);
             }
@@ -479,7 +476,7 @@ public class MapFragment extends Fragment {
             isMerged = true;
         }
 
-        if(scale >= 2.5 && isMerged == true) {
+        if (scale >= 2.5 && isMerged == true) {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
             }
@@ -492,9 +489,8 @@ public class MapFragment extends Fragment {
         }
 
 
-
         // transform checkins
-        if(!isMerged) {
+        if (!isMerged) {
             for (ImageNode imageNode : checkinList) {
                 point[0] = imageNode.x;
                 point[1] = imageNode.y;
@@ -505,20 +501,27 @@ public class MapFragment extends Fragment {
             }
         }
 
-        if(isMerged) {
+        if (isMerged) {
             for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
                 point[0] = mergedCheckinNode.x;
                 point[1] = mergedCheckinNode.y;
                 transformMat.mapPoints(point);
                 Matrix mergedCheckinIconTransform = new Matrix();
-                mergedCheckinIconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48));
+                mergedCheckinIconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
                 mergedCheckinIconTransform.mapPoints(point);
                 mergedCheckinNode.icon.setTranslationX(point[0]);
                 mergedCheckinNode.icon.setTranslationY(point[1]);
             }
         }
+    }
 
-
+    private void addEdgeNode(ImageNode imageNode) {
+        imageNode.icon = new ImageView(context);
+        imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
+        imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+        imageNode.icon.setTranslationX(imageNode.x - nodeIconWidth / 2);
+        imageNode.icon.setTranslationY(imageNode.y - nodeIconHeight / 2);
+        rootLayout.addView(imageNode.icon);
     }
 
     private void addCheckins(float spotLat, float spotLng, int checkNum) {
@@ -534,7 +537,7 @@ public class MapFragment extends Fragment {
 
         // transform gps marker
         Matrix iconTransform = new Matrix();
-        iconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48/2));
+        iconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48 / 2));
         transformMat.mapPoints(gpsDistorted);
         iconTransform.mapPoints(gpsDistorted);
         icon.setTranslationX(gpsDistorted[0]);
@@ -543,29 +546,23 @@ public class MapFragment extends Fragment {
         mergedCheckinList.add(mergedCheckinNode);
     }
 
-    private void addSpot(float spotLat, float spotLng, String spotName) {
-
-        // calculate position
-        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, spotLat, spotLng);
-        SpotNode spotNode = new SpotNode(gpsDistorted[0], gpsDistorted[1], spotName);
-
+    private void addSpot(SpotNode spotNode) {
         // create icon
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-        View spot = inflater.inflate(R.layout.item_spot, null);
-        TextView spotNameView = (TextView) spot.findViewById(R.id.spot_name);
-        spotNameView.setText(spotName);
+        View icon = inflater.inflate(R.layout.item_spot, null);
+        TextView spotNameView = (TextView) icon.findViewById(R.id.spot_name);
+        spotNameView.setText(spotNode.name);
+        spotNode.icon = icon;
         // transform icon
         Matrix iconTransform = new Matrix();
-        iconTransform.postTranslate(-dpToPx(16/2), -dpToPx(16/2));
+        float[] gpsDistorted = {spotNode.x, spotNode.y};
+        iconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
         transformMat.mapPoints(gpsDistorted);
         iconTransform.mapPoints(gpsDistorted);
-        spot.setTranslationX(gpsDistorted[0]);
-        spot.setTranslationY(gpsDistorted[1]);
+        icon.setTranslationX(gpsDistorted[0]);
+        icon.setTranslationY(gpsDistorted[1]);
         // add to rootlayout
-        rootLayout.addView(spot);
-        // add into list
-        spotNode.icon = spot;
-        spotList.put(spotName, spotNode);
+        rootLayout.addView(icon);
     }
 
     private void updateCheckin() {
@@ -585,7 +582,7 @@ public class MapFragment extends Fragment {
                     }
                 }
 
-                if(scale < 2.5) {
+                if (scale < 2.5) {
                     for (ImageNode imageNode : checkinList) {
                         imageNode.icon.setVisibility(View.GONE);
                     }
@@ -834,7 +831,7 @@ public class MapFragment extends Fragment {
 
         // add into spot
         // find out whether the location is in spotlist or not.
-        SpotNode spotNode = spotList.get(checkinInfo.location);
+        SpotNode spotNode = spotList.nodes.get(checkinInfo.location);
         if (spotNode != null) {
             // this is the first checkinIcon of this spot
             if (spotNode.checkins == null) {
@@ -843,7 +840,7 @@ public class MapFragment extends Fragment {
 
                 // transform gps marker
                 Matrix mergedCheckinIconTransform = new Matrix();
-                mergedCheckinIconTransform.postTranslate(-dpToPx(48/2), -dpToPx(48));
+                mergedCheckinIconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
                 float[] point = new float[]{spotNode.x, spotNode.y};
                 transformMat.mapPoints(point);
                 mergedCheckinIconTransform.mapPoints(point);

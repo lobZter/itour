@@ -4,14 +4,18 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
         android:src="@drawable/spot_circle"/>
 
     <TextView
         android:id="@+id/spot_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:shadowColor="@color/textColorSecondary"
         android:text="TEST SPOT"
         android:textColor="@color/white"/>
 
