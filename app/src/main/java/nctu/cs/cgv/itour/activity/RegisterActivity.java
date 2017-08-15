@@ -18,6 +18,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import java.util.Objects;
 
@@ -27,6 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     // UI references
     private EditText emailView;
+    private EditText nameView;
     private EditText passwordView;
     private EditText confirmPasswordView;
     private ProgressDialog progressDialog;
@@ -41,6 +44,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(this);
         emailView = (EditText) findViewById(R.id.email);
+        nameView = (EditText) findViewById(R.id.name);
         passwordView = (EditText) findViewById(R.id.password);
         confirmPasswordView = (EditText) findViewById(R.id.confirm_password);
         confirmPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -66,10 +70,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Reset errors.
         emailView.setError(null);
+        nameView.setError(null);
         passwordView.setError(null);
 
         // Store values at the time of the login attempt.
         String email = emailView.getText().toString().trim();
+        final String name = nameView.getText().toString().trim();
         String password = passwordView.getText().toString().trim();
         String passwordConfirmed = confirmPasswordView.getText().toString().trim();
 
@@ -87,6 +93,13 @@ public class RegisterActivity extends AppCompatActivity {
         if (TextUtils.isEmpty(password) || !isPasswordValid(password)) {
             passwordView.setError(getString(R.string.error_invalid_password));
             focusView = passwordView;
+            cancel = true;
+        }
+
+        // Check name field not empty
+        if (TextUtils.isEmpty(name)) {
+            nameView.setError(getString(R.string.error_field_required));
+            focusView = nameView;
             cancel = true;
         }
 
@@ -113,14 +126,30 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()) {
-                            finish();
-                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                            intent.putExtra("mapTag", "Tamsui");
-                            startActivity(intent);
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(name)
+                                    .build();
+
+                            user.updateProfile(profileUpdates)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (!task.isSuccessful()) {
+                                                Toast.makeText(RegisterActivity.this, "Store profile failed.", Toast.LENGTH_LONG).show();
+                                            }
+                                            finish();
+                                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                                        }
+                                    });
+
+
                         } else {
                             Toast.makeText(RegisterActivity.this, "Registration failed.", Toast.LENGTH_LONG).show();
                         }
+                        progressDialog.dismiss();
                     }
                 });
     }

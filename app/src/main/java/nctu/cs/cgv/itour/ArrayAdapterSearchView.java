@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.SearchView;
 import android.util.AttributeSet;
@@ -27,6 +28,7 @@ public class ArrayAdapterSearchView extends SearchView {
 
     public void initialize() {
         mSearchAutoComplete = (SearchAutoComplete) findViewById(android.support.v7.appcompat.R.id.search_src_text);
+        mSearchAutoComplete.setThreshold(0);
         this.setAdapter(null);
         this.setOnItemClickListener(null);
     }
