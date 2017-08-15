@@ -219,7 +219,7 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (isGpsCurrent) rotateToNorth();
-                else translateToCurrent();
+                else translateToCenter();
             }
         });
         audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
@@ -301,14 +301,15 @@ public class MapFragment extends Fragment {
         array.addAll(spotList.nodes.keySet());
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, array);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
         final ArrayAdapterSearchView searchView = (ArrayAdapterSearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                searchView.setText(adapter.getItem(position).toString());
-
+                String autocompleteStr = adapter.getItem(position);
+                searchView.clearFocus();
+                searchView.setText(autocompleteStr);
+                translateToSpot(spotList.nodes.get(autocompleteStr));
             }
         });
         searchView.setAdapter(adapter);
@@ -654,9 +655,9 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void translateToCurrent() {
-        final float transX = rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2;
-        final float transY = rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2;
+    private void translateToCenter() {
+        final float transX = rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2);
+        final float transY = rootLayoutHeight / 3 - (gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -664,16 +665,49 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
+                if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2)) < Math.abs(deltaTransX)) {
                     transformMat.postTranslate(
-                            rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
-                            rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
+                            rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2),
+                            rootLayoutHeight / 3 - (gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2));
                     reRender();
                     translationHandler.removeCallbacks(this);
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < rootLayoutHeight / 4) {
+                    if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2)) < rootLayoutHeight / 4) {
+                        // slow down
+                        translationHandler.postDelayed(this, 5);
+                    } else {
+                        translationHandler.postDelayed(this, 2);
+                    }
+                }
+            }
+        };
+        translationHandler.postDelayed(translationInterpolation, 2);
+        isGpsCurrent = true;
+        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
+    }
+
+    private void translateToSpot(final SpotNode spotNode) {
+        final float transX = rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2));
+        final float transY = rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+        final float deltaTransX = transX / 10;
+        final float deltaTransY = transY / 10;
+
+        final Handler translationHandler = new Handler();
+        Runnable translationInterpolation = new Runnable() {
+            @Override
+            public void run() {
+                if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2))) < Math.abs(deltaTransX)) {
+                    transformMat.postTranslate(
+                            rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2)),
+                            rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(12 / 2)));
+                    reRender();
+                    translationHandler.removeCallbacks(this);
+                } else {
+                    transformMat.postTranslate(deltaTransX, deltaTransY);
+                    reRender();
+                    if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2))) < rootLayoutHeight / 4) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {

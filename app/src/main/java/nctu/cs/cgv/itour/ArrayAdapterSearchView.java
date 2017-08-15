@@ -47,5 +47,4 @@ public class ArrayAdapterSearchView extends SearchView {
     public void setText(String text) {
         mSearchAutoComplete.setText(text);
     }
-
 }
