@@ -30,38 +30,39 @@
 
         <activity
             android:name=".activity.LoginActivity"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.RegisterActivity"
-            android:screenOrientation="portrait" >
-        </activity>
+        <activity
+            android:name=".activity.RegisterActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.MainActivity"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.AudioCheckinActivity"
-            android:screenOrientation="portrait"
-            android:label="Audio Checkin" />
+            android:label="Audio Checkin"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.PhotoCheckinActivity"
-            android:screenOrientation="portrait"
-            android:label="Photo Checkin" />
+            android:label="Photo Checkin"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.MapListActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNoActionBar">
-        </activity>
+            android:theme="@style/AppThemeNoActionBar" />
         <activity
             android:name=".activity.LocationChooseActivity"
+            android:label="Choose Location"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:screenOrientation="portrait"
-            android:label="Choose Location">
-        </activity>
+            android:theme="@style/Base.Theme.AppCompat" />
     </application>
 
 </manifest>
