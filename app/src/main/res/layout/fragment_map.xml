@@ -7,6 +7,11 @@
     android:background="@color/mapBackground"
     tools:context="nctu.cs.cgv.itour.fragment.MapFragment">
 
+    <FrameLayout
+        android:id="@+id/touristmap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/btn_gps"
         android:layout_width="wrap_content"
@@ -70,38 +75,5 @@
             android:src="@drawable/circle_gps" />
 
     </LinearLayout>
-
-    <RelativeLayout
-        android:id="@+id/mask"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/semi_transparent"
-        android:elevation="6dp"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_margin="48dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_mic_grey_500_48dp" />
-
-            <ProgressBar
-                android:id="@+id/recordProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp" />
-
-        </LinearLayout>
-
-    </RelativeLayout>
-
 
 </RelativeLayout>

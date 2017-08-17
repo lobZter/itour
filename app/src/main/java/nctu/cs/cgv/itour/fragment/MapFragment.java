@@ -22,6 +22,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.preference.PreferenceManager;
+import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -35,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -68,7 +70,6 @@ import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
-import static android.R.attr.x;
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
@@ -106,6 +107,7 @@ public class MapFragment extends Fragment {
     private int rootLayoutWidth = 0;
     private int rootLayoutHeight = 0;
     // UI references
+//    private RelativeLayout rootLayout;
     private RelativeLayout rootLayout;
     private ImageView touristMap;
     private ImageView fogMap;
@@ -182,12 +184,14 @@ public class MapFragment extends Fragment {
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
+        layoutParams = new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight);
         touristMap = new ImageView(context);
+        touristMap.setLayoutParams(layoutParams);
+        touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         touristMap.setImageBitmap(touristMapBitmap);
-        touristMap.setScaleType(ImageView.ScaleType.FIT_START);
         touristMap.setPivotX(0);
         touristMap.setPivotY(0);
-        rootLayout.addView(touristMap);
+        ((FrameLayout)view.findViewById(R.id.touristmap)).addView(touristMap);
 
         // draw fog
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
@@ -196,8 +200,9 @@ public class MapFragment extends Fragment {
             canvas.drawARGB(120, 0, 0, 0);
         }
         fogMap = new ImageView(context);
+        fogMap.setLayoutParams(layoutParams);
+        fogMap.setScaleType(ImageView.ScaleType.MATRIX);
         fogMap.setImageBitmap(fogBitmap);
-        fogMap.setScaleType(ImageView.ScaleType.FIT_START);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
         rootLayout.addView(fogMap);
@@ -233,7 +238,6 @@ public class MapFragment extends Fragment {
                 Intent intent = new Intent(context, AudioCheckinActivity.class);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
-                intent.putExtra("mapTag", mapTag);
                 startActivity(intent);
                 floatingActionsMenu.collapseImmediately();
             }
@@ -246,7 +250,6 @@ public class MapFragment extends Fragment {
                 Intent intent = new Intent(context, PhotoCheckinActivity.class);
                 intent.putExtra("lat", lat);
                 intent.putExtra("lng", lng);
-                intent.putExtra("mapTag", mapTag);
                 startActivity(intent);
                 floatingActionsMenu.collapseImmediately();
             }
@@ -275,8 +278,6 @@ public class MapFragment extends Fragment {
 
         // draw checkins
         updateCheckin();
-
-//        addCheckins(24.7875075f, 120.999106f, 4);
 
         setTouchListener();
 
