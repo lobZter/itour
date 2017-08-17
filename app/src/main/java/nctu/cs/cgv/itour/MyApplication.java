@@ -1,10 +1,12 @@
 package nctu.cs.cgv.itour;
 
 import android.app.Application;
+import android.content.Intent;
 import android.os.Environment;
-import android.util.Log;
 
 import java.io.File;
+
+import nctu.cs.cgv.itour.service.GpsLocationService;
 
 /**
  * Created by lobZter on 2017/6/21.
@@ -26,6 +28,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        startService(new Intent(this, GpsLocationService.class));
         mkdirs();
     }
 

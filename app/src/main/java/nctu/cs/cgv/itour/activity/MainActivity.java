@@ -4,26 +4,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
@@ -40,10 +31,7 @@ import nctu.cs.cgv.itour.fragment.SettingsFragment;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
-public class MainActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     // view objects
@@ -53,10 +41,6 @@ public class MainActivity extends AppCompatActivity implements
     private MapFragment mapFragment;
     // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;
-    // Google Services Location API
-    private GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
-    private Location currentLocation;
     // device sensor manager
     private SensorManager sensorManager;
     private SensorEventListener sensorEventListener;
@@ -70,9 +54,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // set Location API
-        buildGoogleApiClient();
-        createLocationRequest();
         setSensors();
         setBroadcastReceiver();
 
@@ -135,11 +116,19 @@ public class MainActivity extends AppCompatActivity implements
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String postId = intent.getStringExtra("postId");
-                String lat = intent.getStringExtra("lat");
-                String lng = intent.getStringExtra("lng");
-                mapFragment.handleCheckinMsg(postId, Float.valueOf(lat), Float.valueOf(lng));
-                Log.d(TAG, "Got message: " + postId + ", " + lat + ", " + lng);
+                switch (intent.getAction()) {
+                    case "checkinIcon":
+                        mapFragment.handleCheckinMsg(
+                                intent.getStringExtra("postId"),
+                                intent.getDoubleExtra("lat", 0),
+                                intent.getDoubleExtra("lng", 0));
+                        break;
+                    case "gpsLocation":
+                        mapFragment.handleLocationChange(
+                                intent.getDoubleExtra("lat", 0),
+                                intent.getDoubleExtra("lng", 0));
+                        break;
+                }
             }
         };
     }
@@ -181,14 +170,10 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
 
         // Register mMessageReceiver to receive messages.
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
-                new IntentFilter("checkinIcon"));
-
-        googleApiClient.connect();
-
-        if (currentLocation != null) {
-            mapFragment.handleLocationChange(currentLocation);
-        }
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("checkinIcon");
+        intentFilter.addAction("gpsLocation");
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         if (accelerometer != null) {
             sensorManager.registerListener(
@@ -206,71 +191,10 @@ public class MainActivity extends AppCompatActivity implements
         // Unregister since the activity is not visible
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
-        if (googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
-        }
-
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
 
         super.onPause();
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (googleApiClient.isConnected()) {
-            googleApiClient.disconnect();
-        }
-    }
-
-    private synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    private void createLocationRequest() {
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(500);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                googleApiClient, locationRequest, this);
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        Log.d(TAG, "onConnectionSuspended(), errorCode: " + String.valueOf(cause));
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d(TAG, "onConnectionFailed(), errorCode: " + connectionResult.getErrorCode());
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        currentLocation = location;
-        mapFragment.handleLocationChange(location);
-    }
-
-
 }

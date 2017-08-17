@@ -22,7 +22,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.preference.PreferenceManager;
-import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -95,7 +94,6 @@ public class MapFragment extends Fragment {
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private float lat = 0, lng = 0;
     private float gpsDistortedX = 0;
     private float gpsDistortedY = 0;
     private float lastFogClearPosX = 0;
@@ -191,7 +189,7 @@ public class MapFragment extends Fragment {
         touristMap.setImageBitmap(touristMapBitmap);
         touristMap.setPivotX(0);
         touristMap.setPivotY(0);
-        ((FrameLayout)view.findViewById(R.id.touristmap)).addView(touristMap);
+        ((FrameLayout) view.findViewById(R.id.touristmap)).addView(touristMap);
 
         // draw fog
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
@@ -235,10 +233,7 @@ public class MapFragment extends Fragment {
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, AudioCheckinActivity.class);
-                intent.putExtra("lat", lat);
-                intent.putExtra("lng", lng);
-                startActivity(intent);
+                startActivity(new Intent(context, AudioCheckinActivity.class));
                 floatingActionsMenu.collapseImmediately();
             }
         });
@@ -247,10 +242,7 @@ public class MapFragment extends Fragment {
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(context, PhotoCheckinActivity.class);
-                intent.putExtra("lat", lat);
-                intent.putExtra("lng", lng);
-                startActivity(intent);
+                startActivity(new Intent(context, PhotoCheckinActivity.class));
                 floatingActionsMenu.collapseImmediately();
             }
         });
@@ -691,7 +683,7 @@ public class MapFragment extends Fragment {
             @Override
             public void run() {
                 if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2)) <= Math.abs(deltaTransX) ||
-                Math.abs(rootLayoutHeight / 3 - (gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2)) <= Math.abs(deltaTransY)) {
+                        Math.abs(rootLayoutHeight / 3 - (gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2)) <= Math.abs(deltaTransY)) {
                     transformMat.postTranslate(
                             rootLayoutWidth / 2 - (gpsMarker.getTranslationX() - gpsMarkerWidth / 2),
                             rootLayoutHeight / 3 - (gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2));
@@ -842,23 +834,17 @@ public class MapFragment extends Fragment {
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
-    public void handleLocationChange(Location currentLocation) {
+    public void handleLocationChange(double lat, double lng) {
 
-        lat = (float) currentLocation.getLatitude();
-        lng = (float) currentLocation.getLongitude();
         double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
         double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
 
         IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
-//        Log.d(TAG, "handleLocationChange(): idxWeights.idx:" + idxWeights.idx);
         if (idxWeights.idx >= 0) {
             double[] newPos = warpMesh.interpolatePosition(idxWeights);
             gpsDistortedX = (float) newPos[0];
             gpsDistortedY = (float) newPos[1];
         }
-//        Log.d(TAG, "handleLocationChange(): gpsDistortedX:" + gpsDistortedX);
-//        Log.d(TAG, "handleLocationChange(): gpsDistortedY:" + gpsDistortedY);
-
 
         // transform gps marker
         float[] point = new float[]{gpsDistortedX, gpsDistortedY};
@@ -892,7 +878,7 @@ public class MapFragment extends Fragment {
         gpsMarker.setRotation(rotation * RADIAN);
     }
 
-    public void handleCheckinMsg(final String postId, float lat, float lng) {
+    public void handleCheckinMsg(final String postId, double lat, double lng) {
 
         // calculate distorted gps value
         float latDistorted = 0;
