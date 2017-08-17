@@ -19,9 +19,9 @@ public class Utility {
     public static float[] gpsToImgPx(Mesh realMesh, Mesh warpMesh, float lat, float lng) {
         float latDistorted = 0;
         float lngDistorted = 0;
-        double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
-        double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
-        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
+        double realMeshX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
+        double realMeshY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
+        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(realMeshX, realMeshY);
         if (idxWeights.idx >= 0) {
             double[] newPos = warpMesh.interpolatePosition(idxWeights);
             latDistorted = (float) newPos[0];

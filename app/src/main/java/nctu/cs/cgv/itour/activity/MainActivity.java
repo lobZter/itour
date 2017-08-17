@@ -15,6 +15,11 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
@@ -28,6 +33,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
+import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
@@ -48,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
+    // Firebase
+    private DatabaseReference databaseReference;
+    private ValueEventListener checkinListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +122,24 @@ public class MainActivity extends AppCompatActivity {
     private void setBroadcastReceiver() {
         FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
 
+        checkinListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
+                        Checkin checkin = issue.getValue(Checkin.class);
+                        mapFragment.handleCheckinMsg(issue.getKey(), checkin);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag);
+        databaseReference.addValueEventListener(checkinListener);
+
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -169,7 +196,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // Register mMessageReceiver to receive messages.
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("checkinIcon");
         intentFilter.addAction("gpsLocation");
@@ -188,13 +214,21 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        // Unregister since the activity is not visible
+        super.onPause();
+
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
+    }
 
-        super.onPause();
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (databaseReference != null) {
+            databaseReference.removeEventListener(checkinListener);
+        }
     }
 }

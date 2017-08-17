@@ -5,11 +5,27 @@
     android:layout_height="match_parent"
     android:background="@color/mapBackground">
 
+    <FrameLayout
+        android:id="@+id/touristmap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_gps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="@color/white"
+        android:elevation="8dp"
+        android:src="@drawable/ic_gps_fixed_blue_24dp" />
+
     <LinearLayout
         android:id="@+id/gps_marker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:elevation="1px"
         android:gravity="center_horizontal"
         android:orientation="vertical">
 
@@ -24,17 +40,5 @@
             android:src="@drawable/circle_gps" />
 
     </LinearLayout>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_gps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/white"
-        android:elevation="8dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp" />
 
 </RelativeLayout>

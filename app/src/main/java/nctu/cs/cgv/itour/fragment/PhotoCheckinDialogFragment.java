@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +17,8 @@ import java.io.File;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.object.CheckinInfo;
+import nctu.cs.cgv.itour.object.Checkin;
 
-import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.photoPath;
 
@@ -43,12 +41,12 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
     public PhotoCheckinDialogFragment() {
     }
 
-    public static PhotoCheckinDialogFragment newInstance(CheckinInfo checkinInfo) {
+    public static PhotoCheckinDialogFragment newInstance(Checkin checkin) {
         PhotoCheckinDialogFragment photoCheckinDialogFragment = new PhotoCheckinDialogFragment();
         Bundle args = new Bundle();
-        args.putString("location", checkinInfo.location);
-        args.putString("description", checkinInfo.description);
-        args.putString("filename", checkinInfo.filename);
+        args.putString("location", checkin.location);
+        args.putString("description", checkin.description);
+        args.putString("filename", checkin.filename);
         photoCheckinDialogFragment.setArguments(args);
         return photoCheckinDialogFragment;
     }

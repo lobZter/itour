@@ -1,8 +1,10 @@
 package nctu.cs.cgv.itour.activity;
 
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -10,50 +12,55 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.SpotList;
+import nctu.cs.cgv.itour.object.SpotNode;
 
+import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
-public class LocationChooseActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+public class LocationChooseActivity extends AppCompatActivity {
 
     private static final String TAG = "LocationChooseActivity";
     // constants
@@ -63,12 +70,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
     private final int gpsMarkerHeight = 48;
     private final int gpsDirectionWidth = 32;
     private final int gpsDirectionHeight = 32;
-    private final int nodeIconWidth = 16;
-    private final int nodeIconHeight = 16;
     private final int checkinIconWidth = 64;
     private final int checkinIconHeight = 64;
     // intent info
-    private String mapTag;
     private String location;
     private String filename;
     private String description;
@@ -77,13 +81,10 @@ public class LocationChooseActivity extends AppCompatActivity implements
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private float lat = 0, lng = 0;
+    private float currentLat = 0;
+    private float currentLng = 0;
     private float gpsDistortedX = 0;
     private float gpsDistortedY = 0;
-    private float lastFogClearPosX = 0;
-    private float lastFogClearPosY = 0;
-    private int initialOffsetX = 0;
-    private int initialOffsetY = 0;
     private int touristMapWidth = 0;
     private int touristMapHeight = 0;
     private int screenWidth = 0;
@@ -99,14 +100,13 @@ public class LocationChooseActivity extends AppCompatActivity implements
     // Objects
     private Mesh realMesh;
     private Mesh warpMesh;
+    private SpotList spotList;
     // Gesture detectors
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-    // Google Services Location API
-    private GoogleApiClient googleApiClient;
-    private LocationRequest locationRequest;
-    private Location currentLocation;
+    // receive gps location
+    private BroadcastReceiver messageReceiver;
     // device sensor manager
     private SensorManager sensorManager;
     private SensorEventListener sensorEventListener;
@@ -114,8 +114,11 @@ public class LocationChooseActivity extends AppCompatActivity implements
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
+    // firebase
+    private DatabaseReference databaseReference;
     // flags
     private boolean isGpsCurrent = false;
+    private boolean isOrientationCurrent = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,22 +127,30 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
         // TODO handle null value
         Intent intent = getIntent();
-        mapTag = intent.getStringExtra("mapTag");
-        lat = intent.getFloatExtra("lat", 0);
-        lng = intent.getFloatExtra("lng", 0);
         location = intent.getStringExtra("location");
         filename = intent.getStringExtra("filename");
         description = intent.getStringExtra("description");
         type = intent.getStringExtra("type");
 
-        // Set Location API.
-        buildGoogleApiClient();
-        createLocationRequest();
-
-        // Set Sensors.
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        // initialize objects
+        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
+        transformMat = new Matrix();
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getAction()) {
+                    case "gpsLocation":
+                        handleLocationChange(
+                                intent.getDoubleExtra("lat", 0),
+                                intent.getDoubleExtra("lng", 0));
+                        break;
+                }
+            }
+        };
 
         // get screen size
         DisplayMetrics displayMetrics = new DisplayMetrics();
@@ -154,39 +165,41 @@ public class LocationChooseActivity extends AppCompatActivity implements
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight);
         touristMap = new ImageView(this);
+        touristMap.setLayoutParams(layoutParams);
+        touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         touristMap.setImageBitmap(touristMapBitmap);
-        touristMap.setScaleType(ImageView.ScaleType.FIT_START);
         touristMap.setPivotX(0);
         touristMap.setPivotY(0);
-        rootLayout.addView(touristMap);
+        ((FrameLayout)findViewById(R.id.touristmap)).addView(touristMap);
 
         // set gpsMarker
         gpsMarker = (LinearLayout) findViewById(R.id.gps_marker);
+        gpsMarker.setElevation(1);
         gpsMarker.setPivotX(gpsMarkerWidth / 2);
         gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
 
         // map center marker for checkinIcon
-
         mapCenter = new ImageView(this);
         mapCenter.setImageResource(R.drawable.ic_location_on_red_600_24dp);
-        mapCenter.setElevation(2);
+        mapCenter.setElevation(2);  // higher than gpsMarker
         rootLayout.addView(mapCenter);
+
+        // draw spots
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+            addSpot(spotNodeEntry.getValue());
+        }
 
         // set buttons
         gpsBtn = (FloatingActionButton) findViewById(R.id.btn_gps);
         gpsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isGpsCurrent) rotateToNorth();
+                if (isGpsCurrent && !isOrientationCurrent) rotateToNorth();
                 else translateToCurrent();
             }
         });
-
-        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
-        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
-        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
-        transformMat = new Matrix();
 
         setTouchListener();
         setSensors();
@@ -203,12 +216,7 @@ public class LocationChooseActivity extends AppCompatActivity implements
                 layoutParams.setMargins(rootLayoutWidth / 2 - checkinIconWidth / 2, rootLayoutHeight / 3 - checkinIconHeight, 0, 0);
                 mapCenter.setLayoutParams(layoutParams);
 
-
-                handleLocationChange();
-                transformMat.postTranslate(
-                        rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
-                        rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
-                reRender();
+                translateToCurrent();
             }
         });
     }
@@ -378,11 +386,43 @@ public class LocationChooseActivity extends AppCompatActivity implements
         gpsMarkTransform.mapPoints(point);
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
+
+        // transform spot
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+            SpotNode spotNode = spotNodeEntry.getValue();
+            point[0] = spotNode.x;
+            point[1] = spotNode.y;
+            Matrix spotIconTransform = new Matrix();
+            spotIconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
+            transformMat.mapPoints(point);
+            spotIconTransform.mapPoints(point);
+            spotNode.icon.setTranslationX(point[0]);
+            spotNode.icon.setTranslationY(point[1]);
+        }
+    }
+
+    private void addSpot(SpotNode spotNode) {
+        // create icon
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View icon = inflater.inflate(R.layout.item_spot, null);
+        TextView spotNameView = (TextView) icon.findViewById(R.id.spot_name);
+        spotNameView.setText(spotNode.name);
+        spotNode.icon = icon;
+        // transform icon
+        Matrix iconTransform = new Matrix();
+        float[] gpsDistorted = {spotNode.x, spotNode.y};
+        iconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
+        transformMat.mapPoints(gpsDistorted);
+        iconTransform.mapPoints(gpsDistorted);
+        icon.setTranslationX(gpsDistorted[0]);
+        icon.setTranslationY(gpsDistorted[1]);
+        // add to rootlayout
+        rootLayout.addView(icon);
     }
 
     private void translateToCurrent() {
-        final float transX = rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2;
-        final float transY = rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2;
+        final float transX = rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2);
+        final float transY = rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2);
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -390,16 +430,19 @@ public class LocationChooseActivity extends AppCompatActivity implements
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < Math.abs(deltaTransX)) {
+                if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) <= Math.abs(deltaTransX) ||
+                        Math.abs(rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2)) <= Math.abs(deltaTransY)) {
                     transformMat.postTranslate(
-                            rootLayoutWidth / 2 - gpsMarker.getTranslationX() - gpsMarkerWidth / 2,
-                            rootLayoutHeight / 3 - gpsMarker.getTranslationY() - gpsDirectionHeight - gpsMarkerHeight / 2);
+                            rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2),
+                            rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2));
                     reRender();
                     translationHandler.removeCallbacks(this);
+                    gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
+                    isGpsCurrent = true;
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - gpsMarker.getTranslationX()) < rootLayoutHeight / 4) {
+                    if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) < rootLayoutHeight / 4) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -409,8 +452,6 @@ public class LocationChooseActivity extends AppCompatActivity implements
             }
         };
         translationHandler.postDelayed(translationInterpolation, 2);
-        isGpsCurrent = true;
-        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
     }
 
     private void rotateToNorth() {
@@ -420,18 +461,19 @@ public class LocationChooseActivity extends AppCompatActivity implements
         Runnable rotationInterpolation = new Runnable() {
             @Override
             public void run() {
-                transformMat.postTranslate(-screenWidth / 2, -screenHeight / 2);
+                transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
                 transformMat.postRotate(-deltaAngle);
-                transformMat.postTranslate(screenWidth / 2, screenHeight / 2);
+                transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
                 rotation -= deltaAngle;
                 reRender();
                 if (Math.abs(rotation) <= Math.abs(deltaAngle)) {
-                    transformMat.postTranslate(-screenWidth / 2, -screenHeight / 2);
+                    transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
                     transformMat.postRotate(-rotation);
-                    transformMat.postTranslate(screenWidth / 2, screenHeight / 2);
+                    transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
                     rotation = 0;
                     reRender();
                     rotationHandler.removeCallbacks(this);
+                    isOrientationCurrent = true;
                 } else {
                     rotationHandler.postDelayed(this, 1);
                 }
@@ -440,19 +482,17 @@ public class LocationChooseActivity extends AppCompatActivity implements
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
-    private void handleLocationChange() {
-        double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
-        double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
+    private void handleLocationChange(double lat, double lng) {
 
-        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
-        if (idxWeights.idx >= 0) {
-            double[] newPos = warpMesh.interpolatePosition(idxWeights);
-            gpsDistortedX = (float) newPos[0];
-            gpsDistortedY = (float) newPos[1];
-        }
+        currentLat = (float) lat;
+        currentLng = (float) lng;
+
+        float[] point = gpsToImgPx(realMesh, warpMesh, currentLat, currentLng);
+
+        gpsDistortedX = point[0];
+        gpsDistortedY = point[1];
 
         // transform gps marker
-        float[] point = new float[]{gpsDistortedX, gpsDistortedY};
         Matrix gpsMarkTransform = new Matrix();
         gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
         transformMat.mapPoints(point);
@@ -465,13 +505,9 @@ public class LocationChooseActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
 
-        googleApiClient.connect();
-
-        if (currentLocation != null) {
-            lat = (float) currentLocation.getLatitude();
-            lng = (float) currentLocation.getLongitude();
-            handleLocationChange();
-        }
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("gpsLocation");
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         if (accelerometer != null) {
             sensorManager.registerListener(
@@ -486,92 +522,14 @@ public class LocationChooseActivity extends AppCompatActivity implements
 
     @Override
     protected void onPause() {
+        super.onPause();
 
-        if (googleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
-        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
 
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (googleApiClient.isConnected()) {
-            googleApiClient.disconnect();
-        }
-    }
-
-    /**
-     * Builds a GoogleApiClient.
-     */
-    private synchronized void buildGoogleApiClient() {
-        googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-    }
-
-    /**
-     * Sets up the location request.
-     */
-    private void createLocationRequest() {
-        locationRequest = new LocationRequest();
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(500);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
-
-    /**
-     * Implementation for Google Services Location API.
-     */
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                googleApiClient, locationRequest, this);
-    }
-
-    /**
-     * Implementation for Google Services Location API.
-     */
-    @Override
-    public void onConnectionSuspended(int cause) {
-        Log.d(TAG, "onConnectionSuspended(), errorCode: " + String.valueOf(cause));
-
-    }
-
-    /**
-     * Implementation for Google Services Location API.
-     */
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d(TAG, "onConnectionFailed(), errorCode: " + connectionResult.getErrorCode());
-    }
-
-    /**
-     * Callback that fires when the location changes.
-     */
-    @Override
-    public void onLocationChanged(Location location) {
-        currentLocation = location;
-        lat = (float) currentLocation.getLatitude();
-        lng = (float) currentLocation.getLongitude();
-        handleLocationChange();
     }
 
     private void checkin() {
@@ -580,8 +538,8 @@ public class LocationChooseActivity extends AppCompatActivity implements
         progressDialog.show();
 
         float[] point = new float[]{0, 0}; // tourist map position
-        float latCenter = lat;
-        float lngCenter = lng;
+        float latCenter = currentLat;
+        float lngCenter = currentLng;
         Matrix temp = new Matrix();
         temp.set(transformMat);
 
@@ -597,45 +555,63 @@ public class LocationChooseActivity extends AppCompatActivity implements
             latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
         }
 
+        // push firebase database
+        String key = databaseReference.child("checkin").child(mapTag).push().getKey();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid);
+        Map<String, Object> checkinValues = checkin.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
+        databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                progressDialog.dismiss();
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
+
+
+
         // upload audio
-        AsyncHttpClient client = new AsyncHttpClient();
-        RequestParams params = new RequestParams();
-        params.setForceMultipartEntityContentType(true);
-        try {
-            File audioFile = new File(filename);
-            if (audioFile.exists())
-                params.put("file", audioFile);
-            params.put("mapTag", mapTag);
-            params.put("lat", latCenter);
-            params.put("lng", lngCenter);
-            params.put("location", location);
-            params.put("description", description);
-            params.put("type", type);
-
-            client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-                @Override
-                public void onStart() {
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                    progressDialog.dismiss();
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                    progressDialog.dismiss();
-                    Toast.makeText(getApplicationContext(), "上傳失敗, 網路錯誤QQ " + statusCode, Toast.LENGTH_LONG).show();
-                }
-            });
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
+//        AsyncHttpClient client = new AsyncHttpClient();
+//        RequestParams params = new RequestParams();
+//        params.setForceMultipartEntityContentType(true);
+//        try {
+//            File audioFile = new File(filename);
+//            if (audioFile.exists())
+//                params.put("file", audioFile);
+//            params.put("mapTag", mapTag);
+//            params.put("lat", latCenter);
+//            params.put("lng", lngCenter);
+//            params.put("location", location);
+//            params.put("description", description);
+//            params.put("type", type);
+//
+//            client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+//                @Override
+//                public void onStart() {
+//                }
+//
+//                @Override
+//                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+//                    progressDialog.dismiss();
+//                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    startActivity(intent);
+//                }
+//
+//                @Override
+//                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+//                    progressDialog.dismiss();
+//                    Toast.makeText(getApplicationContext(), "Upload failed." + statusCode, Toast.LENGTH_LONG).show();
+//                }
+//            });
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
     }
 }
 

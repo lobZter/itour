@@ -1,19 +1,15 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -26,11 +22,10 @@ import java.io.IOException;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.object.CheckinInfo;
+import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
-import static nctu.cs.cgv.itour.MyApplication.photoPath;
 
 public class AudioCheckinDialogFragment extends DialogFragment {
 
@@ -56,11 +51,11 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     public AudioCheckinDialogFragment() {
     }
 
-    public static AudioCheckinDialogFragment newInstance(CheckinInfo checkinInfo) {
+    public static AudioCheckinDialogFragment newInstance(Checkin checkin) {
         AudioCheckinDialogFragment audioCheckinDialogFragment = new AudioCheckinDialogFragment();
         Bundle args = new Bundle();
-        args.putString("location", checkinInfo.location);
-        args.putString("filename", checkinInfo.filename);
+        args.putString("location", checkin.location);
+        args.putString("filename", checkin.filename);
         audioCheckinDialogFragment.setArguments(args);
         return audioCheckinDialogFragment;
     }
