@@ -558,7 +558,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         String key = databaseReference.child("checkin").child(mapTag).push().getKey();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid);
+        String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid, username);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
@@ -571,8 +572,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
-
 
         // upload audio
 //        AsyncHttpClient client = new AsyncHttpClient();

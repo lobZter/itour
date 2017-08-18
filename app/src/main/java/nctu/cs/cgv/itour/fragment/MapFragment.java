@@ -462,7 +462,9 @@ public class MapFragment extends Fragment {
             spotNode.icon.setTranslationY(point[1]);
         }
 
-        if (scale < 2.2 && isMerged == false) {
+        isMerged = scale < 2.2;
+
+        if (isMerged) {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.GONE);
             }
@@ -474,11 +476,7 @@ public class MapFragment extends Fragment {
             for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
                 spotCheckinNode.icon.setVisibility(View.VISIBLE);
             }
-
-            isMerged = true;
-        }
-
-        if (scale >= 2.2 && isMerged == true) {
+        } else {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
             }
@@ -490,8 +488,6 @@ public class MapFragment extends Fragment {
             for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
                 spotCheckinNode.icon.setVisibility(View.GONE);
             }
-
-            isMerged = false;
         }
 
         // transform checkins

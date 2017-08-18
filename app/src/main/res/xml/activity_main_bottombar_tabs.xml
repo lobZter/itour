@@ -5,8 +5,12 @@
         icon="@drawable/ic_map_white_24dp"
         title="Map" />
     <tab
-        id="@+id/tab_plan"
+        id="@+id/tab_list"
         icon="@drawable/ic_format_list_bulleted_white_24dp"
+        title="List" />
+    <tab
+        id="@+id/tab_plan"
+        icon="@drawable/ic_event_note_black_24dp"
         title="Plan" />
     <tab
         id="@+id/tab_settings"

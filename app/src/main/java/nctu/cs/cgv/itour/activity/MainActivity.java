@@ -30,6 +30,7 @@ import java.util.List;
 
 import nctu.cs.cgv.itour.MyViewPager;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Fragment> fragmentList;
     // MapFragment: communicate by calling fragment method
     private MapFragment mapFragment;
+    private ListFragment listFragment;
     // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;
     // device sensor manager
@@ -71,8 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void setView() {
         mapFragment = MapFragment.newInstance();
+        listFragment = ListFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
+        fragmentList.add(listFragment);
         fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
@@ -102,11 +106,14 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.tab_map:
                         viewPager.setCurrentItem(0);
                         break;
-                    case R.id.tab_plan:
+                    case R.id.tab_list:
                         viewPager.setCurrentItem(1);
                         break;
-                    case R.id.tab_settings:
+                    case R.id.tab_plan:
                         viewPager.setCurrentItem(2);
+                        break;
+                    case R.id.tab_settings:
+                        viewPager.setCurrentItem(3);
                         break;
                 }
             }
@@ -129,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
                         mapFragment.handleCheckinMsg(issue.getKey(), checkin);
+//                        listFragment.addToList(checkin);
                     }
                 }
             }

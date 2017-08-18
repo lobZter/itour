@@ -21,11 +21,12 @@ public class Checkin {
     public String filename;
     public String type;
     public String uid;
+    public String username;
 
     public Checkin() {
     }
 
-    public Checkin(String lat, String lng, String location, String description, String filename, String type, String uid) {
+    public Checkin(String lat, String lng, String location, String description, String filename, String type, String uid, String username) {
         this.lat = lat;
         this.lng = lng;
         this.location = location;
@@ -33,6 +34,7 @@ public class Checkin {
         this.filename = filename;
         this.type = type;
         this.uid = uid;
+        this.username = username;
     }
 
     @Exclude
@@ -45,6 +47,7 @@ public class Checkin {
         result.put("filename", filename);
         result.put("type", type);
         result.put("uid", uid);
+        result.put("username", username);
 
         return result;
     }
