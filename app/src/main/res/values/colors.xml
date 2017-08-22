@@ -4,20 +4,16 @@
     <color name="blackOverlay">#8c8c8c</color>
     <color name="mapBackground">#F0EDE5</color>
 
-    <color name="white">#ffffff</color>
-    <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
     <color name="semi_transparent">#CC000000</color>
     <color name="black_semi_transparent">#B2000000</color>
-    <color name="red">#FF0000</color>
 
-
-    <color name="colorPrimaryDark">#FFA000</color>
-    <color name="colorPrimaryDefault">#FFC107</color>
-    <color name="colorPrimaryLight">#FFECB3</color>
-    <color name="colorAccent">#607D8B</color>
-    <color name="textColorPrimary">#212121</color>
-    <color name="textColorSecondary">#757575</color>
-    <color name="dividerColor">#BDBDBD</color>
+    <color name="primary_dark">#c83636</color>
+    <color name="primary">#e14b4c</color>
+    <color name="primary_light">@color/md_red_100</color>
+    <color name="primary_text">@color/md_grey_900</color>
+    <color name="secondary_text">@color/md_grey_600</color>
+    <color name="accent">@color/md_blue_grey_700</color>
+    <color name="divider">@color/md_grey_400</color>
 
 </resources>

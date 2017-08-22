@@ -15,8 +15,8 @@
         android:shadowDx="3"
         android:shadowDy="3"
         android:shadowRadius="2"
-        android:shadowColor="@color/textColorSecondary"
+        android:shadowColor="@color/secondary_text"
         android:text="TEST SPOT"
-        android:textColor="@color/white"/>
+        android:textColor="@color/md_white_1000"/>
 
 </LinearLayout>

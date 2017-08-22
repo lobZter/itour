@@ -9,7 +9,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:text="Title"
-        android:textColor="@color/textColorPrimary"
+        android:textColor="@color/primary_text"
         android:textSize="24sp" />
 
     <TextView
@@ -20,7 +20,7 @@
         android:layout_toLeftOf="@+id/tv_min"
         android:text="60"
         android:layout_marginRight="4dp"
-        android:textColor="@color/textColorSecondary"
+        android:textColor="@color/secondary_text"
         android:textSize="16sp" />
 
     <TextView
@@ -31,7 +31,7 @@
         android:layout_alignBottom="@+id/tv_title"
         android:layout_alignParentEnd="true"
         android:text="min"
-        android:textColor="@color/textColorSecondary"
+        android:textColor="@color/secondary_text"
         android:layout_marginRight="16dp"
         android:textSize="16sp" />
 

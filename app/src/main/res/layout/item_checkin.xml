@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="皓"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 android:textSize="16sp" />
 
             <TextView
@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:text="淡水福佑宮"
-                android:textColor="@color/textColorSecondary"
+                android:textColor="@color/secondary_text"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -55,7 +55,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="淡水福佑宮，俗稱「淡水媽祖廟」，位於臺灣新北市淡水區，主祀天上聖母媽祖。為新北市三級古蹟。"
-            android:textColor="@color/textColorSecondary"
+            android:textColor="@color/secondary_text"
             android:textSize="14sp" />
 
 
