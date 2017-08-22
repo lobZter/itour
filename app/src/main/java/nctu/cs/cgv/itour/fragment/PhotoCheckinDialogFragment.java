@@ -76,28 +76,29 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
         locationText.setText(location);
         descriptionText.setText(description);
 
-        final String path = photoPath + filename;
-        File file = new File(path);
-
-        if(file.exists()) {
-            // load thumb from storage
-            photo.setImageBitmap(BitmapFactory.decodeFile(path));
-        }
-        else {
-            // download thumb
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(file) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    photo.setImageBitmap(BitmapFactory.decodeFile(path));
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-
-                }
-            });
-        }
+        photo.setImageDrawable(getResources().getDrawable(R.drawable.temp));
+//        final String path = photoPath + filename;
+//        File file = new File(path);
+//
+//        if(file.exists()) {
+//            // load thumb from storage
+//            photo.setImageBitmap(BitmapFactory.decodeFile(path));
+//        }
+//        else {
+//            // download thumb
+//            AsyncHttpClient client = new AsyncHttpClient();
+//            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(file) {
+//                @Override
+//                public void onSuccess(int statusCode, Header[] headers, File response) {
+//                    photo.setImageBitmap(BitmapFactory.decodeFile(path));
+//                }
+//
+//                @Override
+//                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+//
+//                }
+//            });
+//        }
     }
 
 }

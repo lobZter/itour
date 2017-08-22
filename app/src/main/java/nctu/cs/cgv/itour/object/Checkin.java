@@ -22,6 +22,7 @@ public class Checkin {
     public String type;
     public String uid;
     public String username;
+    public String key;
 
     public Checkin() {
     }

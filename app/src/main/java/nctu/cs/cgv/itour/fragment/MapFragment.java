@@ -121,6 +121,7 @@ public class MapFragment extends Fragment {
     private List<MergedCheckinNode> mergedCheckinList;
     private List<MergedCheckinNode> spotCheckinList;
     private List<ImageNode> checkinList;
+    private List<ImageView> primarySpotList;
     private SpotList spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
@@ -164,6 +165,7 @@ public class MapFragment extends Fragment {
         checkinList = new ArrayList<>();
         mergedCheckinList = new ArrayList<>();
         spotCheckinList = new ArrayList<>();
+        primarySpotList = new ArrayList<>();
         transformMat = new Matrix();
         progressDialog = new ProgressDialog(context);
     }
@@ -268,8 +270,7 @@ public class MapFragment extends Fragment {
             addSpot(spotNodeEntry.getValue());
         }
 
-        // draw checkins
-//        updateCheckin();
+//        addPrimarySpot();
 
         setTouchListener();
 
@@ -521,6 +522,15 @@ public class MapFragment extends Fragment {
             spotCheckinNode.icon.setTranslationX(point[0]);
             spotCheckinNode.icon.setTranslationY(point[1]);
         }
+
+
+//        point = gpsToImgPx(realMesh, warpMesh, 25.17018f, 121.43994f);
+//        transformMat.mapPoints(point);
+//        Matrix transformMatrix = new Matrix();
+//        transformMatrix.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
+//        transformMatrix.mapPoints(point);
+//        primarySpotList.get(0).setTranslationX(point[0]);
+//        primarySpotList.get(0).setTranslationY(point[1]);
     }
 
     private void addEdgeNode(ImageNode imageNode) {
@@ -548,6 +558,25 @@ public class MapFragment extends Fragment {
         icon.setTranslationX(gpsDistorted[0]);
         icon.setTranslationY(gpsDistorted[1]);
         // add to rootlayout
+        rootLayout.addView(icon);
+    }
+
+    private void addPrimarySpot() {
+        // create icon
+        ImageView icon = new ImageView(context);
+        icon.setImageDrawable(context.getDrawable(R.drawable.fuyou_temple));
+//        layoutParams = new RelativeLayout.LayoutParams(dpToPx(48), dpToPx(48));
+
+        // transform icon
+        Matrix iconTransform = new Matrix();
+        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, 25.17018f, 121.43994f);
+//        iconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48 / 2));
+        transformMat.mapPoints(gpsDistorted);
+        iconTransform.mapPoints(gpsDistorted);
+        icon.setTranslationX(gpsDistorted[0]);
+        icon.setTranslationY(gpsDistorted[1]);
+        // add to rootlayout
+        primarySpotList.add(icon);
         rootLayout.addView(icon);
     }
 
@@ -610,7 +639,7 @@ public class MapFragment extends Fragment {
         Query query = databaseReference.child("checkinIcon").child(mapTag).child(postId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public void onDataChange(final DataSnapshot dataSnapshot) {
                 progressDialog.dismiss();
                 if (dataSnapshot.exists()) {
                     Checkin checkin = dataSnapshot.getValue(Checkin.class);

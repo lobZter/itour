@@ -1,5 +1,7 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,6 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.baoyz.swipemenulistview.SwipeMenu;
+import com.baoyz.swipemenulistview.SwipeMenuCreator;
+import com.baoyz.swipemenulistview.SwipeMenuItem;
+import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -26,6 +32,7 @@ import nctu.cs.cgv.itour.CheckinItemAdapter;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 
+import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 /**
@@ -38,7 +45,11 @@ public class ListFragment extends Fragment {
     private List<Checkin> checkins;
     private List<Checkin> myCheckins;
     private CheckinItemAdapter checkinItemAdapter;
+    private CheckinItemAdapter myCheckinItemAdapter;
+    private ListView checkinList;
+    private SwipeMenuListView myCheckinList;
     private boolean isMyCheckins = false;
+    private DatabaseReference databaseReference;
 
     public static ListFragment newInstance() {
         ListFragment fragment = new ListFragment();
@@ -52,9 +63,49 @@ public class ListFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        final ListView checkinList = (ListView) view.findViewById(R.id.checkin_list);
+        databaseReference = FirebaseDatabase.getInstance().getReference();
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        myCheckinList = (SwipeMenuListView) view.findViewById(R.id.mycheckin_list);
+        checkinList = (ListView) view.findViewById(R.id.checkin_list);
+
+        myCheckinList.setMenuCreator(new SwipeMenuCreator() {
+
+            @Override
+            public void create(SwipeMenu menu) {
+                SwipeMenuItem deleteItem = new SwipeMenuItem(getContext());
+                deleteItem.setBackground(R.color.md_grey_700);
+                deleteItem.setWidth(dpToPx(90));
+                deleteItem.setIcon(R.drawable.ic_delete_white_24dp);
+                menu.addMenuItem(deleteItem);
+            }
+        });
+        myCheckinList.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                switch (index) {
+                    case 0:
+                        String key = myCheckins.get(position).key;
+                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+
+                        for(Checkin checkin : checkins) {
+                            if(key.equals(checkin.key)) {
+                                checkins.remove(checkin);
+                                break;
+                            }
+                        }
+                        checkinItemAdapter.clear();
+                        checkinItemAdapter.addAll(checkins);
+                        myCheckins.remove(position);
+                        myCheckinItemAdapter.clear();
+                        myCheckinItemAdapter.addAll(myCheckins);
+                        break;
+                }
+                return false; // false : close the menu; true : not close the menu
+            }
+        });
+        myCheckinList.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
+
+        // all checkins
         Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -63,10 +114,10 @@ public class ListFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
+                        checkin.key = issue.getKey();
                         checkins.add(checkin);
                     }
                 }
-                Log.d(TAG, "" + checkins.size());
                 checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(checkins));
                 checkinList.setAdapter(checkinItemAdapter);
             }
@@ -77,6 +128,7 @@ public class ListFragment extends Fragment {
             }
         });
 
+        // my checkins
         query = databaseReference.child("checkin").child(mapTag).orderByChild("uid").equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -85,9 +137,12 @@ public class ListFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
+                        checkin.key = issue.getKey();
                         myCheckins.add(checkin);
                     }
                 }
+                myCheckinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(myCheckins));
+                myCheckinList.setAdapter(myCheckinItemAdapter);
             }
 
             @Override
@@ -109,12 +164,13 @@ public class ListFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.btn_filter:
-                checkinItemAdapter.clear();
+                Log.d(TAG, "onOptionsItemSelected():" + isMyCheckins);
                 if (isMyCheckins) {
-                    Log.d(TAG, "" + checkins.size());
-                    checkinItemAdapter.addAll(checkins);
+                    checkinList.setVisibility(View.VISIBLE);
+                    myCheckinList.setVisibility(View.GONE);
                 } else {
-                    checkinItemAdapter.addAll(myCheckins);
+                    checkinList.setVisibility(View.GONE);
+                    myCheckinList.setVisibility(View.VISIBLE);
                 }
                 isMyCheckins = !isMyCheckins;
                 return true;
@@ -122,41 +178,4 @@ public class ListFragment extends Fragment {
                 return super.onOptionsItemSelected(item);
         }
     }
-//
-//    Filter filter = new Filter() {
-//
-//        @Override
-//        protected void publishResults(CharSequence constraint, FilterResults results) {
-//            checkins = (List<Checkin>) results.values; // has the filtered values
-//            checkinItemAdapter.notifyDataSetChanged();  // notifies the data with new filtered values
-//        }
-//
-//        @Override
-//        protected FilterResults performFiltering(CharSequence constraint) {
-//            FilterResults results = new FilterResults(); // Holds the results of a filtering operation in values
-//            List<Checkin> FilteredArrList = new ArrayList<Checkin>();
-//
-//            if (originalValues == null) {
-//                originalValues = new ArrayList<Checkin>(checkins); // saves the original data in mOriginalValues
-//            }
-//
-//            if (constraint == null || constraint.length() == 0) {
-//                // set the Original result to return
-//                results.count = originalValues.size();
-//                results.values = originalValues;
-//            } else {
-//                constraint = constraint.toString().toLowerCase();
-//                for (int i = 0; i < originalValues.size(); i++) {
-//                    Checkin data = originalValues.get(i);
-//                    if (data.uid.equals(constraint.toString())) {
-//                        FilteredArrList.add(data);
-//                    }
-//                }
-//                // set the Filtered result to return
-//                results.count = FilteredArrList.size();
-//                results.values = FilteredArrList;
-//            }
-//            return results;
-//        }
-//    };
 }
