@@ -33,11 +33,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.AudioCheckinActivity"
-            android:label="Audio Checkin"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.PhotoCheckinActivity"
-            android:label="Photo Checkin"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.MapListActivity"

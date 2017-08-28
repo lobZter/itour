@@ -15,10 +15,10 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_person_black_24dp" />
+        <!--<ImageView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:src="@drawable/ic_person_black_24dp" />-->
 
         <TextView
             android:id="@+id/tv_name"
@@ -27,7 +27,7 @@
             android:layout_margin="8dp"
             android:text="小綿羊"
             android:textColor="@color/primary_text"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tv_location"
@@ -77,17 +77,20 @@
                     android:id="@+id/tv_progress_current"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/secondary_text"
                     android:text="0:00" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/secondary_text"
                     android:text="/" />
 
                 <TextView
                     android:id="@+id/tv_progress_duration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/secondary_text"
                     android:text="6:00" />
 
             </LinearLayout>

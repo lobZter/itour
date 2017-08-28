@@ -8,7 +8,10 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.telecom.Call;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,6 +67,11 @@ public class AudioCheckinActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_checkin);
 
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("");
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
+
         // Verify that the device has a mic first
         PackageManager packageManager = this.getPackageManager();
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
@@ -82,56 +90,58 @@ public class AudioCheckinActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progress);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
-        playBtn = (RelativeLayout) findViewById(R.id.btn_play);
-        playBtnIcon = (ImageView) findViewById(R.id.btn_play_icon);
-        playBtnCircle = (ImageView) findViewById(R.id.btn_play_circle);
-        recordBtn = (RelativeLayout) findViewById(R.id.btn_record);
-        recordBtnIcon = (ImageView) findViewById(R.id.btn_record_icon);
+//        playBtn = (RelativeLayout) findViewById(R.id.btn_play);
+//        playBtnIcon = (ImageView) findViewById(R.id.btn_play_icon);
+//        playBtnCircle = (ImageView) findViewById(R.id.btn_play_circle);
+//        recordBtn = (RelativeLayout) findViewById(R.id.btn_record);
+//        recordBtnIcon = (ImageView) findViewById(R.id.btn_record_icon);
 
-        recordBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isRecording)
-                    startRecording();
-                else
-                    stopRecording();
-            }
-        });
-
-        playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (audioReady) {
-                    if (isPlaying)
-                        pauseAudio();
-                    else
-                        playAudio();
-                }
-            }
-        });
+//        recordBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (!isRecording)
+//                    startRecording();
+//                else
+//                    stopRecording();
+//            }
+//        });
+//
+//        playBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (audioReady) {
+//                    if (isPlaying)
+//                        pauseAudio();
+//                    else
+//                        playAudio();
+//                }
+//            }
+//        });
 
         progressBarHandler = new Handler();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_submit, menu);
+        getMenuInflater().inflate(R.menu.menu_next, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.btn_submit:
+            case R.id.btn_next:
                 Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
-                intent.putExtra("mapTag", mapTag);
-                intent.putExtra("lat", lat);
-                intent.putExtra("lng", lng);
                 intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("description", "");
                 intent.putExtra("filename", filename);
                 intent.putExtra("type", "audio");
                 startActivity(intent);
+                return true;
+            case android.R.id.home:
+                finish();
+
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

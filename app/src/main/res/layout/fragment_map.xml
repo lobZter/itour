@@ -20,9 +20,9 @@
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="24dp"
-        android:backgroundTint="@color/md_white_1000"
         android:elevation="8dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp" />
+        android:src="@drawable/ic_gps_fixed_blue_24dp"
+        app:backgroundTint="@color/md_white_1000" />
 
     <com.getbase.floatingactionbutton.FloatingActionsMenu
         android:id="@+id/menu_add"
@@ -35,8 +35,8 @@
         android:clipChildren="false"
         android:clipToPadding="false"
         android:elevation="8dp"
-        app:fab_addButtonColorNormal="@color/colorLocation"
-        app:fab_addButtonColorPressed="@color/colorLocation"
+        app:fab_addButtonColorNormal="@color/gps_marker_color"
+        app:fab_addButtonColorPressed="@color/gps_marker_color"
         app:fab_addButtonPlusIconColor="@color/md_white_1000"
         app:fab_expandDirection="left">
 
@@ -44,15 +44,15 @@
             android:id="@+id/btn_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/md_white_1000"
-            android:src="@drawable/ic_edit_black_24dp" />
+            android:src="@drawable/ic_edit_black_24dp"
+            app:backgroundTint="@color/md_white_1000" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/btn_audio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/md_white_1000"
-            android:src="@drawable/ic_mic_black_24dp" />
+            android:src="@drawable/ic_mic_black_24dp"
+            app:backgroundTint="@color/md_white_1000" />
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
 

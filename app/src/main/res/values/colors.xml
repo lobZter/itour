@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorLocation">#1e90ff</color>
+    <color name="gps_marker_color">#4285F4</color>
     <color name="blackOverlay">#8c8c8c</color>
     <color name="mapBackground">#F0EDE5</color>
 
@@ -11,9 +11,15 @@
     <color name="primary_dark">#c83636</color>
     <color name="primary">#e14b4c</color>
     <color name="primary_light">@color/md_red_100</color>
-    <color name="primary_text">@color/md_grey_900</color>
-    <color name="secondary_text">@color/md_grey_600</color>
     <color name="accent">@color/md_blue_grey_700</color>
-    <color name="divider">@color/md_grey_400</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#9E9E9E</color>
+    <color name="divider">#EDEDED</color>
+    <color name="underline">#8B8B8B</color>
+
+    <color name="light_theme_status_bar">@color/md_grey_300</color>
+    <color name="light_theme_app_bar">@color/md_grey_100</color>
+    <color name="light_theme_background">#F2F2F2</color>
+    <color name="light_theme_cards">@color/md_white_1000</color>
 
 </resources>

@@ -16,7 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"
-        app:bb_activeTabColor="@color/secondary_text"
+        app:bb_activeTabColor="@color/gps_marker_color"
         app:bb_behavior="iconsOnly"
         app:bb_inActiveTabColor="@color/secondary_text"
         app:bb_showShadow="true"

@@ -863,7 +863,9 @@ public class MapFragment extends Fragment {
 
     public void handleSensorChange(float rotation) {
         final float RADIAN = 57.296f;
-        gpsMarker.setRotation(rotation * RADIAN);
+        if (gpsMarker != null) {
+            gpsMarker.setRotation(rotation * RADIAN);
+        }
     }
 
     public void handleCheckinMsg(final String postId, double lat, double lng) {

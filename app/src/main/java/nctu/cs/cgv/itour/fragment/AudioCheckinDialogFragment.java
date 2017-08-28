@@ -32,6 +32,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     private static final String TAG = "AudioCheckinDialogFragment";
 
     private TextView locationText;
+    private TextView nameText;
     private String location;
     private String filename;
 
@@ -39,6 +40,8 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
     private ImageView playBtn;
+
+    private Checkin checkin;
 
     private Handler progressBarHandler;
     private Runnable progressBarRunnable;
@@ -53,19 +56,13 @@ public class AudioCheckinDialogFragment extends DialogFragment {
 
     public static AudioCheckinDialogFragment newInstance(Checkin checkin) {
         AudioCheckinDialogFragment audioCheckinDialogFragment = new AudioCheckinDialogFragment();
-        Bundle args = new Bundle();
-        args.putString("location", checkin.location);
-        args.putString("filename", checkin.filename);
-        audioCheckinDialogFragment.setArguments(args);
+        audioCheckinDialogFragment.checkin = checkin;
         return audioCheckinDialogFragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        location = getArguments().getString("location", "");
-        filename = getArguments().getString("filename", "");
-
         progressBarHandler = new Handler();
     }
 
@@ -79,8 +76,10 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        nameText = (TextView) view.findViewById(R.id.tv_name);
+        nameText.setText(checkin.username);
         locationText = (TextView) view.findViewById(R.id.tv_location);
-        locationText.setText(location);
+        locationText.setText(checkin.location);
 
         playBtn = (ImageView) view.findViewById(R.id.btn_play);
         playBtn.setOnClickListener(new View.OnClickListener() {
