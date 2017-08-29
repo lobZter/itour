@@ -39,6 +39,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
@@ -47,6 +48,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,9 +59,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -71,6 +78,7 @@ import nctu.cs.cgv.itour.object.SpotNode;
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
@@ -676,14 +684,7 @@ public class MapFragment extends Fragment {
                 progressDialog.dismiss();
                 if (dataSnapshot.exists()) {
                     Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                    FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-                    if (Objects.equals(checkin.type, "audio")) {
-                        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin);
-                        audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
-                    } else if (Objects.equals(checkin.type, "photo")) {
-                        PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkin);
-                        photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
-                    }
+                    showDialog(checkin);
                 }
             }
 
@@ -694,7 +695,7 @@ public class MapFragment extends Fragment {
         });
     }
 
-    private void showDialog(String postId, Checkin checkin) { // postId: unique key for data query
+    private void showDialog(Checkin checkin) { // postId: unique key for data query
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         if (Objects.equals(checkin.type, "audio")) {
             AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin);
@@ -951,7 +952,7 @@ public class MapFragment extends Fragment {
         checkinIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog(postId, checkin);
+                showDialog(checkin);
             }
         });
         // add to rootlayout

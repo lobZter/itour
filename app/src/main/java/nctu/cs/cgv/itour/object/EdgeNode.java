@@ -107,9 +107,6 @@ public class EdgeNode {
                 edgeList.add(y2);
                 edgeList.add(edgePixelLength);
                 edgeList.add(edgeRealLength);
-
-                Log.d("asads", "" + edgeList.size());
-
                 Vertex v1 = new Vertex(x1, y1);
                 Vertex v2 = new Vertex(x2, y2);
                 if (!vertexIdx.containsKey(v1)) {
@@ -214,8 +211,6 @@ public class EdgeNode {
             pathEdgeList.add(edgePixelWeights[idxIter][prev[idxIter]]);
             idxIter = prev[idxIter];
         }
-        Log.d("asdasdasd", str);
-        Log.d("asdasdasd", "" + pathEdgeList.size());
 
         initPathNode();
     }
@@ -250,9 +245,6 @@ public class EdgeNode {
             y2 = pathEdgeList.get(i + 3);
             edgePixelLength = pathEdgeList.get(i + 4);
             edgeRealLength = pathEdgeList.get(i + 5);
-
-            Log.d("asdasd", "x: " + x + ", y:" + y);
-            Log.d("asdasd", "x: " + x2 + ", y:" + y2);
 
             float distanceRatio = (distanceRatioRealLength * edgePixelLength / edgeRealLength);
             float distanceVectorX = Math.abs(x - x2);

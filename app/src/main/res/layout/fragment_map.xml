@@ -44,7 +44,7 @@
             android:id="@+id/btn_photo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_edit_black_24dp"
+            android:src="@drawable/ic_image_black_24dp"
             app:backgroundTint="@color/md_white_1000" />
 
         <android.support.design.widget.FloatingActionButton

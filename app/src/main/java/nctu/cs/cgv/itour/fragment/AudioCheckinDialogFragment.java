@@ -33,8 +33,6 @@ public class AudioCheckinDialogFragment extends DialogFragment {
 
     private TextView locationText;
     private TextView nameText;
-    private String location;
-    private String filename;
 
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
@@ -67,8 +65,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_audio_checkin_dialog, container);
     }
 
@@ -98,9 +95,9 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
 
-        final String path = audioPath + filename;
-        File file = new File(path);
 
+        final String path = getContext().getCacheDir().toString() + "/" + checkin.filename;
+        File file = new File(path);
         if(file.exists()) {
             // load thumb from storage
             initAudio(path);
@@ -108,9 +105,10 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         else {
             // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(file) {
+            client.get(fileDownloadURL + "?filename=" + checkin.filename, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
+                    response.renameTo(file);
                     initAudio(path);
                 }
 

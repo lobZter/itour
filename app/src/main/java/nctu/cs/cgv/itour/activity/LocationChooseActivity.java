@@ -590,7 +590,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    File file = new File(filename);
+                    File file = new File(getCacheDir().toString()+ "/" + filename);
                     if (file.exists())
                         params.put("file", file);
                     params.put("mapTag", mapTag);

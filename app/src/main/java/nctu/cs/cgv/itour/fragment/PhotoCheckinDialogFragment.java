@@ -1,14 +1,18 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
@@ -29,39 +33,24 @@ import static nctu.cs.cgv.itour.MyApplication.photoPath;
 public class PhotoCheckinDialogFragment extends DialogFragment {
 
     private static final String TAG = "PhotoCheckinDialogFragment";
-
-    private TextView locationText;
-    private TextView descriptionText;
-    private ImageView photo;
-
-    private String location;
-    private String description;
-    private String filename;
+    private Checkin checkin;
 
     public PhotoCheckinDialogFragment() {
     }
 
     public static PhotoCheckinDialogFragment newInstance(Checkin checkin) {
         PhotoCheckinDialogFragment photoCheckinDialogFragment = new PhotoCheckinDialogFragment();
-        Bundle args = new Bundle();
-        args.putString("location", checkin.location);
-        args.putString("description", checkin.description);
-        args.putString("filename", checkin.filename);
-        photoCheckinDialogFragment.setArguments(args);
+        photoCheckinDialogFragment.checkin = checkin;
         return photoCheckinDialogFragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        location = getArguments().getString("location", "");
-        description = getArguments().getString("description", "");
-        filename = getArguments().getString("filename", "");
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_photo_checkin_dialog, container);
     }
 
@@ -69,36 +58,43 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        locationText = (TextView) view.findViewById(R.id.tv_location);
-        descriptionText = (TextView) view.findViewById(R.id.tv_description);
-        photo = (ImageView) view.findViewById(R.id.photo);
+        ((TextView) view.findViewById(R.id.tv_location)).setText(checkin.location);
+        ((TextView) view.findViewById(R.id.tv_description)).setText(checkin.description);
+        ((TextView) view.findViewById(R.id.tv_name)).setText(checkin.username);
+        final ImageView photo = (ImageView) view.findViewById(R.id.photo);
 
-        locationText.setText(location);
-        descriptionText.setText(description);
+        final String path = getContext().getCacheDir().toString() + "/" + checkin.filename;
+        File file = new File(path);
+        if(file.exists()) {
+            // load thumb from storage
+            Bitmap bitmap = BitmapFactory.decodeFile(path);
+            photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            photo.setImageBitmap(bitmap);
+        }
+        else {
+            // download thumb
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.get(fileDownloadURL + "?filename=" + checkin.filename, new FileAsyncHttpResponseHandler(getContext()) {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, File response) {
+                    response.renameTo(new File(path));
+                    Bitmap bitmap = BitmapFactory.decodeFile(path);
+                    photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    photo.setImageBitmap(bitmap);
+                }
 
-        photo.setImageDrawable(getResources().getDrawable(R.drawable.temp));
-//        final String path = photoPath + filename;
-//        File file = new File(path);
-//
-//        if(file.exists()) {
-//            // load thumb from storage
-//            photo.setImageBitmap(BitmapFactory.decodeFile(path));
-//        }
-//        else {
-//            // download thumb
-//            AsyncHttpClient client = new AsyncHttpClient();
-//            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(file) {
-//                @Override
-//                public void onSuccess(int statusCode, Header[] headers, File response) {
-//                    photo.setImageBitmap(BitmapFactory.decodeFile(path));
-//                }
-//
-//                @Override
-//                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-//
-//                }
-//            });
-//        }
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        getDialog().getWindow()
+                .setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
     }
 
 }
