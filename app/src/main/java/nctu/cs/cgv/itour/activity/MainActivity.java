@@ -145,8 +145,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         };
-        databaseReference = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag);
-        databaseReference.addValueEventListener(checkinListener);
+//        databaseReference = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag);
+//        databaseReference.addValueEventListener(checkinListener);
 
         messageReceiver = new BroadcastReceiver() {
             @Override

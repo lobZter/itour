@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
@@ -51,13 +52,14 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.IdxWeights;
-import nctu.cs.cgv.itour.object.Mesh;
-import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.realMesh;
+import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class LocationChooseActivity extends AppCompatActivity {
@@ -97,10 +99,6 @@ public class LocationChooseActivity extends AppCompatActivity {
     private RelativeLayout rootLayout;
     private ImageView touristMap;
     private ImageView mapCenter;
-    // Objects
-    private Mesh realMesh;
-    private Mesh warpMesh;
-    private SpotList spotList;
     // Gesture detectors
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
@@ -119,13 +117,19 @@ public class LocationChooseActivity extends AppCompatActivity {
     // flags
     private boolean isGpsCurrent = false;
     private boolean isOrientationCurrent = true;
+    private boolean isTranslated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_choose);
 
-        // TODO handle null value
+        // set actionBar title, top-left icon
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
+
+        // get variables from checkinActivity
         Intent intent = getIntent();
         location = intent.getStringExtra("location");
         filename = intent.getStringExtra("filename");
@@ -133,10 +137,6 @@ public class LocationChooseActivity extends AppCompatActivity {
         type = intent.getStringExtra("type");
 
         // initialize objects
-        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
-        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
-        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
-        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
         transformMat = new Matrix();
         databaseReference = FirebaseDatabase.getInstance().getReference();
         messageReceiver = new BroadcastReceiver() {
@@ -232,6 +232,9 @@ public class LocationChooseActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.btn_submit:
                 checkin();
+                return true;
+            case android.R.id.home:
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -499,6 +502,11 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsMarkTransform.mapPoints(point);
         gpsMarker.setTranslationX(point[0]);
         gpsMarker.setTranslationY(point[1]);
+
+        if(!isTranslated) {
+            isTranslated = true;
+            translateToCurrent();
+        }
     }
 
     @Override
@@ -556,22 +564,64 @@ public class LocationChooseActivity extends AppCompatActivity {
         }
 
         // push firebase database
-        String key = databaseReference.child("checkin").child(mapTag).push().getKey();
+        final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
+        // rename file with postId
+        File from = new File(getCacheDir().toString()+ "/" + filename);
+        File to = new File(getCacheDir().toString()+ "/" + key + ".jpg");
+        from.renameTo(to);
+        filename = key + ".jpg";
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid, username);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
+        // push to database than upload file to server and server will send notification
+        final float finalLngCenter = lngCenter;
+        final float finalLatCenter = latCenter;
         databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                progressDialog.dismiss();
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                // upload file
+                AsyncHttpClient client = new AsyncHttpClient();
+                RequestParams params = new RequestParams();
+                params.setForceMultipartEntityContentType(true);
+                try {
+                    File file = new File(filename);
+                    if (file.exists())
+                        params.put("file", file);
+                    params.put("mapTag", mapTag);
+                    params.put("postId", key);
+                    params.put("lat", finalLatCenter);
+                    params.put("lng", finalLngCenter);
+
+                    client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onStart() {
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                            progressDialog.dismiss();
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(getApplicationContext(), "Upload failed." + statusCode, Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         });
+
+
 
         // upload audio
 //        AsyncHttpClient client = new AsyncHttpClient();

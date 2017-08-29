@@ -40,7 +40,7 @@ public class PhotoCheckinActivity extends AppCompatActivity {
     private ImageView pickedPhoto;
     private ImageView cancelBtn;
     private LinearLayout pickPhotoBtn;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,10 +146,11 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                Uri resultUri = result.getUri();
-                // /data/user/0/nctu.cs.cgv.itour/cache/
-                filename = resultUri.getPath();
-                Bitmap bitmap = BitmapFactory.decodeFile(filename);
+                String path = result.getUri().getPath();
+                Bitmap bitmap = BitmapFactory.decodeFile(path);
+                // /data/user/0/nctu.cs.cgv.itour/cache/cropped1795714260.jpg
+                // getCacheDir()
+                filename = path.substring(path.lastIndexOf("/") + 1);
                 pickedPhoto.setImageBitmap(bitmap);
                 pickedPhoto.setVisibility(View.VISIBLE);
                 cancelBtn.setVisibility(View.VISIBLE);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,9 +19,9 @@
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/md_white_1000"
         android:elevation="8dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp" />
+        android:src="@drawable/ic_gps_fixed_blue_24dp"
+        app:backgroundTint="@color/md_white_1000" />
 
     <LinearLayout
         android:id="@+id/gps_marker"

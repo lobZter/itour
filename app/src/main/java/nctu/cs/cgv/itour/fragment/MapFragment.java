@@ -275,6 +275,8 @@ public class MapFragment extends Fragment {
 
 //        addPrimarySpot();
 
+        updateCheckin();
+
         setTouchListener();
 
         setHasOptionsMenu(true);
@@ -652,7 +654,6 @@ public class MapFragment extends Fragment {
                 }
                 // transform
                 reRender();
-
 
                 progressDialog.dismiss();
             }
