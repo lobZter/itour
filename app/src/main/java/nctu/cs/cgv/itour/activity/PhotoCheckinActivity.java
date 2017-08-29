@@ -128,7 +128,6 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                 Intent intent = new Intent(PhotoCheckinActivity.this, LocationChooseActivity.class);
                 intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("description", descriptionEdit.getText().toString().trim());
-                Log.d(TAG, filename);
                 intent.putExtra("filename", filename);
                 intent.putExtra("type", "photo");
                 startActivity(intent);

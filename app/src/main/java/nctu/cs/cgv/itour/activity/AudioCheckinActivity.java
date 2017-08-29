@@ -10,49 +10,51 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.telecom.Call;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Chronometer;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Timer;
 
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.audioPath;
+import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
 public class AudioCheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "AudioCheckinActivity";
     // mediaRecorder
-    private boolean isRecording = false;
     private boolean audioReady = false;
     private boolean isPlaying = false;
+    private boolean isRecording = false;
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
-    private String filename = " ";
+    private String filename = null  ;
     // UI references
-    private EditText locationEdit;
+    private AutoCompleteTextView locationEdit;
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
-    private RelativeLayout playBtn;
-    private ImageView playBtnCircle;
-    private ImageView playBtnIcon;
-    private RelativeLayout recordBtn;
-    private ImageView recordBtnIcon;
+    private Button recordBtn;
+    private Button stopBtn;
+    private Button playBtn;
+    private Button pauseBtn;
+    private Button redoBtn;
 
     private int timeTick = 0;
     private CountDownTimer countDownTimer;
@@ -76,40 +78,104 @@ public class AudioCheckinActivity extends AppCompatActivity {
             finish();
         }
 
+        progressBarHandler = new Handler();
+
         // set view
-        locationEdit = (EditText) findViewById(R.id.et_location);
+        locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
         progressBar = (ProgressBar) findViewById(R.id.progress);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
-//        playBtn = (RelativeLayout) findViewById(R.id.btn_play);
-//        playBtnIcon = (ImageView) findViewById(R.id.btn_play_icon);
-//        playBtnCircle = (ImageView) findViewById(R.id.btn_play_circle);
-//        recordBtn = (RelativeLayout) findViewById(R.id.btn_record);
-//        recordBtnIcon = (ImageView) findViewById(R.id.btn_record_icon);
+        recordBtn = (Button) findViewById(R.id.btn_record);
+        stopBtn = (Button) findViewById(R.id.btn_stop);
+        playBtn = (Button) findViewById(R.id.btn_play);
+        pauseBtn = (Button) findViewById(R.id.btn_pause);
+        redoBtn = (Button) findViewById(R.id.btn_redo);
 
-//        recordBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (!isRecording)
-//                    startRecording();
-//                else
-//                    stopRecording();
-//            }
-//        });
-//
-//        playBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if (audioReady) {
-//                    if (isPlaying)
-//                        pauseAudio();
-//                    else
-//                        playAudio();
-//                }
-//            }
-//        });
+        // set location autocomplete
+        ArrayList<String> array = new ArrayList<>();
+        array.addAll(spotList.getSpots());
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
+        locationEdit.setThreshold(1);
+        locationEdit.setAdapter(adapter);
 
-        progressBarHandler = new Handler();
+        recordBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startRecording();
+                recordBtn.setVisibility(View.GONE);
+                stopBtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+        stopBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopRecording();
+                stopBtn.setVisibility(View.GONE);
+                playBtn.setVisibility(View.VISIBLE);
+                redoBtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (audioReady) {
+                    playAudio();
+                    playBtn.setVisibility(View.GONE);
+                    pauseBtn.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        pauseBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pauseAudio();
+                playBtn.setVisibility(View.VISIBLE);
+                pauseBtn.setVisibility(View.GONE);
+            }
+        });
+
+        redoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressBarHandler.removeCallbacks(progressBarRunnable);
+                progressTextCurrent.setText("0:00");
+                progressTextDuration.setText("10:00");
+                progressBar.setProgress(0);
+                mediaPlayer.release();
+                mediaPlayer = null;
+                filename = null;
+                recordBtn.setVisibility(View.VISIBLE);
+                playBtn.setVisibility(View.GONE);
+                pauseBtn.setVisibility(View.GONE);
+                redoBtn.setVisibility(View.GONE);
+            }
+        });
+
+        setHideKeyboard(findViewById(R.id.parent_layout));
+    }
+
+    public void setHideKeyboard(View view) {
+
+        // Set up touch listener for non-text box views to hide keyboard.
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(AudioCheckinActivity.this);
+                    return false;
+                }
+            });
+        }
+
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setHideKeyboard(innerView);
+            }
+        }
     }
 
     @Override
@@ -122,6 +188,14 @@ public class AudioCheckinActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.btn_next:
+                if (filename == null) {
+                    Toast.makeText(getApplicationContext(), "無錄音音檔", Toast.LENGTH_LONG).show();
+                    return true;
+                }
+                if (isRecording) {
+                    Toast.makeText(getApplicationContext(), "請先完成錄音", Toast.LENGTH_LONG).show();
+                    return true;
+                }
                 Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
                 intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("description", "");
@@ -131,7 +205,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 return true;
             case android.R.id.home:
                 finish();
-
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -139,21 +212,12 @@ public class AudioCheckinActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-            progressBarHandler.removeCallbacks(progressBarRunnable);
-        }
-
-        // TODO prevent name collision
-        filename = audioPath + new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
-
+        filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".3gp";
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(filename);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setOutputFile(getCacheDir().toString() + "/" + filename);
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
@@ -162,34 +226,28 @@ public class AudioCheckinActivity extends AppCompatActivity {
             return;
         }
 
-        // set flags
-        isRecording = true;
-        isPlaying = false;
+        // set flag
         audioReady = false;
+        isRecording = true;
 
-        // set view
-        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_grey_700_48dp));
-        playBtnCircle.setImageDrawable(getDrawable(R.drawable.circle_btn_grey_700));
-        recordBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_stop_red_a700_24dp));
         // set progress bar
         timeTick = 0;
-        progressTextCurrent.setText("0:00");
-        progressTextDuration.setText("6:00");
-        countDownTimer = new CountDownTimer(6000, 60) {
+        final int timeTotal = 10000;
+        final int timeInterval = 100;
+        countDownTimer = new CountDownTimer(timeTotal, timeInterval) {
 
             @Override
             public void onTick(long millisUntilFinished) {
                 timeTick++;
-                String str = String.format("%d:%02d", timeTick * 60 / 1000, ((timeTick * 60) % 1000) * 60 / 1000);
+                String str = String.format("%d:%02d", timeTick * timeInterval / 1000, ((timeTick * timeInterval) % 1000) * 60 / 1000);
                 progressTextCurrent.setText(str);
-                progressBar.setProgress(timeTick * 100 / (6000 / 60));
+                progressBar.setProgress(timeTick * 100 / (timeTotal / timeInterval));
             }
 
             @Override
             public void onFinish() {
                 stopRecording();
-                timeTick++;
-                progressTextCurrent.setText("6:00");
+                progressTextCurrent.setText("10:00");
                 progressBar.setProgress(100);
             }
         };
@@ -206,14 +264,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
         countDownTimer.cancel();
         countDownTimer = null;
 
-        // set flags
         isRecording = false;
-        audioReady = true;
-
-        // set view
-        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
-        playBtnCircle.setImageDrawable(getDrawable(R.drawable.circle_btn_white));
-        recordBtnIcon.setImageDrawable(getDrawable(R.drawable.circle_record));
 
         initAudio();
     }
@@ -232,10 +283,9 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     progressBarHandler.removeCallbacks(progressBarRunnable);
-
-                    isPlaying = false;
-                    playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
                     initAudio();
+                    pauseBtn.setVisibility(View.GONE);
+                    playBtn.setVisibility(View.VISIBLE);
                 }
             });
 
@@ -253,23 +303,22 @@ public class AudioCheckinActivity extends AppCompatActivity {
                     progressBarHandler.postDelayed(this, 100);
                 }
             };
-            progressBarRunnable.run();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        audioReady = true;
+        isPlaying = false;
     }
 
     private void playAudio() {
+        progressBarRunnable.run();
         mediaPlayer.start();
-
         isPlaying = true;
-        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_pause_white_48dp));
     }
 
     private void pauseAudio() {
         mediaPlayer.pause();
-
         isPlaying = false;
-        playBtnIcon.setImageDrawable(getDrawable(R.drawable.ic_play_arrow_white_48dp));
     }
 }

@@ -569,7 +569,10 @@ public class LocationChooseActivity extends AppCompatActivity {
         File from = new File(getCacheDir().toString()+ "/" + filename);
         File to = new File(getCacheDir().toString()+ "/" + key + ".jpg");
         from.renameTo(to);
-        filename = key + ".jpg";
+        if(type.equals("photo"))
+            filename = key + ".jpg";
+        if(type.equals("audio"))
+            filename = key + ".3gp";
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid, username);
