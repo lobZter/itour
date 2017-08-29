@@ -14,9 +14,5 @@
         android:layout_height="wrap_content"
         android:text="TEST SPOT"
         android:textColor="@color/md_black_1000"/>
-        <!--android:shadowDx="3"-->
-        <!--android:shadowDy="3"-->
-        <!--android:shadowRadius="2"-->
-        <!--android:shadowColor="@color/secondary_text"-->
 
 </LinearLayout>

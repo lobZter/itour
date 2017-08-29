@@ -118,6 +118,7 @@ public class MapFragment extends Fragment {
     private ProgressDialog progressDialog;
     // objects
     private List<ImageNode> edgeNodeList;
+    private List<ImageNode> pathEdgeNodeList;
     private List<MergedCheckinNode> mergedCheckinList;
     private List<MergedCheckinNode> spotCheckinList;
     private List<ImageNode> checkinList;
@@ -125,6 +126,7 @@ public class MapFragment extends Fragment {
     private SpotList spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
+    private EdgeNode edgeNode;
     // Firebase real-time database
     private DatabaseReference databaseReference;
     // gestures
@@ -161,7 +163,9 @@ public class MapFragment extends Fragment {
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
         spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
+        edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
         edgeNodeList = new ArrayList<>();
+        pathEdgeNodeList = new ArrayList<>();
         checkinList = new ArrayList<>();
         mergedCheckinList = new ArrayList<>();
         spotCheckinList = new ArrayList<>();
@@ -209,10 +213,9 @@ public class MapFragment extends Fragment {
 
         // draw edge nodes
         if (preferences.getBoolean("distance_indicator", false)) {
-            EdgeNode edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
             edgeNodeList = edgeNode.getNodeList();
             for (ImageNode imageNode : edgeNodeList) {
-                addEdgeNode(imageNode);
+                addEdgeNode(imageNode, "black");
             }
         }
 
@@ -285,8 +288,6 @@ public class MapFragment extends Fragment {
                 fogMap.setScaleType(ImageView.ScaleType.MATRIX);
             }
         });
-
-
     }
 
     @Override
@@ -449,6 +450,14 @@ public class MapFragment extends Fragment {
             imageNode.icon.setTranslationX(point[0]);
             imageNode.icon.setTranslationY(point[1]);
         }
+        for (ImageNode imageNode : pathEdgeNodeList) {
+            point[0] = imageNode.x;
+            point[1] = imageNode.y;
+            transformMat.mapPoints(point);
+            nodeIconTransform.mapPoints(point);
+            imageNode.icon.setTranslationX(point[0]);
+            imageNode.icon.setTranslationY(point[1]);
+        }
 
         // transform spot
         for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
@@ -533,13 +542,20 @@ public class MapFragment extends Fragment {
 //        primarySpotList.get(0).setTranslationY(point[1]);
     }
 
-    private void addEdgeNode(ImageNode imageNode) {
+    private void addEdgeNode(ImageNode imageNode, String iconColor) {
         imageNode.icon = new ImageView(context);
-        imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
+        if(iconColor.equals("blue"))
+            imageNode.icon.setImageResource(R.drawable.ftprint_trans);
+        if(iconColor.equals("black"))
+            imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
         imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
         imageNode.icon.setTranslationX(imageNode.x - nodeIconWidth / 2);
         imageNode.icon.setTranslationY(imageNode.y - nodeIconHeight / 2);
         rootLayout.addView(imageNode.icon);
+    }
+
+    private void removeEdgeNode(ImageNode imageNode) {
+        rootLayout.removeView(imageNode.icon);
     }
 
     private void addSpot(SpotNode spotNode) {
@@ -551,12 +567,28 @@ public class MapFragment extends Fragment {
         spotNode.icon = icon;
         // transform icon
         Matrix iconTransform = new Matrix();
-        float[] gpsDistorted = {spotNode.x, spotNode.y};
+        final float[] gpsDistorted = {spotNode.x, spotNode.y};
         iconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
         transformMat.mapPoints(gpsDistorted);
         iconTransform.mapPoints(gpsDistorted);
         icon.setTranslationX(gpsDistorted[0]);
         icon.setTranslationY(gpsDistorted[1]);
+        icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (ImageNode imageNode : pathEdgeNodeList) {
+                    removeEdgeNode(imageNode);
+                }
+
+                EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
+                EdgeNode.Vertex to = edgeNode.findVertex(gpsDistorted[0], gpsDistorted[1]);
+                edgeNode.shortestPath(from, to);
+                pathEdgeNodeList = edgeNode.getPathNodeList();
+                for (ImageNode imageNode : pathEdgeNodeList) {
+                    addEdgeNode(imageNode, "blue");
+                }
+            }
+        });
         // add to rootlayout
         rootLayout.addView(icon);
     }
