@@ -84,7 +84,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@color/primary"
+            android:backgroundTint="@color/gps_marker_color"
             android:text="@string/action_register"
             android:textStyle="bold" />
 

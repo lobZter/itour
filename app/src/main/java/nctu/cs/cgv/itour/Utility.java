@@ -1,8 +1,10 @@
 package nctu.cs.cgv.itour;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.util.TypedValue;
+import android.view.inputmethod.InputMethodManager;
 
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
@@ -36,4 +38,8 @@ public class Utility {
     public static void imgPxToGps(Mesh realMesh, Mesh warpMesh, float latDistorted, float lngDistorted) {
     }
 
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
 }

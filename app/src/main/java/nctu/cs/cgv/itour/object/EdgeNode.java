@@ -44,16 +44,6 @@ public class EdgeNode {
         nodeList = new ArrayList<>();
         pathEdgeList = new ArrayList<>();
         pathNodeList = new ArrayList<>();
-        vertices = new Vertex[vertexNum];
-        vertexIdx = new HashMap<>();
-        edgeRealWeights = new float[vertexNum][vertexNum];
-        edgePixelWeights = new float[vertexNum][vertexNum];
-        for (int row = 0; row < vertexNum; row++) {
-            for (int col = 0; col < vertexNum; col++) {
-                edgeRealWeights[row][col] = -1;
-                edgePixelWeights[row][col] = -1;
-            }
-        }
         initEdge(edgeFile);
     }
 
@@ -83,6 +73,17 @@ public class EdgeNode {
             nextLine = bufferedReader.readLine();
             edgeRealLengthStd = Float.valueOf(nextLine);
 
+            vertices = new Vertex[vertexNumber];
+            vertexIdx = new HashMap<>();
+            edgeRealWeights = new float[vertexNumber][vertexNumber];
+            edgePixelWeights = new float[vertexNumber][vertexNumber];
+            for (int row = 0; row < vertexNumber; row++) {
+                for (int col = 0; col < vertexNumber; col++) {
+                    edgeRealWeights[row][col] = -1;
+                    edgePixelWeights[row][col] = -1;
+                }
+            }
+
             int vIdx = 0;
 
             // read vertex positions
@@ -107,6 +108,8 @@ public class EdgeNode {
                 edgeList.add(edgePixelLength);
                 edgeList.add(edgeRealLength);
 
+                Log.d("asads", "" + edgeList.size());
+
                 Vertex v1 = new Vertex(x1, y1);
                 Vertex v2 = new Vertex(x2, y2);
                 if (!vertexIdx.containsKey(v1)) {
@@ -124,6 +127,8 @@ public class EdgeNode {
                 edgeRealWeights[vertexIdx.get(v2)][vertexIdx.get(v1)] = edgeRealLength;
                 edgePixelWeights[vertexIdx.get(v2)][vertexIdx.get(v1)] = edgePixelLength;
             }
+
+            vertexNum = vIdx;
 
             bufferedReader.close();
 

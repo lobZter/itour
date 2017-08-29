@@ -6,6 +6,9 @@ import android.os.Environment;
 
 import java.io.File;
 
+import nctu.cs.cgv.itour.object.EdgeNode;
+import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 
 /**
@@ -24,11 +27,21 @@ public class MyApplication extends Application {
     public static final String audioPath = dirPath + "audio/";
     public static final String photoPath = dirPath + "photo/";
 
+    public static SpotList spotList;
+    public static Mesh realMesh;
+    public static Mesh warpMesh;
+    public static EdgeNode edgeNode;
 
     @Override
     public void onCreate() {
         super.onCreate();
         startService(new Intent(this, GpsLocationService.class));
+        realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
+        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
+        edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
+
         mkdirs();
     }
 

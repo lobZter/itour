@@ -36,9 +36,6 @@ import static nctu.cs.cgv.itour.MyApplication.audioPath;
 public class AudioCheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "AudioCheckinActivity";
-    private String mapTag;
-    private float lat = 0;
-    private float lng = 0;
     // mediaRecorder
     private boolean isRecording = false;
     private boolean audioReady = false;
@@ -78,12 +75,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "找不到麥克風QQ", Toast.LENGTH_LONG).show();
             finish();
         }
-
-        // get information from previous activity
-        Intent intent = getIntent();
-        lat = intent.getFloatExtra("lat", 0);
-        lng = intent.getFloatExtra("lng", 0);
-        mapTag = intent.getStringExtra("mapTag");
 
         // set view
         locationEdit = (EditText) findViewById(R.id.et_location);

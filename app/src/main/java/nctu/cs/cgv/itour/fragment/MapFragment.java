@@ -296,7 +296,7 @@ public class MapFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
 
         ArrayList<String> array = new ArrayList<>();
-        array.addAll(spotList.nodes.keySet());
+        array.addAll(spotList.getSpots());
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, array);
 
         final MenuItem searchItem = menu.findItem(R.id.action_search);
