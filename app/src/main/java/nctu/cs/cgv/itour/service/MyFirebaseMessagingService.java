@@ -36,8 +36,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // send message to activities by broadcasting
         Intent intent = new Intent("checkinIcon");
         intent.putExtra("postId", postId);
-        intent.putExtra("lat", lat);
-        intent.putExtra("lng", lng);
+        intent.putExtra("lat", Double.valueOf(lat));
+        intent.putExtra("lng", Double.valueOf(lng));
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

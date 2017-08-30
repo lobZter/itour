@@ -31,7 +31,6 @@ import java.util.Calendar;
 
 import nctu.cs.cgv.itour.R;
 
-import static nctu.cs.cgv.itour.MyApplication.audioPath;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
@@ -82,7 +81,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
 
         // set view
         locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
+        progressBar = (ProgressBar) findViewById(R.id.progressbar);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
         recordBtn = (Button) findViewById(R.id.btn_record);
@@ -147,6 +146,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 mediaPlayer.release();
                 mediaPlayer = null;
                 filename = null;
+                audioReady = false;
                 recordBtn.setVisibility(View.VISIBLE);
                 playBtn.setVisibility(View.GONE);
                 pauseBtn.setVisibility(View.GONE);
@@ -212,11 +212,11 @@ public class AudioCheckinActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".3gp";
+        filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         mediaRecorder.setOutputFile(getCacheDir().toString() + "/" + filename);
         try {
             mediaRecorder.prepare();
@@ -227,7 +227,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
         }
 
         // set flag
-        audioReady = false;
         isRecording = true;
 
         // set progress bar
@@ -277,7 +276,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
-            mediaPlayer.setDataSource(filename);
+            mediaPlayer.setDataSource(getCacheDir().toString() + "/" + filename);
             mediaPlayer.prepare();
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
@@ -303,6 +302,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
                     progressBarHandler.postDelayed(this, 100);
                 }
             };
+            progressBarRunnable.run();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -312,7 +312,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
     }
 
     private void playAudio() {
-        progressBarRunnable.run();
         mediaPlayer.start();
         isPlaying = true;
     }

@@ -566,13 +566,19 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
         // rename file with postId
-        File from = new File(getCacheDir().toString()+ "/" + filename);
-        File to = new File(getCacheDir().toString()+ "/" + key + ".jpg");
-        from.renameTo(to);
-        if(type.equals("photo"))
+        if(type.equals("photo")) {
+            File from = new File(getCacheDir().toString()+ "/" + filename);
+            File to = new File(getCacheDir().toString()+ "/" + key + ".jpg");
             filename = key + ".jpg";
-        if(type.equals("audio"))
-            filename = key + ".3gp";
+            from.renameTo(to);
+        }
+        if(type.equals("audio")) {
+            File from = new File(getCacheDir().toString()+ "/" + filename);
+            File to = new File(getCacheDir().toString()+ "/" + key + ".mp4");
+            from.renameTo(to);
+            filename = key + ".mp4";
+        }
+
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid, username);

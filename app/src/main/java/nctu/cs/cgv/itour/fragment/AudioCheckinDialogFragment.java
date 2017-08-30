@@ -31,9 +31,6 @@ public class AudioCheckinDialogFragment extends DialogFragment {
 
     private static final String TAG = "AudioCheckinDialogFragment";
 
-    private TextView locationText;
-    private TextView nameText;
-
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
@@ -73,10 +70,8 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        nameText = (TextView) view.findViewById(R.id.tv_name);
-        nameText.setText(checkin.username);
-        locationText = (TextView) view.findViewById(R.id.tv_location);
-        locationText.setText(checkin.location);
+        ((TextView) view.findViewById(R.id.tv_name)).setText(checkin.username);
+        ((TextView) view.findViewById(R.id.tv_location)).setText(checkin.location);
 
         playBtn = (ImageView) view.findViewById(R.id.btn_play);
         playBtn.setOnClickListener(new View.OnClickListener() {
@@ -108,7 +103,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
             client.get(fileDownloadURL + "?filename=" + checkin.filename, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    response.renameTo(file);
+                    response.renameTo(new File(path));
                     initAudio(path);
                 }
 
@@ -160,6 +155,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
             e.printStackTrace();
         }
         audioReady = true;
+        playBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_black_48dp));
     }
 
     private void playAudio() {
