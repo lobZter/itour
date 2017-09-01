@@ -18,7 +18,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,10 +25,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +44,7 @@ import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +62,7 @@ import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
+import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
 public class LocationChooseActivity extends AppCompatActivity {
 
@@ -68,14 +70,7 @@ public class LocationChooseActivity extends AppCompatActivity {
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
-    private final int gpsMarkerWidth = 48;
-    private final int gpsMarkerHeight = 48;
-    private final int gpsDirectionWidth = 32;
-    private final int gpsDirectionHeight = 32;
-    private final int checkinIconWidth = 64;
-    private final int checkinIconHeight = 64;
     // intent info
-    private String location;
     private String filename;
     private String description;
     private String type;
@@ -89,22 +84,25 @@ public class LocationChooseActivity extends AppCompatActivity {
     private float gpsDistortedY = 0;
     private int touristMapWidth = 0;
     private int touristMapHeight = 0;
-    private int screenWidth = 0;
-    private int screenHeight = 0;
-    private int rootLayoutWidth = 0;
-    private int rootLayoutHeight = 0;
+    private int mapCenterX = 0;
+    private int mapCenterY = 0;
+    private int gpsMarkerPivotX = 0;
+    private int gpsMarkerPivotY = 0;
+    private int checkinIconPivotX = 0;
+    private int checkinIconPivotY = 0;
+    private int spotIconPivotX = 0;
+    private int spotIconPivotY = 0;
     // UI references
     private FloatingActionButton gpsBtn;
-    private LinearLayout gpsMarker;
+    private AutoCompleteTextView locationEdit;
     private RelativeLayout rootLayout;
     private ImageView touristMap;
-    private ImageView mapCenter;
+    private View gpsMarker;
+    private View checkinIcon;
     // Gesture detectors
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
     private RotationGestureDetector rotationGestureDetector;
-    // receive gps location
-    private BroadcastReceiver messageReceiver;
     // device sensor manager
     private SensorManager sensorManager;
     private SensorEventListener sensorEventListener;
@@ -112,6 +110,8 @@ public class LocationChooseActivity extends AppCompatActivity {
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
+    // receive gps location
+    private BroadcastReceiver messageReceiver;
     // firebase
     private DatabaseReference databaseReference;
     // flags
@@ -124,14 +124,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_choose);
 
-        // set actionBar title, top-left icon
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
-
-        // get variables from checkinActivity
+        // set variables
         Intent intent = getIntent();
-        location = intent.getStringExtra("location");
         filename = intent.getStringExtra("filename");
         description = intent.getStringExtra("description");
         type = intent.getStringExtra("type");
@@ -152,52 +146,75 @@ public class LocationChooseActivity extends AppCompatActivity {
             }
         };
 
-        // get screen size
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        this.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenWidth = displayMetrics.widthPixels;
-        screenHeight = displayMetrics.heightPixels;
+        // set actionBar title, top-left icon
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle("選擇地點");
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
 
-        // set views
+        // get view references
         rootLayout = (RelativeLayout) findViewById(R.id.parent_layout);
+        gpsBtn = (FloatingActionButton) findViewById(R.id.btn_gps);
+        locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
+        checkinIcon = findViewById(R.id.checkin_icon);
+        gpsMarker = findViewById(R.id.gps_marker);
 
         // load image from disk and set tourist map
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight);
         touristMap = new ImageView(this);
-        touristMap.setLayoutParams(layoutParams);
+        touristMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
         touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         touristMap.setImageBitmap(touristMapBitmap);
         touristMap.setPivotX(0);
         touristMap.setPivotY(0);
-        ((FrameLayout)findViewById(R.id.touristmap)).addView(touristMap);
+        ((FrameLayout) findViewById(R.id.touristmap)).addView(touristMap);
 
         // set gpsMarker
-        gpsMarker = (LinearLayout) findViewById(R.id.gps_marker);
-        gpsMarker.setElevation(1);
-        gpsMarker.setPivotX(gpsMarkerWidth / 2);
-        gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
-
-        // map center marker for checkinIcon
-        mapCenter = new ImageView(this);
-        mapCenter.setImageResource(R.drawable.ic_location_on_red_600_24dp);
-        mapCenter.setElevation(2);  // higher than gpsMarker
-        rootLayout.addView(mapCenter);
-
-        // draw spots
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
-            addSpot(spotNodeEntry.getValue());
-        }
+        int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
+        int gpsMarkerHeight = (int) getResources().getDimension(R.dimen.gps_marker_height);
+        int gpsDirectionHeight = (int) getResources().getDimension(R.dimen.gps_direction_height);
+        int gpsMarkerPadding = (int) getResources().getDimension(R.dimen.gps_marker_padding);
+        gpsMarkerPivotX = gpsMarkerWidth / 2 + gpsMarkerPadding;
+        gpsMarkerPivotY = gpsDirectionHeight + gpsMarkerHeight / 2 + gpsMarkerPadding;
+        gpsMarker.setPivotX(gpsMarkerPivotX);
+        gpsMarker.setPivotY(gpsMarkerPivotY);
 
         // set buttons
-        gpsBtn = (FloatingActionButton) findViewById(R.id.btn_gps);
         gpsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isGpsCurrent && !isOrientationCurrent) rotateToNorth();
-                else translateToCurrent();
+                if (!isGpsCurrent)
+                    translateToCurrent();
+                else if (!isOrientationCurrent)
+                    rotateToNorth();
+            }
+        });
+
+        // draw spots
+        spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
+        spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+            SpotNode spotNode = spotNodeEntry.getValue();
+            View icon = inflater.inflate(R.layout.item_spot, null);
+            ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
+            spotNode.icon = icon;
+            rootLayout.addView(icon, 1);
+        }
+
+        // set location autocomplete
+        ArrayList<String> array = new ArrayList<>();
+        array.addAll(spotList.getSpots());
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
+        locationEdit.setThreshold(1);
+        locationEdit.setAdapter(adapter);
+        locationEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                hideSoftKeyboard(LocationChooseActivity.this);
+                translateToSpot(spotList.nodes.get(adapter.getItem(position)));
             }
         });
 
@@ -207,16 +224,17 @@ public class LocationChooseActivity extends AppCompatActivity {
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
-                rootLayoutWidth = rootLayout.getWidth();
-                rootLayoutHeight = rootLayout.getHeight();
-                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
+                mapCenterX = rootLayout.getWidth() / 2;
+                mapCenterY = rootLayout.getHeight() / 5 * 2;
 
-                // transform mapcenter icon to center
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                layoutParams.setMargins(rootLayoutWidth / 2 - checkinIconWidth / 2, rootLayoutHeight / 3 - checkinIconHeight, 0, 0);
-                mapCenter.setLayoutParams(layoutParams);
+                checkinIconPivotX = checkinIcon.getWidth() / 2;
+                checkinIconPivotY = checkinIcon.getHeight();
 
-                translateToCurrent();
+                // translate to center
+                checkinIcon.setTranslationX(mapCenterX - checkinIconPivotX);
+                checkinIcon.setTranslationY(mapCenterY - checkinIconPivotY);
+
+                reRender();
             }
         });
     }
@@ -316,6 +334,8 @@ public class LocationChooseActivity extends AppCompatActivity {
                         if (rotation <= -180)
                             rotation += 360;
 
+                        isOrientationCurrent = false;
+
                         reRender();
                     }
 
@@ -371,7 +391,9 @@ public class LocationChooseActivity extends AppCompatActivity {
 
     private void reRender() {
         Matrix gpsMarkTransform = new Matrix();
-        gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
+        Matrix spotIconTransform = new Matrix();
+        gpsMarkTransform.postTranslate(-gpsMarkerPivotX, -gpsMarkerPivotY);
+        spotIconTransform.postTranslate(-spotIconPivotX, -spotIconPivotY);
         float[] point = new float[]{0, 0};
 
         // transform tourist map (ImageView)
@@ -395,8 +417,6 @@ public class LocationChooseActivity extends AppCompatActivity {
             SpotNode spotNode = spotNodeEntry.getValue();
             point[0] = spotNode.x;
             point[1] = spotNode.y;
-            Matrix spotIconTransform = new Matrix();
-            spotIconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
             transformMat.mapPoints(point);
             spotIconTransform.mapPoints(point);
             spotNode.icon.setTranslationX(point[0]);
@@ -404,28 +424,59 @@ public class LocationChooseActivity extends AppCompatActivity {
         }
     }
 
-    private void addSpot(SpotNode spotNode) {
-        // create icon
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        View icon = inflater.inflate(R.layout.item_spot, null);
-        TextView spotNameView = (TextView) icon.findViewById(R.id.spot_name);
-        spotNameView.setText(spotNode.name);
-        spotNode.icon = icon;
-        // transform icon
-        Matrix iconTransform = new Matrix();
-        float[] gpsDistorted = {spotNode.x, spotNode.y};
-        iconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
-        transformMat.mapPoints(gpsDistorted);
-        iconTransform.mapPoints(gpsDistorted);
-        icon.setTranslationX(gpsDistorted[0]);
-        icon.setTranslationY(gpsDistorted[1]);
-        // add to rootlayout
-        rootLayout.addView(icon);
+    private void translateToSpot(final SpotNode spotNode) {
+        final float transX = mapCenterX - (spotNode.icon.getTranslationX() + spotIconPivotX);
+        final float transY = mapCenterY - (spotNode.icon.getTranslationY() + spotIconPivotY);
+        final float deltaTransX = transX / 10;
+        final float deltaTransY = transY / 10;
+        final float deltaScale = (2.2f - scale) / 10f;
+
+        final Handler translationHandler = new Handler();
+        Runnable translationInterpolation = new Runnable() {
+            @Override
+            public void run() {
+                float distanceToTransX = mapCenterX - (spotNode.icon.getTranslationX() + spotIconPivotX);
+                float distanceToTransY = mapCenterY - (spotNode.icon.getTranslationY() + spotIconPivotY);
+
+                if (Math.abs(distanceToTransX) <= Math.abs(deltaTransX) || Math.abs(distanceToTransY) <= Math.abs(deltaTransY)) {
+                    transformMat.postTranslate(distanceToTransX, distanceToTransY);
+                    if (scale < 2.2) {
+                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - spotIconPivotX, -spotNode.icon.getTranslationY() - spotIconPivotY);
+                        transformMat.postScale(2.2f / scale, 2.2f / scale);
+                        transformMat.postTranslate(spotNode.icon.getTranslationX() + spotIconPivotY, spotNode.icon.getTranslationY() + spotIconPivotY);
+                        scale = 2.2f;
+                    }
+
+                    reRender();
+                    translationHandler.removeCallbacks(this);
+                } else {
+                    transformMat.postTranslate(deltaTransX, deltaTransY);
+
+                    if (scale < 2.2) {
+                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - spotIconPivotX, -spotNode.icon.getTranslationY() - spotIconPivotY);
+                        transformMat.postScale((scale + deltaScale) / scale, (scale + deltaScale) / scale);
+                        transformMat.postTranslate(spotNode.icon.getTranslationX() + spotIconPivotX, spotNode.icon.getTranslationY() + spotIconPivotY);
+                        scale += deltaScale;
+                    }
+
+                    reRender();
+                    if (Math.abs(distanceToTransX) < 300) {
+                        // slow down
+                        translationHandler.postDelayed(this, 5);
+                    } else {
+                        translationHandler.postDelayed(this, 2);
+                    }
+                }
+            }
+        };
+        translationHandler.postDelayed(translationInterpolation, 2);
+        isGpsCurrent = false;
+        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
     }
 
     private void translateToCurrent() {
-        final float transX = rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2);
-        final float transY = rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2);
+        final float transX = mapCenterX - (gpsMarker.getTranslationX() + gpsMarkerPivotX);
+        final float transY = mapCenterY - (gpsMarker.getTranslationY() + gpsMarkerPivotY);
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -433,19 +484,19 @@ public class LocationChooseActivity extends AppCompatActivity {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) <= Math.abs(deltaTransX) ||
-                        Math.abs(rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2)) <= Math.abs(deltaTransY)) {
-                    transformMat.postTranslate(
-                            rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2),
-                            rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2));
-                    reRender();
+                float distanceToTransX = mapCenterX - (gpsMarker.getTranslationX() + gpsMarkerPivotX);
+                float distanceToTransY = mapCenterY - (gpsMarker.getTranslationY() + gpsMarkerPivotY);
+
+                if (Math.abs(distanceToTransX) <= Math.abs(deltaTransX) || Math.abs(distanceToTransY) <= Math.abs(deltaTransY)) {
+                    transformMat.postTranslate(distanceToTransX, distanceToTransY);
                     translationHandler.removeCallbacks(this);
+                    reRender();
                     gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
                     isGpsCurrent = true;
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) < rootLayoutHeight / 4) {
+                    if (Math.abs(distanceToTransX) < 300) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -464,18 +515,18 @@ public class LocationChooseActivity extends AppCompatActivity {
         Runnable rotationInterpolation = new Runnable() {
             @Override
             public void run() {
-                transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
+                transformMat.postTranslate(-mapCenterX, -mapCenterY);
                 transformMat.postRotate(-deltaAngle);
-                transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
+                transformMat.postTranslate(mapCenterX, mapCenterY);
                 rotation -= deltaAngle;
                 reRender();
                 if (Math.abs(rotation) <= Math.abs(deltaAngle)) {
-                    transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
+                    transformMat.postTranslate(-mapCenterX, -mapCenterY);
                     transformMat.postRotate(-rotation);
-                    transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
+                    transformMat.postTranslate(mapCenterX, mapCenterY);
+                    rotationHandler.removeCallbacks(this);
                     rotation = 0;
                     reRender();
-                    rotationHandler.removeCallbacks(this);
                     isOrientationCurrent = true;
                 } else {
                     rotationHandler.postDelayed(this, 1);
@@ -495,15 +546,10 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsDistortedX = point[0];
         gpsDistortedY = point[1];
 
-        // transform gps marker
-        Matrix gpsMarkTransform = new Matrix();
-        gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
-        transformMat.mapPoints(point);
-        gpsMarkTransform.mapPoints(point);
-        gpsMarker.setTranslationX(point[0]);
-        gpsMarker.setTranslationY(point[1]);
+        reRender();
 
-        if(!isTranslated) {
+        // translate to center when handleLocationChange first time
+        if (!isTranslated) {
             isTranslated = true;
             translateToCurrent();
         }
@@ -545,18 +591,17 @@ public class LocationChooseActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = new ProgressDialog(this);
         progressDialog.show();
 
+        // calculate lat lng
         float[] point = new float[]{0, 0}; // tourist map position
         float latCenter = currentLat;
         float lngCenter = currentLng;
         Matrix temp = new Matrix();
         temp.set(transformMat);
-
-        // calculate lat lng
-        temp.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
+        temp.postTranslate(-mapCenterX, -mapCenterY);
         temp.postRotate(-rotation);
-        temp.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
+        temp.postTranslate(mapCenterX, mapCenterY);
         temp.mapPoints(point);
-        IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((rootLayoutWidth / 2 - point[0]) / scale, (rootLayoutHeight / 3 - point[1]) / scale);
+        IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((mapCenterX - point[0]) / scale, (mapCenterY - point[1]) / scale);
         if (idxWeights.idx >= 0) {
             double[] newPos = realMesh.interpolatePosition(idxWeights);
             lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
@@ -566,21 +611,22 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
         // rename file with postId
-        if(type.equals("photo")) {
-            File from = new File(getCacheDir().toString()+ "/" + filename);
-            File to = new File(getCacheDir().toString()+ "/" + key + ".jpg");
+        if (type.equals("photo")) {
+            File from = new File(getCacheDir().toString() + "/" + filename);
+            File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
             filename = key + ".jpg";
             from.renameTo(to);
         }
-        if(type.equals("audio")) {
-            File from = new File(getCacheDir().toString()+ "/" + filename);
-            File to = new File(getCacheDir().toString()+ "/" + key + ".mp4");
+        if (type.equals("audio")) {
+            File from = new File(getCacheDir().toString() + "/" + filename);
+            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
             from.renameTo(to);
             filename = key + ".mp4";
         }
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        String location = locationEdit.getText().toString().trim();
         Checkin checkin = new Checkin(String.valueOf(latCenter), String.valueOf(lngCenter), location, description, filename, type, uid, username);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
@@ -596,7 +642,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    File file = new File(getCacheDir().toString()+ "/" + filename);
+                    File file = new File(getCacheDir().toString() + "/" + filename);
                     if (file.exists())
                         params.put("file", file);
                     params.put("mapTag", mapTag);
@@ -629,7 +675,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                 }
             }
         });
-
 
 
         // upload audio

@@ -2,4 +2,18 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="gps_marker_width">48px</dimen>
+    <dimen name="gps_marker_height">48px</dimen>
+    <dimen name="gps_direction_width">32px</dimen>
+    <dimen name="gps_direction_height">32px</dimen>
+    <dimen name="gps_marker_padding">8px</dimen>
+    <dimen name="elevation_default">8px</dimen>
+    <dimen name="elevation_double">16px</dimen>
+    <dimen name="checkin_icon_width">96px</dimen>
+    <dimen name="checkin_icon_height">96px</dimen>
+    <dimen name="spot_icon_width">36px</dimen>
+    <dimen name="spot_icon_height">36px</dimen>
+
+
 </resources>

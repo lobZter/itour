@@ -1,14 +1,11 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.View;
-import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -21,6 +18,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     public static SettingsFragment newInstance() {
         SettingsFragment fragment = new SettingsFragment();
+        fragment.firebaseAuth = FirebaseAuth.getInstance();
+
         return fragment;
     }
 
@@ -28,9 +27,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        if(firebaseAuth.getCurrentUser() == null) {
+        if (firebaseAuth.getCurrentUser() == null) {
             getActivity().finish();
             startActivity(new Intent(getContext(), LoginActivity.class));
         }
@@ -41,14 +38,32 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
         Preference btnSignOut = getPreferenceManager().findPreference("signout");
+        btnSignOut.setSummary(firebaseAuth.getCurrentUser().getEmail().toString());
         btnSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                    firebaseAuth.signOut();
-                    getActivity().finish();
-                    startActivity(new Intent(getContext(), LoginActivity.class));
-                    return true;
-                }
+            @Override
+            public boolean onPreferenceClick(Preference arg0) {
+                firebaseAuth.signOut();
+                getActivity().finish();
+                startActivity(new Intent(getContext(), LoginActivity.class));
+                return true;
+            }
+        });
+
+        Preference distanceIndicatorSwitch = getPreferenceManager().findPreference("distance_indicator");
+        distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                return true;
+            }
+        });
+
+        Preference fogSwitch = getPreferenceManager().findPreference("fog");
+        fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                MapFragment.getInstance().switchFog((boolean)newValue);
+                return true;
+            }
         });
     }
 
@@ -57,5 +72,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.onViewCreated(view, savedInstanceState);
 
         setDivider(null);
+    }
+
+    private class SwitchPreferenceCompat {
     }
 }

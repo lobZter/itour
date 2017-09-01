@@ -84,6 +84,7 @@ public class ListFragment extends Fragment {
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
                 switch (index) {
                     case 0:
+                        // remove checkin
                         String key = myCheckins.get(position).key;
                         databaseReference.child("checkin").child(mapTag).child(key).removeValue();
 
@@ -118,7 +119,7 @@ public class ListFragment extends Fragment {
                         checkins.add(checkin);
                     }
                 }
-                checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(checkins));
+                checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(checkins), getActivity().getSupportFragmentManager());
                 checkinList.setAdapter(checkinItemAdapter);
             }
 
@@ -141,7 +142,7 @@ public class ListFragment extends Fragment {
                         myCheckins.add(checkin);
                     }
                 }
-                myCheckinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(myCheckins));
+                myCheckinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(myCheckins), getActivity().getSupportFragmentManager());
                 myCheckinList.setAdapter(myCheckinItemAdapter);
             }
 

@@ -148,8 +148,18 @@ public class MapFragment extends Fragment {
     private boolean isOrientationCurrent = true;
     private boolean isMerged = true;
 
+    private static MapFragment mapFragment;
+
+    public static MapFragment getInstance() {
+        return mapFragment;
+    }
+
     public static MapFragment newInstance() {
-        return new MapFragment();
+        if(mapFragment == null) {
+            mapFragment = new MapFragment();
+        }
+        return mapFragment;
+
     }
 
     @Override
@@ -207,16 +217,15 @@ public class MapFragment extends Fragment {
 
         // draw fog
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
-        if (preferences.getBoolean("fog", false)) {
-            Canvas canvas = new Canvas(fogBitmap);
-            canvas.drawARGB(120, 0, 0, 0);
-        }
+        Canvas canvas = new Canvas(fogBitmap);
+        canvas.drawARGB(120, 0, 0, 0);
         fogMap = new ImageView(context);
         fogMap.setLayoutParams(layoutParams);
         fogMap.setScaleType(ImageView.ScaleType.MATRIX);
         fogMap.setImageBitmap(fogBitmap);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
+        switchFog(preferences.getBoolean("fog", false));
         ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
 
         // draw edge nodes
@@ -1026,5 +1035,13 @@ public class MapFragment extends Fragment {
             }
         }
         reRender();
+    }
+
+    public void switchFog(boolean flag) {
+        if (preferences.getBoolean("fog", false)) {
+            fogMap.setVisibility(View.VISIBLE);
+        } else {
+            fogMap.setVisibility(View.GONE);
+        }
     }
 }

@@ -35,7 +35,6 @@ public class PhotoCheckinActivity extends AppCompatActivity {
     private static final String TAG = "PhotoCheckinActivity";
     private String filename = null;
     // view references
-    private AutoCompleteTextView locationEdit;
     private EditText descriptionEdit;
     private ImageView pickedPhoto;
     private ImageView cancelBtn;
@@ -53,18 +52,10 @@ public class PhotoCheckinActivity extends AppCompatActivity {
         actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
 
         // get view reference
-        locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
         descriptionEdit = (EditText) findViewById(R.id.et_description);
         pickedPhoto = (ImageView) findViewById(R.id.picked_photo);
         cancelBtn = (ImageView) findViewById(R.id.btn_cancel);
         pickPhotoBtn = (LinearLayout) findViewById(R.id.btn_pick_photo);
-
-        // set location autocomplete
-        ArrayList<String> array = new ArrayList<>();
-        array.addAll(spotList.getSpots());
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
-        locationEdit.setThreshold(1);
-        locationEdit.setAdapter(adapter);
 
         pickPhotoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,7 +117,6 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                     return true;
                 }
                 Intent intent = new Intent(PhotoCheckinActivity.this, LocationChooseActivity.class);
-                intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("description", descriptionEdit.getText().toString().trim());
                 intent.putExtra("filename", filename);
                 intent.putExtra("type", "photo");

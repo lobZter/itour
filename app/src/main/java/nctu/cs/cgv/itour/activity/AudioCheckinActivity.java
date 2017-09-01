@@ -13,26 +13,17 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 
 import nctu.cs.cgv.itour.R;
-
-import static nctu.cs.cgv.itour.MyApplication.spotList;
-import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
 public class AudioCheckinActivity extends AppCompatActivity {
 
@@ -43,9 +34,8 @@ public class AudioCheckinActivity extends AppCompatActivity {
     private boolean isRecording = false;
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
-    private String filename = null  ;
+    private String filename = null;
     // UI references
-    private AutoCompleteTextView locationEdit;
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
@@ -80,7 +70,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
         progressBarHandler = new Handler();
 
         // set view
-        locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
@@ -89,13 +78,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
         playBtn = (Button) findViewById(R.id.btn_play);
         pauseBtn = (Button) findViewById(R.id.btn_pause);
         redoBtn = (Button) findViewById(R.id.btn_redo);
-
-        // set location autocomplete
-        ArrayList<String> array = new ArrayList<>();
-        array.addAll(spotList.getSpots());
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
-        locationEdit.setThreshold(1);
-        locationEdit.setAdapter(adapter);
 
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,29 +135,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 redoBtn.setVisibility(View.GONE);
             }
         });
-
-        setHideKeyboard(findViewById(R.id.parent_layout));
-    }
-
-    public void setHideKeyboard(View view) {
-
-        // Set up touch listener for non-text box views to hide keyboard.
-        if (!(view instanceof EditText)) {
-            view.setOnTouchListener(new View.OnTouchListener() {
-                public boolean onTouch(View v, MotionEvent event) {
-                    hideSoftKeyboard(AudioCheckinActivity.this);
-                    return false;
-                }
-            });
-        }
-
-        //If a layout container, iterate over children and seed recursion.
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setHideKeyboard(innerView);
-            }
-        }
     }
 
     @Override
@@ -197,7 +156,6 @@ public class AudioCheckinActivity extends AppCompatActivity {
                     return true;
                 }
                 Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
-                intent.putExtra("location", locationEdit.getText().toString().trim());
                 intent.putExtra("description", "");
                 intent.putExtra("filename", filename);
                 intent.putExtra("type", "audio");

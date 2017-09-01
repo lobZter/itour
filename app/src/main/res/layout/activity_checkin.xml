@@ -57,7 +57,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips"
+                        android:background="@drawable/chips_grey"
                         android:text="淡水福佑宮"
                         android:textColor="@android:color/white" />
 
@@ -65,7 +65,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips"
+                        android:background="@drawable/chips_grey"
                         android:text="淡水老街"
                         android:textColor="@android:color/white" />
 
@@ -73,7 +73,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips"
+                        android:background="@drawable/chips_grey"
                         android:text="阿婆鐵蛋"
                         android:textColor="@android:color/white" />
 
