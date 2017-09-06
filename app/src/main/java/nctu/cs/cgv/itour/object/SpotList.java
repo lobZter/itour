@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +17,12 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class SpotList {
 
-    public Map<String, SpotNode> nodes;
+    public Map<String, SpotNode> primarySpot;
+    public Map<String, SpotNode> secondarySpot;
 
     public SpotList(File spotListFile, Mesh realMesh, Mesh warpMesh) {
-        nodes = new HashMap<>();
+        primarySpot = new HashMap<>();
+        secondarySpot = new HashMap<>();
         readSpotsFile(spotListFile, realMesh, warpMesh);
     }
 
@@ -33,10 +34,18 @@ public class SpotList {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String line;
 
+            for(int i=0; i<14; i++) {
+                line = bufferedReader.readLine();
+                String arr[] = line.split(",");
+                float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, Float.valueOf(arr[1]), Float.valueOf(arr[2]));
+                primarySpot.put(arr[0],
+                        new SpotNode(gpsDistorted[0], gpsDistorted[1], arr[0]));
+            }
+
             while ((line = bufferedReader.readLine()) != null) {
                 String arr[] = line.split(",");
                 float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, Float.valueOf(arr[1]), Float.valueOf(arr[2]));
-                nodes.put(arr[0],
+                secondarySpot.put(arr[0],
                         new SpotNode(gpsDistorted[0], gpsDistorted[1], arr[0]));
             }
             bufferedReader.close();
@@ -46,6 +55,6 @@ public class SpotList {
     }
 
     public Set<String> getSpots() {
-        return nodes.keySet();
+        return primarySpot.keySet();
     }
 }

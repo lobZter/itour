@@ -39,7 +39,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
@@ -48,10 +47,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -59,11 +54,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
-import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -76,15 +69,15 @@ import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
-import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
-import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.dpToPx;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
+    private static MapFragment mapFragment;
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
@@ -148,14 +141,12 @@ public class MapFragment extends Fragment {
     private boolean isOrientationCurrent = true;
     private boolean isMerged = true;
 
-    private static MapFragment mapFragment;
-
     public static MapFragment getInstance() {
         return mapFragment;
     }
 
     public static MapFragment newInstance() {
-        if(mapFragment == null) {
+        if (mapFragment == null) {
             mapFragment = new MapFragment();
         }
         return mapFragment;
@@ -228,7 +219,7 @@ public class MapFragment extends Fragment {
         switchFog(preferences.getBoolean("fog", false));
         ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
 
-        // draw edge nodes
+        // draw edge primarySpot
         if (preferences.getBoolean("distance_indicator", false)) {
             edgeNodeList = edgeNode.getNodeList();
             for (ImageNode imageNode : edgeNodeList) {
@@ -286,7 +277,10 @@ public class MapFragment extends Fragment {
         });
 
         // draw spots
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
+            addSpot(spotNodeEntry.getValue());
+        }
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
             addSpot(spotNodeEntry.getValue());
         }
 
@@ -326,7 +320,7 @@ public class MapFragment extends Fragment {
                 String autocompleteStr = adapter.getItem(position);
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
-                translateToSpot(spotList.nodes.get(autocompleteStr));
+                translateToSpot(spotList.primarySpot.get(autocompleteStr));
             }
         });
         searchView.setAdapter(adapter);
@@ -479,12 +473,24 @@ public class MapFragment extends Fragment {
         }
 
         // transform spot
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             point[0] = spotNode.x;
             point[1] = spotNode.y;
             Matrix spotIconTransform = new Matrix();
-            spotIconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
+            spotIconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
+            transformMat.mapPoints(point);
+            spotIconTransform.mapPoints(point);
+            spotNode.icon.setTranslationX(point[0]);
+            spotNode.icon.setTranslationY(point[1]);
+        }
+
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
+            SpotNode spotNode = spotNodeEntry.getValue();
+            point[0] = spotNode.x;
+            point[1] = spotNode.y;
+            Matrix spotIconTransform = new Matrix();
+            spotIconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
             transformMat.mapPoints(point);
             spotIconTransform.mapPoints(point);
             spotNode.icon.setTranslationX(point[0]);
@@ -505,6 +511,12 @@ public class MapFragment extends Fragment {
             for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
                 spotCheckinNode.icon.setVisibility(View.VISIBLE);
             }
+
+            for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
+                SpotNode spotNode = spotNodeEntry.getValue();
+                spotNode.icon.setVisibility(View.GONE);
+            }
+
         } else {
             for (ImageNode imageNode : checkinList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
@@ -516,6 +528,11 @@ public class MapFragment extends Fragment {
 
             for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
                 spotCheckinNode.icon.setVisibility(View.GONE);
+            }
+
+            for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
+                SpotNode spotNode = spotNodeEntry.getValue();
+                spotNode.icon.setVisibility(View.VISIBLE);
             }
         }
 
@@ -534,7 +551,7 @@ public class MapFragment extends Fragment {
             point[1] = mergedCheckinNode.y;
             transformMat.mapPoints(point);
             Matrix mergedCheckinIconTransform = new Matrix();
-            mergedCheckinIconTransform.postTranslate(-dpToPx(32 / 2), -dpToPx(32));
+            mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
             mergedCheckinIconTransform.mapPoints(point);
             mergedCheckinNode.icon.setTranslationX(point[0]);
             mergedCheckinNode.icon.setTranslationY(point[1]);
@@ -545,7 +562,7 @@ public class MapFragment extends Fragment {
             point[1] = spotCheckinNode.y;
             transformMat.mapPoints(point);
             Matrix mergedCheckinIconTransform = new Matrix();
-            mergedCheckinIconTransform.postTranslate(-dpToPx(32 / 2), -dpToPx(32));
+            mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
             mergedCheckinIconTransform.mapPoints(point);
             spotCheckinNode.icon.setTranslationX(point[0]);
             spotCheckinNode.icon.setTranslationY(point[1]);
@@ -563,9 +580,9 @@ public class MapFragment extends Fragment {
 
     private void addEdgeNode(ImageNode imageNode, String iconColor) {
         imageNode.icon = new ImageView(context);
-        if(iconColor.equals("blue"))
+        if (iconColor.equals("blue"))
             imageNode.icon.setImageResource(R.drawable.ftprint_trans);
-        if(iconColor.equals("black"))
+        if (iconColor.equals("black"))
             imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
         imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
         imageNode.icon.setTranslationX(imageNode.x - nodeIconWidth / 2);
@@ -587,7 +604,7 @@ public class MapFragment extends Fragment {
         // transform icon
         Matrix iconTransform = new Matrix();
         final float[] gpsDistorted = {spotNode.x, spotNode.y};
-        iconTransform.postTranslate(-dpToPx(12 / 2), -dpToPx(12 / 2));
+        iconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
         transformMat.mapPoints(gpsDistorted);
         iconTransform.mapPoints(gpsDistorted);
         icon.setTranslationX(gpsDistorted[0]);
@@ -750,8 +767,8 @@ public class MapFragment extends Fragment {
     }
 
     private void translateToSpot(final SpotNode spotNode) {
-        final float transX = rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2));
-        final float transY = rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+        final float transX = rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2));
+        final float transY = rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
         final float deltaScale = (2.2f - scale) / 10f;
@@ -760,16 +777,16 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2))) <= Math.abs(deltaTransX) ||
-                        Math.abs(rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(12 / 2))) <= Math.abs(deltaTransY)) {
+                if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransX) ||
+                        Math.abs(rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransY)) {
                     transformMat.postTranslate(
-                            rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2)),
-                            rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(12 / 2)));
+                            rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2)),
+                            rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2)));
 
                     if (scale < 2.2) {
-                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - dpToPx(12 / 2), -spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2), -spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
                         transformMat.postScale(2.2f / scale, 2.2f / scale);
-                        transformMat.postTranslate(spotNode.icon.getTranslationX() - dpToPx(12 / 2), spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+                        transformMat.postTranslate(spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2), spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
                         scale = 2.2f;
                     }
 
@@ -780,14 +797,14 @@ public class MapFragment extends Fragment {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
 
                     if (scale < 2.2) {
-                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - dpToPx(12 / 2), -spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+                        transformMat.postTranslate(-spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2), -spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
                         transformMat.postScale((scale + deltaScale) / scale, (scale + deltaScale) / scale);
-                        transformMat.postTranslate(spotNode.icon.getTranslationX() - dpToPx(12 / 2), spotNode.icon.getTranslationY() - dpToPx(12 / 2));
+                        transformMat.postTranslate(spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2), spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
                         scale += deltaScale;
                     }
 
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(12 / 2))) < rootLayoutHeight / 4) {
+                    if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) < rootLayoutHeight / 4) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -972,7 +989,7 @@ public class MapFragment extends Fragment {
 
         // add into spot
         // find out whether the location is in spotlist or not.
-        SpotNode spotNode = spotList.nodes.get(checkin.location);
+        SpotNode spotNode = spotList.primarySpot.get(checkin.location);
         if (spotNode != null) {
             // this is the first checkinIcon of this spot
             if (spotNode.checkins == null) {

@@ -7,6 +7,7 @@ import android.view.MotionEvent;
 
 /**
  * Created by lobZter on 2017/7/10.
+ * To disable page swipe
  */
 
 public class MyViewPager extends ViewPager {

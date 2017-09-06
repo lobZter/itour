@@ -7,12 +7,12 @@
     android:fitsSystemWindows="true">
 
     <nctu.cs.cgv.itour.MyViewPager
-        android:id="@+id/viewpager"
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
     <com.roughike.bottombar.BottomBar
-        android:id="@+id/bottomBar"
+        android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true"

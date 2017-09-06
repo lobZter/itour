@@ -55,7 +55,6 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.SpotNode;
 
-import static com.arlib.floatingsearchview.util.Util.dpToPx;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
@@ -196,7 +195,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             View icon = inflater.inflate(R.layout.item_spot, null);
             ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
@@ -214,7 +213,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 hideSoftKeyboard(LocationChooseActivity.this);
-                translateToSpot(spotList.nodes.get(adapter.getItem(position)));
+                translateToSpot(spotList.primarySpot.get(adapter.getItem(position)));
             }
         });
 
@@ -413,7 +412,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsMarker.setTranslationY(point[1]);
 
         // transform spot
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.nodes.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             point[0] = spotNode.x;
             point[1] = spotNode.y;

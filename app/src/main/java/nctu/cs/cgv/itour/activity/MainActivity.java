@@ -11,6 +11,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +19,6 @@ import android.support.v7.app.AppCompatActivity;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
@@ -32,6 +32,7 @@ import nctu.cs.cgv.itour.MyViewPager;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
+import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -56,9 +57,6 @@ public class MainActivity extends AppCompatActivity {
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
-    // Firebase
-    private DatabaseReference databaseReference;
-    private ValueEventListener checkinListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +75,12 @@ public class MainActivity extends AppCompatActivity {
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
+        fragmentList.add(PersonalFragment.newInstance());
         fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
-        viewPager = (MyViewPager) findViewById(R.id.viewpager);
+        viewPager = (MyViewPager) findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
-
             @Override
             public Fragment getItem(int position) {
                 return fragmentList.get(position);
@@ -98,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         // set keep all three pages alive
         viewPager.setOffscreenPageLimit(3);
 
-        BottomBar bottomBar = (BottomBar) findViewById(R.id.bottomBar);
+        BottomBar bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
@@ -109,44 +107,22 @@ public class MainActivity extends AppCompatActivity {
                     case R.id.tab_list:
                         viewPager.setCurrentItem(1);
                         break;
-                    case R.id.tab_plan:
+                    case R.id.tab_person:
                         viewPager.setCurrentItem(2);
                         break;
-                    case R.id.tab_settings:
+                    case R.id.tab_plan:
                         viewPager.setCurrentItem(3);
                         break;
+                    case R.id.tab_settings:
+                        viewPager.setCurrentItem(4);
+                        break;
                 }
-            }
-        });
-
-        bottomBar.setOnTabReselectListener(new OnTabReselectListener() {
-            @Override
-            public void onTabReSelected(@IdRes int tabId) {
             }
         });
     }
 
     private void setBroadcastReceiver() {
-        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
-
-        checkinListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                        Checkin checkin = issue.getValue(Checkin.class);
-                        mapFragment.handleCheckinMsg(issue.getKey(), checkin);
-//                        listFragment.addToList(checkin);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        };
-//        databaseReference = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag);
-//        databaseReference.addValueEventListener(checkinListener);
+//        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
 
         messageReceiver = new BroadcastReceiver() {
             @Override
@@ -228,15 +204,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (databaseReference != null) {
-            databaseReference.removeEventListener(checkinListener);
         }
     }
 }

@@ -27,7 +27,7 @@ public class Mesh {
     public double mapHeight = 0.0;
 
 
-    // x- and y- coordinates of nodes
+    // x- and y- coordinates of primarySpot
     double[][] vertices;
 
     // face connectivity
