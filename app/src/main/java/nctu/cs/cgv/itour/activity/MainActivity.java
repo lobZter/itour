@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.Preference;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,14 +40,14 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SettingsFragment.OnFogSwitchedListener{
 
     private static final String TAG = "MainActivity";
     // view objects
     private MyViewPager viewPager;
     private List<Fragment> fragmentList;
     // MapFragment: communicate by calling fragment method
-    private MapFragment mapFragment;
+    private static MapFragment mapFragment;
     private ListFragment listFragment;
     // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;
@@ -205,5 +206,10 @@ public class MainActivity extends AppCompatActivity {
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
+    }
+
+    @Override
+    public void onFogSwitched() {
+        mapFragment.switchFog();
     }
 }

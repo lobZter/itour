@@ -77,7 +77,6 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
-    private static MapFragment mapFragment;
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
@@ -141,16 +140,9 @@ public class MapFragment extends Fragment {
     private boolean isOrientationCurrent = true;
     private boolean isMerged = true;
 
-    public static MapFragment getInstance() {
-        return mapFragment;
-    }
-
     public static MapFragment newInstance() {
-        if (mapFragment == null) {
-            mapFragment = new MapFragment();
-        }
+        MapFragment mapFragment = new MapFragment();
         return mapFragment;
-
     }
 
     @Override
@@ -216,7 +208,7 @@ public class MapFragment extends Fragment {
         fogMap.setImageBitmap(fogBitmap);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
-        switchFog(preferences.getBoolean("fog", false));
+        switchFog();
         ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
 
         // draw edge primarySpot
@@ -1054,7 +1046,7 @@ public class MapFragment extends Fragment {
         reRender();
     }
 
-    public void switchFog(boolean flag) {
+    public void switchFog() {
         if (preferences.getBoolean("fog", false)) {
             fogMap.setVisibility(View.VISIBLE);
         } else {

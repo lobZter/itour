@@ -1,5 +1,6 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -11,10 +12,16 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.LoginActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
     private FirebaseAuth firebaseAuth;
+    private OnFogSwitchedListener onFogSwitchedListener;
+
+    public interface OnFogSwitchedListener {
+        void onFogSwitched();
+    }
 
     public static SettingsFragment newInstance() {
         SettingsFragment fragment = new SettingsFragment();
@@ -61,10 +68,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                MapFragment.getInstance().switchFog((boolean)newValue);
+                onFogSwitchedListener.onFogSwitched();
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if(context instanceof OnFogSwitchedListener) {
+            onFogSwitchedListener = (OnFogSwitchedListener) context;
+        } else {
+            throw new ClassCastException(context.toString()
+                    + " must implement SettingFragment.OnFogSwitchedListener");
+        }
     }
 
     @Override
@@ -72,8 +90,5 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.onViewCreated(view, savedInstanceState);
 
         setDivider(null);
-    }
-
-    private class SwitchPreferenceCompat {
     }
 }
