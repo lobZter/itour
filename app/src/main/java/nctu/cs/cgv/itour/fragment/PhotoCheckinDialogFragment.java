@@ -113,7 +113,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 if (isLiked) {
-                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_red_500_24dp));
+                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
                     likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
                 } else {
@@ -132,7 +132,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 if (isSaved) {
-                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_blue_24dp));
+                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
                     saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 } else {
@@ -150,7 +150,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
-                        likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_red_500_24dp));
+                        likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
                         likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
                     }
                 }
@@ -169,7 +169,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
                     if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
-                        saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_blue_24dp));
+                        saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
                         saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
                     }
                 }

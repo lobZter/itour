@@ -78,6 +78,7 @@ public class PersonalFragment extends Fragment {
         if (actionBar != null) {
             if (getUserVisibleHint()) {
                 actionBar.setElevation(0);
+                actionBar.setSubtitle("Personal");
             } else {
                 actionBar.setElevation(dpToPx(getContext(), 4));
             }

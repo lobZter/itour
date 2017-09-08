@@ -2,19 +2,24 @@ package nctu.cs.cgv.itour.fragment;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import nctu.cs.cgv.itour.PlanItem;
 import nctu.cs.cgv.itour.PlanItemAdapter;
 import nctu.cs.cgv.itour.R;
 
+import static nctu.cs.cgv.itour.Utility.dpToPx;
+
 public class PlanFragment extends Fragment {
+
+    private ActionBar actionBar;
 
     public static PlanFragment newInstance() {
         PlanFragment fragment = new PlanFragment();
@@ -31,12 +36,26 @@ public class PlanFragment extends Fragment {
 
         ArrayList<PlanItem> planItems = new ArrayList<>();
         PlanItemAdapter planItemAdapter = new PlanItemAdapter(getContext(), planItems);
-        ListView planList = (ListView) view.findViewById(R.id.plan_list);
+        ListView planList = (ListView) view.findViewById(R.id.list_view);
         planList.setAdapter(planItemAdapter);
 
         // testing data
         planItemAdapter.add(new PlanItem("工程三館", 30));
         planItemAdapter.add(new PlanItem("第二餐廳", 30));
         planItemAdapter.add(new PlanItem("浩然圖書館", 30));
+        actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (actionBar != null) {
+            if (getUserVisibleHint()) {
+                actionBar.setElevation(0);
+                actionBar.setSubtitle("Plan");
+            } else {
+                actionBar.setElevation(dpToPx(getContext(), 4));
+            }
+        }
     }
 }

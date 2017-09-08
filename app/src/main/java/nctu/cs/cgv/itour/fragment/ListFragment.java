@@ -93,6 +93,7 @@ public class ListFragment extends Fragment {
         if (actionBar != null) {
             if (getUserVisibleHint()) {
                 actionBar.setElevation(0);
+                actionBar.setSubtitle("List");
             } else {
                 actionBar.setElevation(dpToPx(getContext(), 4));
             }

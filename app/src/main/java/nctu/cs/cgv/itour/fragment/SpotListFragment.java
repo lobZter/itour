@@ -5,13 +5,15 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 
 import nctu.cs.cgv.itour.PlanItem;
-import nctu.cs.cgv.itour.PlanItemAdapter;
 import nctu.cs.cgv.itour.R;
+
+import static nctu.cs.cgv.itour.MyApplication.spotList;
 
 public class SpotListFragment extends Fragment {
 
@@ -38,15 +40,12 @@ public class SpotListFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        ArrayList<PlanItem> planItems = new ArrayList<>();
-        PlanItemAdapter planItemAdapter = new PlanItemAdapter(getContext(), planItems);
-        ListView planList = (ListView) view.findViewById(R.id.plan_list);
-        planList.setAdapter(planItemAdapter);
+        ArrayList<String> list = new ArrayList<>();
+        list.addAll(spotList.getSpots());
 
-        // testing data
-        planItemAdapter.add(new PlanItem("工程三館", 30));
-        planItemAdapter.add(new PlanItem("第二餐廳", 30));
-        planItemAdapter.add(new PlanItem("浩然圖書館", 30));
+        ArrayAdapter<String> spotArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, list);
+        ListView spotList = (ListView) view.findViewById(R.id.list_view);
+        spotList.setAdapter(spotArrayAdapter);
     }
 
 }

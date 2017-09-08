@@ -20,6 +20,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -116,6 +118,7 @@ public class MapFragment extends Fragment {
     private RelativeLayout.LayoutParams layoutParams;
     private Bitmap fogBitmap;
     private ProgressDialog progressDialog;
+    private ActionBar actionBar;
     // objects
     private List<ImageNode> edgeNodeList;
     private List<ImageNode> pathEdgeNodeList;
@@ -183,6 +186,7 @@ public class MapFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
+        actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
 
         // load image from disk and set tourist map
@@ -696,7 +700,7 @@ public class MapFragment extends Fragment {
 
         progressDialog.show();
 
-        Query query = databaseReference.child("checkinIcon").child(mapTag).child(postId);
+        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(final DataSnapshot dataSnapshot) {
@@ -1052,6 +1056,19 @@ public class MapFragment extends Fragment {
             fogMap.setVisibility(View.VISIBLE);
         } else {
             fogMap.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (actionBar != null) {
+            if (getUserVisibleHint()) {
+                actionBar.setElevation(0);
+                actionBar.setSubtitle("Map");
+            } else {
+                actionBar.setElevation(dpToPx(getContext(), 4));
+            }
         }
     }
 }
