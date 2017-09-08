@@ -653,6 +653,7 @@ public class MapFragment extends Fragment {
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
+                        checkin.key = issue.getKey();
                         handleCheckinMsg(issue.getKey(), checkin);
                     }
                 }
@@ -691,7 +692,7 @@ public class MapFragment extends Fragment {
         });
     }
 
-    private void showDialog(String postId) { // postId: unique key for data query
+    private void showDialog(final String postId) { // postId: unique key for data query
 
         progressDialog.show();
 
@@ -702,6 +703,7 @@ public class MapFragment extends Fragment {
                 progressDialog.dismiss();
                 if (dataSnapshot.exists()) {
                     Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                    checkin.key = postId;
                     showDialog(checkin);
                 }
             }
@@ -713,7 +715,7 @@ public class MapFragment extends Fragment {
         });
     }
 
-    private void showDialog(Checkin checkin) { // postId: unique key for data query
+    private void showDialog(Checkin checkin) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         if (Objects.equals(checkin.type, "audio")) {
             AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin);
@@ -961,7 +963,6 @@ public class MapFragment extends Fragment {
 
         float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
         ImageNode checkinNode = new ImageNode(gpsDistorted[0], gpsDistorted[1]);
-        Log.d(TAG, "X:" + gpsDistorted[0] + ", Y: " + gpsDistorted[1]);
 
         // create icon ImageView
         ImageView checkinIcon = new ImageView(context);

@@ -20,6 +20,7 @@ import android.support.v7.preference.Preference;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
     private MyViewPager viewPager;
     private List<Fragment> fragmentList;
     // MapFragment: communicate by calling fragment method
-    private static MapFragment mapFragment;
+    private MapFragment mapFragment;
     private ListFragment listFragment;
     // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;

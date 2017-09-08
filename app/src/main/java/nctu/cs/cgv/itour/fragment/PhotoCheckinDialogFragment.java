@@ -5,15 +5,24 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
@@ -24,6 +33,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.photoPath;
 
 /**
@@ -34,6 +44,11 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
 
     private static final String TAG = "PhotoCheckinDialogFragment";
     private Checkin checkin;
+
+    private DatabaseReference databaseReference;
+
+    private boolean isSaved = false;
+    private boolean isLiked = false;
 
     public PhotoCheckinDialogFragment() {
     }
@@ -47,6 +62,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        databaseReference = FirebaseDatabase.getInstance().getReference();
     }
 
     @Override
@@ -88,6 +104,83 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
                 }
             });
         }
+
+        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid().toString();
+        final LinearLayout likeBtn = (LinearLayout) view.findViewById(R.id.btn_like);
+        final ImageView likeIcon = (ImageView) likeBtn.getChildAt(0);
+        final TextView likeText = (TextView) likeBtn.getChildAt(1);
+        likeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isLiked) {
+                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_red_500_24dp));
+                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
+                } else {
+                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_black_24dp));
+                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                }
+                isLiked = !isLiked;
+            }
+        });
+
+        LinearLayout saveBtn = (LinearLayout) view.findViewById(R.id.btn_save);
+        final ImageView saveIcon = (ImageView) saveBtn.getChildAt(0);
+        final TextView saveText = (TextView) saveBtn.getChildAt(1);
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isSaved) {
+                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_blue_24dp));
+                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
+                } else {
+                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_black_24dp));
+                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
+                }
+                isSaved = !isSaved;
+            }
+        });
+
+        Query likeQuery = databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid);
+        likeQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
+                        likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_red_500_24dp));
+                        likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    }
+                }
+                Log.d(TAG, dataSnapshot.toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "onCancelled");
+            }
+        });
+
+        Query saveQuery = databaseReference.child("user").child(uid).child("saved").child(checkin.key);
+        saveQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
+                        saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_blue_24dp));
+                        saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    }
+                }
+                Log.d(TAG, dataSnapshot.toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "onCancelled");
+            }
+        });
     }
 
     @Override

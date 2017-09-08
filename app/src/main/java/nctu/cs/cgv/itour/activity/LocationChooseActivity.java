@@ -674,46 +674,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                 }
             }
         });
-
-
-        // upload audio
-//        AsyncHttpClient client = new AsyncHttpClient();
-//        RequestParams params = new RequestParams();
-//        params.setForceMultipartEntityContentType(true);
-//        try {
-//            File audioFile = new File(filename);
-//            if (audioFile.exists())
-//                params.put("file", audioFile);
-//            params.put("mapTag", mapTag);
-//            params.put("lat", latCenter);
-//            params.put("lng", lngCenter);
-//            params.put("location", location);
-//            params.put("description", description);
-//            params.put("type", type);
-//
-//            client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-//                @Override
-//                public void onStart() {
-//                }
-//
-//                @Override
-//                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//                    progressDialog.dismiss();
-//                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    startActivity(intent);
-//                }
-//
-//                @Override
-//                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                    progressDialog.dismiss();
-//                    Toast.makeText(getApplicationContext(), "Upload failed." + statusCode, Toast.LENGTH_LONG).show();
-//                }
-//            });
-//
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
     }
 }
 
