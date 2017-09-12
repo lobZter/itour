@@ -35,6 +35,8 @@ public class ListFragment extends Fragment {
     private List<Fragment> fragmentList;
     private String tabTitles[];
 
+    private CheckinListFragment checkinListFragment;
+
     public static ListFragment newInstance() {
         ListFragment fragment = new ListFragment();
         return fragment;
@@ -56,8 +58,9 @@ public class ListFragment extends Fragment {
 
         tabTitles = new String[]{"Checkin", "Spot"};
 
+        checkinListFragment = CheckinListFragment.newInstance();
         fragmentList = new ArrayList<>();
-        fragmentList.add(CheckinListFragment.newInstance());
+        fragmentList.add(checkinListFragment);
         fragmentList.add(SpotListFragment.newInstance());
 
         viewPager = (MyViewPager) view.findViewById(R.id.view_pager);
@@ -124,5 +127,9 @@ public class ListFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void addCheckin(String postId) {
+        checkinListFragment.addCheckin(postId);
     }
 }

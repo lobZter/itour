@@ -88,4 +88,23 @@ public class CheckinListFragment extends Fragment {
         });
     }
 
+    public void addCheckin(final String postId) {
+        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(final DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                    checkin.key = postId;
+                    checkinItemAdapter.add(checkin);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            }
+        });
+    }
+
 }

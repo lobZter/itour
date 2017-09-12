@@ -1,18 +1,27 @@
 package nctu.cs.cgv.itour.activity;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.Preference;
@@ -65,9 +74,16 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        } else {
+            init();
+        }
+    }
+
+    private void init() {
         setSensors();
         setBroadcastReceiver();
-
         setView();
     }
 
@@ -135,7 +151,10 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
                                 intent.getStringExtra("postId"),
                                 intent.getDoubleExtra("lat", 0),
                                 intent.getDoubleExtra("lng", 0));
+
+                        listFragment.addCheckin(intent.getStringExtra("postId"));
                         break;
+
                     case "gpsLocation":
                         mapFragment.handleLocationChange(
                                 intent.getDoubleExtra("lat", 0),
@@ -210,12 +229,73 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
     }
 
     @Override
-    public void onDistanceIndicatorSwitched() {
-        mapFragment.switchDistanceIndicator();
+    public void onDistanceIndicatorSwitched(boolean flag) {
+        mapFragment.switchDistanceIndicator(flag);
     }
 
     @Override
-    public void onFogSwitched() {
-        mapFragment.switchFog();
+    public void onFogSwitched(boolean flag) {
+        mapFragment.switchFog(flag);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermission() {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+        int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int gpsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (gpsPermission + storagePermission != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                showExplanation();
+            } else {
+                requestPermissions(
+                        new String[]{
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_MULTIPLE_REQUEST);
+            }
+        } else {
+            init();
+        }
+    }
+
+    private void showExplanation() {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Permission Needed")
+                .setMessage("We need to store map package on the device and track your GPS location to run this app!")
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    public void onClick(DialogInterface dialog, int id) {
+                        requestPermissions(
+                                new String[]{
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                        Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSIONS_MULTIPLE_REQUEST);
+                    }
+                });
+        builder.create().show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+
+        switch (requestCode) {
+            case PERMISSIONS_MULTIPLE_REQUEST:
+                if (grantResults.length > 0) {
+                    boolean storagePermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean gpsPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+                    if(storagePermission && gpsPermission)
+                    {
+                        init();
+                    } else {
+                        showExplanation();
+                    }
+                }
+                break;
+        }
     }
 }

@@ -1,13 +1,20 @@
 package nctu.cs.cgv.itour.activity;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -66,6 +73,15 @@ public class AudioCheckinActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "找不到麥克風QQ", Toast.LENGTH_LONG).show();
             finish();
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        } else {
+            setView();
+        }
+    }
+
+    private void setView() {
 
         progressBarHandler = new Handler();
 
@@ -277,5 +293,38 @@ public class AudioCheckinActivity extends AppCompatActivity {
     private void pauseAudio() {
         mediaPlayer.pause();
         isPlaying = false;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermission() {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+        int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
+
+        if (micPermission != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_MULTIPLE_REQUEST);
+        } else {
+            setView();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+
+        switch (requestCode) {
+            case PERMISSIONS_MULTIPLE_REQUEST:
+                if (grantResults.length > 0) {
+                    boolean micPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+                    if(micPermission)
+                    {
+                        setView();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "需要麥克風權限", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                }
+                break;
+        }
     }
 }

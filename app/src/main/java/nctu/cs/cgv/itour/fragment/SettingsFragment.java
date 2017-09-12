@@ -23,11 +23,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private ActionBar actionBar;
 
     public interface OnFogListener {
-        void onFogSwitched();
+        void onFogSwitched(boolean flag);
     }
 
     public interface OnDistanceIndicatorListener {
-        void onDistanceIndicatorSwitched();
+        void onDistanceIndicatorSwitched(boolean flag);
     }
 
     public static SettingsFragment newInstance() {
@@ -67,7 +67,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onDistanceIndicatorListener.onDistanceIndicatorSwitched();
+                onDistanceIndicatorListener.onDistanceIndicatorSwitched((Boolean) newValue);
                 return true;
             }
         });
@@ -76,7 +76,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onFogListener.onFogSwitched();
+                onFogListener.onFogSwitched((Boolean) newValue);
                 return true;
             }
         });

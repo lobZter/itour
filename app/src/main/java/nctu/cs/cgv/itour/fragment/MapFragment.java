@@ -58,7 +58,9 @@ import java.util.Objects;
 
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.SpotInfoActivity;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
+import nctu.cs.cgv.itour.activity.LocationChooseActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -214,15 +216,15 @@ public class MapFragment extends Fragment {
         fogMap.setImageBitmap(fogBitmap);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
-        switchFog();
+        switchFog(preferences.getBoolean("fog", false));
         ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
 
-        // draw edge primarySpot
+        // draw edge distance indicator
         edgeNodeList = edgeNode.getNodeList();
         for (ImageNode imageNode : edgeNodeList) {
             addEdgeNode(imageNode, "black");
         }
-        switchDistanceIndicator();
+        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
 
         // set gpsMarker
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
@@ -591,7 +593,7 @@ public class MapFragment extends Fragment {
         rootLayout.removeView(imageNode.icon);
     }
 
-    private void addSpot(SpotNode spotNode) {
+    private void addSpot(final SpotNode spotNode) {
         // create icon
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         View icon = inflater.inflate(R.layout.item_spot, null);
@@ -609,17 +611,21 @@ public class MapFragment extends Fragment {
         icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (ImageNode imageNode : pathEdgeNodeList) {
-                    removeEdgeNode(imageNode);
-                }
+                Intent intent = new Intent(context, SpotInfoActivity.class);
+                intent.putExtra("spotName", spotNode.name);
+                startActivity(intent);
+//                // add path indicator
+//                for (ImageNode imageNode : pathEdgeNodeList) {
+//                    removeEdgeNode(imageNode);
+//                }
 
-                EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
-                EdgeNode.Vertex to = edgeNode.findVertex(gpsDistorted[0], gpsDistorted[1]);
-                edgeNode.shortestPath(from, to);
-                pathEdgeNodeList = edgeNode.getPathNodeList();
-                for (ImageNode imageNode : pathEdgeNodeList) {
-                    addEdgeNode(imageNode, "blue");
-                }
+//                EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
+//                EdgeNode.Vertex to = edgeNode.findVertex(gpsDistorted[0], gpsDistorted[1]);
+//                edgeNode.shortestPath(from, to);
+//                pathEdgeNodeList = edgeNode.getPathNodeList();
+//                for (ImageNode imageNode : pathEdgeNodeList) {
+//                    addEdgeNode(imageNode, "blue");
+//                }
             }
         });
         // add to rootlayout
@@ -1052,16 +1058,16 @@ public class MapFragment extends Fragment {
         reRender();
     }
 
-    public void switchFog() {
-        if (preferences.getBoolean("fog", false)) {
+    public void switchFog(boolean flag) {
+        if (flag) {
             fogMap.setVisibility(View.VISIBLE);
         } else {
             fogMap.setVisibility(View.GONE);
         }
     }
 
-    public void switchDistanceIndicator() {
-        if (preferences.getBoolean("distance_indicator", false)) {
+    public void switchDistanceIndicator(boolean flag) {
+        if (flag) {
             for (ImageNode imageNode : edgeNodeList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
             }
