@@ -51,10 +51,7 @@ public class PlanFragment extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setElevation(0);
                 actionBar.setSubtitle("Plan");
-            } else {
-                actionBar.setElevation(dpToPx(getContext(), 4));
             }
         }
     }

@@ -41,7 +41,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
-public class MainActivity extends AppCompatActivity implements SettingsFragment.OnFogSwitchedListener{
+public class MainActivity extends AppCompatActivity implements SettingsFragment.OnFogListener, SettingsFragment.OnDistanceIndicatorListener{
 
     private static final String TAG = "MainActivity";
     // view objects
@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
         // disable swipe
         viewPager.setPagingEnabled(false);
         // set keep all three pages alive
-        viewPager.setOffscreenPageLimit(3);
+        viewPager.setOffscreenPageLimit(5);
 
         BottomBar bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
@@ -207,6 +207,11 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
+    }
+
+    @Override
+    public void onDistanceIndicatorSwitched() {
+        mapFragment.switchDistanceIndicator();
     }
 
     @Override

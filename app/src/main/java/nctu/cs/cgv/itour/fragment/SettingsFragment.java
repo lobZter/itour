@@ -14,18 +14,20 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.LoginActivity;
-import nctu.cs.cgv.itour.activity.MainActivity;
-
-import static nctu.cs.cgv.itour.Utility.dpToPx;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
     private FirebaseAuth firebaseAuth;
-    private OnFogSwitchedListener onFogSwitchedListener;
+    private OnFogListener onFogListener;
+    private OnDistanceIndicatorListener onDistanceIndicatorListener;
     private ActionBar actionBar;
 
-    public interface OnFogSwitchedListener {
+    public interface OnFogListener {
         void onFogSwitched();
+    }
+
+    public interface OnDistanceIndicatorListener {
+        void onDistanceIndicatorSwitched();
     }
 
     public static SettingsFragment newInstance() {
@@ -65,6 +67,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
+                onDistanceIndicatorListener.onDistanceIndicatorSwitched();
                 return true;
             }
         });
@@ -73,7 +76,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onFogSwitchedListener.onFogSwitched();
+                onFogListener.onFogSwitched();
                 return true;
             }
         });
@@ -82,11 +85,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if(context instanceof OnFogSwitchedListener) {
-            onFogSwitchedListener = (OnFogSwitchedListener) context;
-        } else {
+        try {
+            onFogListener = (OnFogListener) context;
+            onDistanceIndicatorListener = (OnDistanceIndicatorListener) context;
+        } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement SettingFragment.OnFogSwitchedListener");
+                    + " must implement SettingFragment.OnFogSwitchedListener or OnDistanceIndicatorListener");
         }
     }
 
@@ -103,10 +107,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setElevation(0);
                 actionBar.setSubtitle("Setting");
-            } else {
-                actionBar.setElevation(dpToPx(getContext(), 4));
             }
         }
     }

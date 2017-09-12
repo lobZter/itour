@@ -185,8 +185,10 @@ public class MapFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        Log.d(TAG, "onViewCreated");
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        actionBar.setSubtitle("Map");
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
 
         // load image from disk and set tourist map
@@ -216,12 +218,11 @@ public class MapFragment extends Fragment {
         ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
 
         // draw edge primarySpot
-        if (preferences.getBoolean("distance_indicator", false)) {
-            edgeNodeList = edgeNode.getNodeList();
-            for (ImageNode imageNode : edgeNodeList) {
-                addEdgeNode(imageNode, "black");
-            }
+        edgeNodeList = edgeNode.getNodeList();
+        for (ImageNode imageNode : edgeNodeList) {
+            addEdgeNode(imageNode, "black");
         }
+        switchDistanceIndicator();
 
         // set gpsMarker
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
@@ -1059,15 +1060,24 @@ public class MapFragment extends Fragment {
         }
     }
 
+    public void switchDistanceIndicator() {
+        if (preferences.getBoolean("distance_indicator", false)) {
+            for (ImageNode imageNode : edgeNodeList) {
+                imageNode.icon.setVisibility(View.VISIBLE);
+            }
+        } else {
+            for (ImageNode imageNode : edgeNodeList) {
+                imageNode.icon.setVisibility(View.GONE);
+            }
+        }
+    }
+
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setElevation(0);
                 actionBar.setSubtitle("Map");
-            } else {
-                actionBar.setElevation(dpToPx(getContext(), 4));
             }
         }
     }
