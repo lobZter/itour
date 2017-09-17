@@ -15,7 +15,7 @@
         android:textSize="9sp"
         android:background="@drawable/circle_checkin_num"
         android:gravity="center"
-        android:text="4"
+        android:text="1"
         android:textColor="@color/md_white_1000" />
 
 </RelativeLayout>

@@ -62,7 +62,7 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".SpotInfoActivity"></activity>
+        <activity android:name=".activity.SpotInfoActivity"></activity>
     </application>
 
 </manifest>

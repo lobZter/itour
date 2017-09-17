@@ -1,5 +1,9 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -56,7 +60,7 @@ public class PostedCheckinFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_posted_checkin, container, false);
+        return inflater.inflate(R.layout.fragment_swipe_menu_list_view, container, false);
     }
 
     @Override
@@ -66,34 +70,76 @@ public class PostedCheckinFragment extends Fragment {
         checkinList.setMenuCreator(new SwipeMenuCreator() {
 
             @Override
-            public void create(SwipeMenu menu) {
+            public void create(SwipeMenu menu) {SwipeMenuItem mapItem = new SwipeMenuItem(getContext());
+                mapItem.setBackground(R.color.gps_marker_color);
+                mapItem.setWidth(dpToPx(getContext(), 72));
+                mapItem.setIcon(R.drawable.ic_gps_fixed_white_24dp);
+                mapItem.setTitle("locate");
+                mapItem.setTitleColor(Color.WHITE);
+                mapItem.setTitleSize(12);
+                menu.addMenuItem(mapItem);
+
+                SwipeMenuItem viewItem = new SwipeMenuItem(getContext());
+                viewItem.setBackground(R.color.md_blue_grey_500);
+                viewItem.setWidth(dpToPx(getContext(), 72));
+                viewItem.setIcon(R.drawable.ic_picture_in_picture_white_24dp);
+                viewItem.setTitle("view");
+                viewItem.setTitleColor(Color.WHITE);
+                viewItem.setTitleSize(12);
+                menu.addMenuItem(viewItem);
+
                 SwipeMenuItem deleteItem = new SwipeMenuItem(getContext());
                 deleteItem.setBackground(R.color.md_grey_700);
-                deleteItem.setWidth(dpToPx(getContext(), 90));
+                deleteItem.setWidth(dpToPx(getContext(), 72));
                 deleteItem.setIcon(R.drawable.ic_delete_white_24dp);
+                deleteItem.setTitle("delete");
+                deleteItem.setTitleColor(Color.WHITE);
+                deleteItem.setTitleSize(12);
                 menu.addMenuItem(deleteItem);
             }
         });
         checkinList.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
-            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+            public boolean onMenuItemClick(final int position, SwipeMenu menu, int index) {
                 switch (index) {
                     case 0:
-                        // remove checkin
-                        String key = checkins.get(position).key;
-                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
-
-                        for (Checkin checkin : checkins) {
-                            if (key.equals(checkin.key)) {
-                                checkins.remove(checkin);
-                                break;
-                            }
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        AlertDialog.Builder builder;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            builder = new AlertDialog.Builder(getContext(), android.R.style.Theme_DeviceDefault_Light_Dialog_Alert);
+                        } else {
+                            builder = new AlertDialog.Builder(getContext());
                         }
-                        checkinItemAdapter.clear();
-                        checkinItemAdapter.addAll(checkins);
-                        checkins.remove(position);
-                        checkinItemAdapter.clear();
-                        checkinItemAdapter.addAll(checkins);
+                        builder.setTitle("Delete");
+                        builder.setMessage("Are you sure you want to delete this post?");
+                        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // remove checkin
+                                        String key = checkins.get(position).key;
+                                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+
+                                        for (Checkin checkin : checkins) {
+                                            if (key.equals(checkin.key)) {
+                                                checkins.remove(checkin);
+                                                break;
+                                            }
+                                        }
+                                        checkinItemAdapter.clear();
+                                        checkinItemAdapter.addAll(checkins);
+                                        checkins.remove(position);
+                                        checkinItemAdapter.clear();
+                                        checkinItemAdapter.addAll(checkins);
+                                    }
+                                });
+                        builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                });
+                        builder.show();
                         break;
                 }
                 return false; // false : close the menu; true : not close the menu

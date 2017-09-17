@@ -8,27 +8,21 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-import nctu.cs.cgv.itour.object.IdxWeights;
-
 public class Mesh {
+    // world coordinates bounding box
+    public float minLat = 0f;
+    public float minLon = 0f;
+    public float maxLat = 0f;
+    public float maxLon = 0f;
+    //real-osm-map size
+    public float mapWidth = 0f;
+    public float mapHeight = 0f;
     // element count
     int vertexNumber;
     int faceNumber;
     int lineNumber;
-
-    // world coordinates bounding box
-    public double minLat = 0.0;
-    public double minLon = 0.0;
-    public double maxLat = 0.0;
-    public double maxLon = 0.0;
-
-    //real-osm-map size
-    public double mapWidth = 0.0;
-    public double mapHeight = 0.0;
-
-
-    // x- and y- coordinates of primarySpot
-    double[][] vertices;
+    // x- and y- coordinates of spotNodeMap
+    float[][] vertices;
 
     // face connectivity
     int[][] faces;
@@ -41,7 +35,7 @@ public class Mesh {
     public boolean readMeshFile(File meshFile) {
 
         try {
-            FileInputStream inputStream  = new FileInputStream(meshFile);
+            FileInputStream inputStream = new FileInputStream(meshFile);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
@@ -51,35 +45,35 @@ public class Mesh {
             // the second line contains size information
             nextLine = bufferedReader.readLine();
             StringTokenizer stringTokenizer = new StringTokenizer(nextLine);
-            vertexNumber = Integer.valueOf( stringTokenizer.nextToken() );
-            faceNumber = Integer.valueOf( stringTokenizer.nextToken() );
-            lineNumber = Integer.valueOf( stringTokenizer.nextToken() );
+            vertexNumber = Integer.valueOf(stringTokenizer.nextToken());
+            faceNumber = Integer.valueOf(stringTokenizer.nextToken());
+            lineNumber = Integer.valueOf(stringTokenizer.nextToken());
 
             // get arrayLists
-            vertices = new double[vertexNumber][2];
+            vertices = new float[vertexNumber][2];
             faces = new int[faceNumber][3];
 
             // read vertex positions
-            for(int vIter=0; vIter<vertexNumber; vIter++){
+            for (int vIter = 0; vIter < vertexNumber; vIter++) {
                 nextLine = bufferedReader.readLine();
 
                 stringTokenizer = new StringTokenizer(nextLine);
-                double x = Double.valueOf( stringTokenizer.nextToken() );
-                double y = Double.valueOf( stringTokenizer.nextToken() );
+                float x = Float.valueOf(stringTokenizer.nextToken());
+                float y = Float.valueOf(stringTokenizer.nextToken());
 
                 vertices[vIter][0] = x;
                 vertices[vIter][1] = y;
             }
 
             // read face indices
-            for(int fIter=0; fIter<faceNumber; fIter++){
+            for (int fIter = 0; fIter < faceNumber; fIter++) {
                 nextLine = bufferedReader.readLine();
 
                 stringTokenizer = new StringTokenizer(nextLine);
-                int vNum = Integer.valueOf( stringTokenizer.nextToken() ); // throw away :P
-                int v1 = Integer.valueOf( stringTokenizer.nextToken() );
-                int v2 = Integer.valueOf( stringTokenizer.nextToken() );
-                int v3 = Integer.valueOf( stringTokenizer.nextToken() );
+                int vNum = Integer.valueOf(stringTokenizer.nextToken()); // throw away :P
+                int v1 = Integer.valueOf(stringTokenizer.nextToken());
+                int v2 = Integer.valueOf(stringTokenizer.nextToken());
+                int v3 = Integer.valueOf(stringTokenizer.nextToken());
 
                 faces[fIter][0] = v1;
                 faces[fIter][1] = v2;
@@ -98,7 +92,7 @@ public class Mesh {
 
     public boolean readBoundingBox(File boundBoxFile) {
         try {
-            FileInputStream inputStream  = new FileInputStream(boundBoxFile);
+            FileInputStream inputStream = new FileInputStream(boundBoxFile);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
@@ -107,22 +101,22 @@ public class Mesh {
 
             // in the order of minlat -> minlon -> maxlat -> maxlon ->mapWidth ->mapHeight
             nextLine = bufferedReader.readLine();
-            minLat = Double.valueOf(nextLine);
+            minLat = Float.valueOf(nextLine);
 
             nextLine = bufferedReader.readLine();
-            minLon = Double.valueOf(nextLine);
+            minLon = Float.valueOf(nextLine);
 
             nextLine = bufferedReader.readLine();
-            maxLat = Double.valueOf(nextLine);
+            maxLat = Float.valueOf(nextLine);
 
             nextLine = bufferedReader.readLine();
-            maxLon = Double.valueOf(nextLine);
+            maxLon = Float.valueOf(nextLine);
 
             nextLine = bufferedReader.readLine();
-            mapWidth = Double.valueOf(nextLine);
+            mapWidth = Float.valueOf(nextLine);
 
             nextLine = bufferedReader.readLine();
-            mapHeight = Double.valueOf(nextLine);
+            mapHeight = Float.valueOf(nextLine);
 
             bufferedReader.close();
 
@@ -134,35 +128,34 @@ public class Mesh {
         return true;
     }
 
-    public IdxWeights getPointInTriangleIdx(double px, double py) {
+    public IdxWeights getPointInTriangleIdx(float px, float py) {
 
         IdxWeights result = new IdxWeights();
 
-        for(int fIter=0; fIter<faceNumber; fIter++) {
+        for (int fIter = 0; fIter < faceNumber; fIter++) {
             int id1 = faces[fIter][0];
             int id2 = faces[fIter][1];
             int id3 = faces[fIter][2];
 
-            double x1 = vertices[id1][0];
-            double x2 = vertices[id2][0];
-            double x3 = vertices[id3][0];
-            double y1 = vertices[id1][1];
-            double y2 = vertices[id2][1];
-            double y3 = vertices[id3][1];
+            float x1 = vertices[id1][0];
+            float x2 = vertices[id2][0];
+            float x3 = vertices[id3][0];
+            float y1 = vertices[id1][1];
+            float y2 = vertices[id2][1];
+            float y3 = vertices[id3][1];
 
-            double l1 = ((y2-y3)*(px-x3) + (x3-x2)*(py-y3)) / ((y2-y3)*(x1-x3) + (x3-x2)*(y1-y3));
-            double l2 = ((y3-y1)*(px-x3) + (x1-x3)*(py-y3)) / ((y2-y3)*(x1-x3) + (x3-x2)*(y1-y3));
-            double l3 = 1.0 - l1 - l2;
+            float l1 = (float) (((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)));
+            float l2 = (float) (((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)));
+            float l3 = 1.0f - l1 - l2;
 
-            if(l1<0 && l1>-0.0001) l1 = 0.0;
-            if(l2<0 && l2>-0.0001) l2 = 0.0;
-            if(l3<0 && l3>-0.0001) l3 = 0.0;
-            if(l1>1 && l1<1.0001) l1 = 1.0;
-            if(l2>1 && l2<1.0001) l2 = 1.0;
-            if(l3>1 && l3<1.0001) l3 = 1.0;
+            if (l1 < 0 && l1 > -0.0001) l1 = 0f;
+            if (l2 < 0 && l2 > -0.0001) l2 = 0f;
+            if (l3 < 0 && l3 > -0.0001) l3 = 0f;
+            if (l1 > 1 && l1 < 1.0001) l1 = 1f;
+            if (l2 > 1 && l2 < 1.0001) l2 = 1f;
+            if (l3 > 1 && l3 < 1.0001) l3 = 1f;
 
-            if(l1>=0 && l1<=1 && l2>=0 && l2<=1 && l3>=0 && l3<=1)
-            {
+            if (l1 >= 0 && l1 <= 1 && l2 >= 0 && l2 <= 1 && l3 >= 0 && l3 <= 1) {
                 result = new IdxWeights(fIter, l1, l2, l3);
                 break;
             }
@@ -171,16 +164,16 @@ public class Mesh {
         return result;
     }
 
-    public double[] interpolatePosition(IdxWeights idxWeights) {
+    public float[] interpolatePosition(IdxWeights idxWeights) {
         int id = idxWeights.idx;
         int triId1 = faces[id][0];
         int triId2 = faces[id][1];
         int triId3 = faces[id][2];
-        double[] weights = idxWeights.weights;
+        float[] weights = idxWeights.weights;
 
-        double x = weights[0]*vertices[triId1][0] + weights[1]*vertices[triId2][0] + weights[2]*vertices[triId3][0];
-        double y = weights[0]*vertices[triId1][1] + weights[1]*vertices[triId2][1] + weights[2]*vertices[triId3][1];
+        float x = weights[0] * vertices[triId1][0] + weights[1] * vertices[triId2][0] + weights[2] * vertices[triId3][0];
+        float y = weights[0] * vertices[triId1][1] + weights[1] * vertices[triId2][1] + weights[2] * vertices[triId3][1];
 
-        return new double[]{x, y};
+        return new float[]{x, y};
     }
 }

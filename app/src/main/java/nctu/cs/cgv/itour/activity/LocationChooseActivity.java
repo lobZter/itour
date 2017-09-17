@@ -138,8 +138,8 @@ public class LocationChooseActivity extends AppCompatActivity {
                 switch (intent.getAction()) {
                     case "gpsLocation":
                         handleLocationChange(
-                                intent.getDoubleExtra("lat", 0),
-                                intent.getDoubleExtra("lng", 0));
+                                intent.getFloatExtra("lat", 0),
+                                intent.getFloatExtra("lng", 0));
                         break;
                 }
             }
@@ -195,7 +195,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.spotNodeMap.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             View icon = inflater.inflate(R.layout.item_spot, null);
             ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
@@ -205,7 +205,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // set location autocomplete
         ArrayList<String> array = new ArrayList<>();
-        array.addAll(spotList.getSpots());
+        array.addAll(spotList.getSpotsName());
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
         locationEdit.setThreshold(1);
         locationEdit.setAdapter(adapter);
@@ -213,7 +213,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 hideSoftKeyboard(LocationChooseActivity.this);
-                translateToSpot(spotList.primarySpot.get(adapter.getItem(position)));
+                translateToSpot(spotList.spotNodeMap.get(adapter.getItem(position)));
             }
         });
 
@@ -412,7 +412,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsMarker.setTranslationY(point[1]);
 
         // transform spot
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
+        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.spotNodeMap.entrySet()) {
             SpotNode spotNode = spotNodeEntry.getValue();
             point[0] = spotNode.x;
             point[1] = spotNode.y;
@@ -535,10 +535,10 @@ public class LocationChooseActivity extends AppCompatActivity {
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
-    private void handleLocationChange(double lat, double lng) {
+    private void handleLocationChange(float lat, float lng) {
 
-        currentLat = (float) lat;
-        currentLng = (float) lng;
+        currentLat = lat;
+        currentLng = lng;
 
         float[] point = gpsToImgPx(realMesh, warpMesh, currentLat, currentLng);
 
@@ -602,9 +602,9 @@ public class LocationChooseActivity extends AppCompatActivity {
         temp.mapPoints(point);
         IdxWeights idxWeights = warpMesh.getPointInTriangleIdx((mapCenterX - point[0]) / scale, (mapCenterY - point[1]) / scale);
         if (idxWeights.idx >= 0) {
-            double[] newPos = realMesh.interpolatePosition(idxWeights);
-            lngCenter = (float) (newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon);
-            latCenter = (float) (realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat));
+            float[] newPos = realMesh.interpolatePosition(idxWeights);
+            lngCenter = newPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon;
+            latCenter = realMesh.maxLat - newPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat);
         }
 
         // push firebase database

@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.activity;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -9,6 +9,9 @@ import android.view.View;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.TextView;
+
+import nctu.cs.cgv.itour.R;
 
 public class SpotInfoActivity extends AppCompatActivity {
 
@@ -22,15 +25,18 @@ public class SpotInfoActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String spotName = intent.getStringExtra("spotName");
 
-        myWebView = (WebView) findViewById(R.id.webview);
-        // Configure related browser settings
-        myWebView.getSettings().setLoadsImagesAutomatically(true);
-        myWebView.getSettings().setJavaScriptEnabled(true);
-        myWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        // Configure the client to use when opening URLs
-        myWebView.setWebViewClient(new MyBrowser());
-        // Load the initial URL
-        myWebView.loadUrl("https://www.google.com.tw/search?q=" + spotName);
+        TextView textView = (TextView) findViewById(R.id.spot_name);
+        textView.setText(spotName);
+
+//        myWebView = (WebView) findViewById(R.id.webview);
+//        // Configure related browser settings
+//        myWebView.getSettings().setLoadsImagesAutomatically(true);
+//        myWebView.getSettings().setJavaScriptEnabled(true);
+//        myWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+//        // Configure the client to use when opening URLs
+//        myWebView.setWebViewClient(new MyBrowser());
+//        // Load the initial URL
+//        myWebView.loadUrl("https://www.google.com.tw/search?q=" + spotName);
     }
 
     // Manages the behavior when URLs are loaded

@@ -19,6 +19,7 @@ import java.util.List;
 
 import nctu.cs.cgv.itour.MyViewPager;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.Utility.dpToPx;
 
@@ -129,7 +130,7 @@ public class ListFragment extends Fragment {
         }
     }
 
-    public void addCheckin(String postId) {
-        checkinListFragment.addCheckin(postId);
+    public void addCheckin(Checkin checkin) {
+        checkinListFragment.addCheckin(checkin);
     }
 }

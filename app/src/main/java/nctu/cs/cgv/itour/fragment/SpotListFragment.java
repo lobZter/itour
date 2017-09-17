@@ -10,7 +10,6 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-import nctu.cs.cgv.itour.PlanItem;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.spotList;
@@ -41,7 +40,7 @@ public class SpotListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
         ArrayList<String> list = new ArrayList<>();
-        list.addAll(spotList.getSpots());
+        list.addAll(spotList.getSpotsName());
 
         ArrayAdapter<String> spotArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, list);
         ListView spotList = (ListView) view.findViewById(R.id.list_view);

@@ -19,9 +19,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import java.io.File;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -92,26 +89,26 @@ public class GpsLocationService extends Service implements
         client.get("https://food-map-lobst3rd.c9users.io/gpsUpdate?lat=" + location.getLatitude() + "&lng=" + location.getLongitude(),
                 new AsyncHttpResponseHandler() {
 
-            @Override
-            public void onStart() {
-                // called before request is started
-            }
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                    }
 
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                // called when response HTTP status is "200 OK"
-            }
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        // called when response HTTP status is "200 OK"
+                    }
 
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-            }
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    }
 
-            @Override
-            public void onRetry(int retryNo) {
-                // called when request is retried
-            }
-        });
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                    }
+                });
 
 
         sendMessage(location);
@@ -165,8 +162,8 @@ public class GpsLocationService extends Service implements
     private void sendMessage(Location location) {
         // send message to activities by broadcasting
         Intent intent = new Intent("gpsLocation");
-        intent.putExtra("lat", location.getLatitude());
-        intent.putExtra("lng", location.getLongitude());
+        intent.putExtra("lat", (float) location.getLatitude());
+        intent.putExtra("lng", (float) location.getLongitude());
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

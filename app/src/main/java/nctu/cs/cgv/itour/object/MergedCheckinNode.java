@@ -8,25 +8,15 @@ import java.util.ArrayList;
  * Created by lobst3rd on 2017/8/15.
  */
 
-public class MergedCheckinNode {
+public class MergedCheckinNode extends ImageNode{
 
-    public float x;
-    public float y;
-    public View icon;
-    public ArrayList<ImageNode> checkinList;
-
-    public MergedCheckinNode() {
-        this.x = 0;
-        this.y = 0;
-        this.icon = null;
-        this.checkinList = new ArrayList<>();
-    }
+    public int checkinNum;
+    public boolean onSpot;
 
     public MergedCheckinNode(float x, float y) {
-        this.x = x;
-        this.y = y;
-        this.icon = null;
-        this.checkinList = new ArrayList<>();
+        super(x, y);
+        checkinNum = 1;
+        onSpot = false;
     }
 
 }

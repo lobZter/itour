@@ -19,21 +19,19 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.preference.Preference;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
-import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
@@ -45,12 +43,16 @@ import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
+import nctu.cs.cgv.itour.fragment.SavedCheckinFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
-public class MainActivity extends AppCompatActivity implements SettingsFragment.OnFogListener, SettingsFragment.OnDistanceIndicatorListener{
+public class MainActivity extends AppCompatActivity implements
+        SettingsFragment.OnFogListener,
+        SettingsFragment.OnDistanceIndicatorListener,
+        SavedCheckinFragment.CheckinListItemListener {
 
     private static final String TAG = "MainActivity";
     // view objects
@@ -140,25 +142,37 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
     }
 
     private void setBroadcastReceiver() {
-//        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
+        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
 
         messageReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(Context context, final Intent intent) {
                 switch (intent.getAction()) {
                     case "checkinIcon":
-                        mapFragment.handleCheckinMsg(
-                                intent.getStringExtra("postId"),
-                                intent.getDoubleExtra("lat", 0),
-                                intent.getDoubleExtra("lng", 0));
+                        final String postId = intent.getStringExtra("postId");
+                        Query query = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(postId);
+                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(final DataSnapshot dataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                                    checkin.key = postId;
+                                    mapFragment.addCheckin(checkin);
+                                    listFragment.addCheckin(checkin);
+                                }
+                            }
 
-                        listFragment.addCheckin(intent.getStringExtra("postId"));
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                Log.w(TAG, "addCheckin(): onCancelled", databaseError.toException());
+                            }
+                        });
                         break;
 
                     case "gpsLocation":
                         mapFragment.handleLocationChange(
-                                intent.getDoubleExtra("lat", 0),
-                                intent.getDoubleExtra("lng", 0));
+                                intent.getFloatExtra("lat", 0),
+                                intent.getFloatExtra("lng", 0));
                         break;
                 }
             }
@@ -297,5 +311,11 @@ public class MainActivity extends AppCompatActivity implements SettingsFragment.
                 }
                 break;
         }
+    }
+
+    @Override
+    public void onLocateClick(Checkin checkin) {
+        mapFragment.translateToGps(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+        viewPager.setCurrentItem(0);
     }
 }

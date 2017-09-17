@@ -1,6 +1,5 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -23,13 +22,11 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -41,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.google.firebase.database.DataSnapshot;
@@ -53,19 +51,16 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.SpotInfoActivity;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
-import nctu.cs.cgv.itour.activity.LocationChooseActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
+import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
-import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Mesh;
@@ -84,6 +79,9 @@ public class MapFragment extends Fragment {
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
+    private final float ZOOM_THRESHOLD = 2.2f;
+    private final float FOG_UPDATE_THRESHOLD = 5.0f;
+    private final int CLUSTER_THRESHOLD = 20500;
     private final int gpsMarkerWidth = 48;
     private final int gpsMarkerHeight = 48;
     private final int gpsDirectionWidth = 32;
@@ -103,35 +101,33 @@ public class MapFragment extends Fragment {
     private float lastFogClearPosY = 0;
     private int touristMapWidth = 0;
     private int touristMapHeight = 0;
-    private int screenWidth = 0;
-    private int screenHeight = 0;
-    private int rootLayoutWidth = 0;
-    private int rootLayoutHeight = 0;
+    private int mapCenterX = 0;
+    private int mapCenterY = 0;
+    private int gpsMarkerPivotX = 0;
+    private int gpsMarkerPivotY = 0;
+    private int checkinIconPivotX = 0;
+    private int checkinIconPivotY = 0;
+    private int spotIconPivotX = 0;
+    private int spotIconPivotY = 0;
     // UI references
-//    private RelativeLayout rootLayout;
     private RelativeLayout rootLayout;
     private ImageView touristMap;
     private ImageView fogMap;
     private LinearLayout gpsMarker;
     private FloatingActionButton gpsBtn;
-    private FloatingActionButton audioBtn;
-    private FloatingActionButton photoBtn;
-    private FloatingActionsMenu floatingActionsMenu;
-    private RelativeLayout.LayoutParams layoutParams;
     private Bitmap fogBitmap;
-    private ProgressDialog progressDialog;
     private ActionBar actionBar;
     // objects
     private List<ImageNode> edgeNodeList;
     private List<ImageNode> pathEdgeNodeList;
-    private List<MergedCheckinNode> mergedCheckinList;
-    private List<MergedCheckinNode> spotCheckinList;
-    private List<ImageNode> checkinList;
-    private List<ImageView> primarySpotList;
+    private List<MergedCheckinNode> mergedCheckinNodeList;
+    private List<ImageNode> checkinNodeList;
+    private List<Checkin> checkinList;
     private SpotList spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
     private EdgeNode edgeNode;
+    private LayoutInflater inflater;
     // Firebase real-time database
     private DatabaseReference databaseReference;
     // gestures
@@ -155,14 +151,12 @@ public class MapFragment extends Fragment {
         super.onCreate(savedInstanceState);
         context = getContext();
 
-        // get screen size
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        screenWidth = displayMetrics.widthPixels;
-        screenHeight = displayMetrics.heightPixels;
-
         // load preferences
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
 
         // init objects
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
@@ -172,12 +166,10 @@ public class MapFragment extends Fragment {
         edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
         edgeNodeList = new ArrayList<>();
         pathEdgeNodeList = new ArrayList<>();
+        checkinNodeList = new ArrayList<>();
+        mergedCheckinNodeList = new ArrayList<>();
         checkinList = new ArrayList<>();
-        mergedCheckinList = new ArrayList<>();
-        spotCheckinList = new ArrayList<>();
-        primarySpotList = new ArrayList<>();
         transformMat = new Matrix();
-        progressDialog = new ProgressDialog(context);
     }
 
     @Override
@@ -187,61 +179,84 @@ public class MapFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        Log.d(TAG, "onViewCreated");
 
+        rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
+        gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
+        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
+        FrameLayout frameLayout = (FrameLayout) view.findViewById(R.id.touristmap);
+        FloatingActionButton audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
+        FloatingActionButton photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
+        final FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
+
+        // set subtitle
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
         actionBar.setSubtitle("Map");
-        rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
 
-        // load image from disk and set tourist map
+        // set tourist map
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
         touristMapWidth = touristMapBitmap.getWidth();
         touristMapHeight = touristMapBitmap.getHeight();
-        layoutParams = new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight);
         touristMap = new ImageView(context);
-        touristMap.setLayoutParams(layoutParams);
+        touristMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
         touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         touristMap.setImageBitmap(touristMapBitmap);
         touristMap.setPivotX(0);
         touristMap.setPivotY(0);
-        ((FrameLayout) view.findViewById(R.id.touristmap)).addView(touristMap);
+        frameLayout.addView(touristMap);
 
         // draw fog
         fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(fogBitmap);
         canvas.drawARGB(120, 0, 0, 0);
         fogMap = new ImageView(context);
-        fogMap.setLayoutParams(layoutParams);
+        fogMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
         fogMap.setScaleType(ImageView.ScaleType.MATRIX);
         fogMap.setImageBitmap(fogBitmap);
         fogMap.setPivotX(0);
         fogMap.setPivotY(0);
-        switchFog(preferences.getBoolean("fog", false));
-        ((FrameLayout) view.findViewById(R.id.touristmap)).addView(fogMap);
+        frameLayout.addView(fogMap);
 
         // draw edge distance indicator
         edgeNodeList = edgeNode.getNodeList();
         for (ImageNode imageNode : edgeNodeList) {
             addEdgeNode(imageNode, "black");
         }
-        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
+
+        // draw spots
+        for (final SpotNode spotNode : spotList.getSpotsList()) {
+            spotNode.icon = inflater.inflate(R.layout.item_spot, null);
+            spotNode.icon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, SpotInfoActivity.class);
+                    intent.putExtra("spotName", spotNode.name);
+                    startActivity(intent);
+                }
+            });
+            ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
+            rootLayout.addView(spotNode.icon);
+        }
 
         // set gpsMarker
-        gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
-        gpsMarker.setPivotX(gpsMarkerWidth / 2);
-        gpsMarker.setPivotY(gpsMarkerHeight / 2 + gpsDirectionHeight);
+        int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
+        int gpsMarkerHeight = (int) getResources().getDimension(R.dimen.gps_marker_height);
+        int gpsDirectionHeight = (int) getResources().getDimension(R.dimen.gps_direction_height);
+        int gpsMarkerPadding = (int) getResources().getDimension(R.dimen.gps_marker_padding);
+        gpsMarkerPivotX = gpsMarkerWidth / 2 + gpsMarkerPadding;
+        gpsMarkerPivotY = gpsDirectionHeight + gpsMarkerHeight / 2 + gpsMarkerPadding;
+        gpsMarker.setPivotX(gpsMarkerPivotX);
+        gpsMarker.setPivotY(gpsMarkerPivotY);
 
         // set buttons
-        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
         gpsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isGpsCurrent && !isOrientationCurrent) rotateToNorth();
-                else translateToCenter();
+                if (!isGpsCurrent)
+                    translateToCurrent();
+                else if (!isOrientationCurrent)
+                    rotateToNorth();
             }
         });
-        audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
-        audioBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu_search
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -249,8 +264,6 @@ public class MapFragment extends Fragment {
                 floatingActionsMenu.collapseImmediately();
             }
         });
-        photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
-        photoBtn.setVisibility(View.GONE); // prevent intercepting touch event for float action menu_search
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -258,32 +271,6 @@ public class MapFragment extends Fragment {
                 floatingActionsMenu.collapseImmediately();
             }
         });
-        floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
-        floatingActionsMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
-            @Override
-            public void onMenuExpanded() {
-                // make it clickable
-                audioBtn.setVisibility(View.VISIBLE);
-                photoBtn.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onMenuCollapsed() {
-                // prevent intercepting touch event for float action menu_search
-                audioBtn.setVisibility(View.GONE);
-                photoBtn.setVisibility(View.GONE);
-            }
-        });
-
-        // draw spots
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
-            addSpot(spotNodeEntry.getValue());
-        }
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
-            addSpot(spotNodeEntry.getValue());
-        }
-
-//        addPrimarySpot();
 
         updateCheckin();
 
@@ -291,13 +278,15 @@ public class MapFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
+        switchFog(preferences.getBoolean("fog", false));
+        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
+
         rootLayout.post(new Runnable() {
             @Override
             public void run() {
-                rootLayoutWidth = rootLayout.getWidth();
-                rootLayoutHeight = rootLayout.getHeight();
-                touristMap.setScaleType(ImageView.ScaleType.MATRIX);
-                fogMap.setScaleType(ImageView.ScaleType.MATRIX);
+                mapCenterX = rootLayout.getWidth() / 2;
+                mapCenterY = rootLayout.getHeight() / 5 * 2;
+                reRender();
             }
         });
     }
@@ -307,22 +296,29 @@ public class MapFragment extends Fragment {
         inflater.inflate(R.menu.menu_search, menu);
         super.onCreateOptionsMenu(menu, inflater);
 
-        ArrayList<String> array = new ArrayList<>();
-        array.addAll(spotList.getSpots());
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, array);
-
-        final MenuItem searchItem = menu.findItem(R.id.action_search);
-        final ArrayAdapterSearchView searchView = (ArrayAdapterSearchView) MenuItemCompat.getActionView(searchItem);
+        // set search view autocomplete
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.item_search, new ArrayList<>(spotList.getSpotsName()));
+        final ArrayAdapterSearchView searchView = (ArrayAdapterSearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
+        searchView.setAdapter(adapter);
         searchView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String autocompleteStr = adapter.getItem(position);
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
-                translateToSpot(spotList.primarySpot.get(autocompleteStr));
+                translateToSpot(spotList.spotNodeMap.get(autocompleteStr));
             }
         });
-        searchView.setAdapter(adapter);
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (actionBar != null) {
+            if (getUserVisibleHint()) {
+                actionBar.setSubtitle("Map");
+            }
+        }
     }
 
     private void setTouchListener() {
@@ -426,13 +422,13 @@ public class MapFragment extends Fragment {
         Matrix gpsMarkTransform = new Matrix();
         Matrix nodeIconTransform = new Matrix();
         Matrix checkinIconTransform = new Matrix();
-        gpsMarkTransform.postTranslate(-(gpsMarkerWidth / 2), -(gpsMarkerHeight / 2 + gpsDirectionHeight));
+        gpsMarkTransform.postTranslate(-gpsMarkerPivotX, -gpsMarkerPivotY);
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
         checkinIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
         float[] point = new float[]{0, 0};
+        transformMat.mapPoints(point);
 
         // transform tourist map (ImageView)
-        transformMat.mapPoints(point);
         touristMap.setScaleX(scale);
         touristMap.setScaleY(scale);
         touristMap.setRotation(rotation);
@@ -472,8 +468,7 @@ public class MapFragment extends Fragment {
         }
 
         // transform spot
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.primarySpot.entrySet()) {
-            SpotNode spotNode = spotNodeEntry.getValue();
+        for (SpotNode spotNode : spotList.getSpotsList()) {
             point[0] = spotNode.x;
             point[1] = spotNode.y;
             Matrix spotIconTransform = new Matrix();
@@ -484,59 +479,8 @@ public class MapFragment extends Fragment {
             spotNode.icon.setTranslationY(point[1]);
         }
 
-        for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
-            SpotNode spotNode = spotNodeEntry.getValue();
-            point[0] = spotNode.x;
-            point[1] = spotNode.y;
-            Matrix spotIconTransform = new Matrix();
-            spotIconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
-            transformMat.mapPoints(point);
-            spotIconTransform.mapPoints(point);
-            spotNode.icon.setTranslationX(point[0]);
-            spotNode.icon.setTranslationY(point[1]);
-        }
-
-        isMerged = scale < 2.2;
-
-        if (isMerged) {
-            for (ImageNode imageNode : checkinList) {
-                imageNode.icon.setVisibility(View.GONE);
-            }
-
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
-                mergedCheckinNode.icon.setVisibility(View.VISIBLE);
-            }
-
-            for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
-                spotCheckinNode.icon.setVisibility(View.VISIBLE);
-            }
-
-            for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
-                SpotNode spotNode = spotNodeEntry.getValue();
-                spotNode.icon.setVisibility(View.GONE);
-            }
-
-        } else {
-            for (ImageNode imageNode : checkinList) {
-                imageNode.icon.setVisibility(View.VISIBLE);
-            }
-
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
-                mergedCheckinNode.icon.setVisibility(View.GONE);
-            }
-
-            for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
-                spotCheckinNode.icon.setVisibility(View.GONE);
-            }
-
-            for (Map.Entry<String, SpotNode> spotNodeEntry : spotList.secondarySpot.entrySet()) {
-                SpotNode spotNode = spotNodeEntry.getValue();
-                spotNode.icon.setVisibility(View.VISIBLE);
-            }
-        }
-
-        // transform checkins
-        for (ImageNode imageNode : checkinList) {
+        // transform mergedCheckinNode
+        for (ImageNode imageNode : checkinNodeList) {
             point[0] = imageNode.x;
             point[1] = imageNode.y;
             transformMat.mapPoints(point);
@@ -545,7 +489,7 @@ public class MapFragment extends Fragment {
             imageNode.icon.setTranslationY(point[1]);
         }
 
-        for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
+        for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
             point[0] = mergedCheckinNode.x;
             point[1] = mergedCheckinNode.y;
             transformMat.mapPoints(point);
@@ -556,106 +500,70 @@ public class MapFragment extends Fragment {
             mergedCheckinNode.icon.setTranslationY(point[1]);
         }
 
-        for (MergedCheckinNode spotCheckinNode : spotCheckinList) {
-            point[0] = spotCheckinNode.x;
-            point[1] = spotCheckinNode.y;
-            transformMat.mapPoints(point);
-            Matrix mergedCheckinIconTransform = new Matrix();
-            mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
-            mergedCheckinIconTransform.mapPoints(point);
-            spotCheckinNode.icon.setTranslationX(point[0]);
-            spotCheckinNode.icon.setTranslationY(point[1]);
+        isMerged = scale < ZOOM_THRESHOLD;
+
+        if (isMerged) {
+            for (ImageNode imageNode : checkinNodeList) {
+                imageNode.icon.setVisibility(View.GONE);
+            }
+
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                mergedCheckinNode.icon.setVisibility(View.VISIBLE);
+            }
+
+            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
+                SpotNode spotNode = spotList.getSpotsList().get(i);
+                spotNode.icon.setVisibility(View.GONE);
+            }
+
+        } else {
+            for (ImageNode imageNode : checkinNodeList) {
+                imageNode.icon.setVisibility(View.VISIBLE);
+            }
+
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                mergedCheckinNode.icon.setVisibility(View.GONE);
+            }
+
+            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
+                SpotNode spotNode = spotList.getSpotsList().get(i);
+                spotNode.icon.setVisibility(View.VISIBLE);
+            }
         }
-
-
-//        point = gpsToImgPx(realMesh, warpMesh, 25.17018f, 121.43994f);
-//        transformMat.mapPoints(point);
-//        Matrix transformMatrix = new Matrix();
-//        transformMatrix.postTranslate(-dpToPx(48 / 2), -dpToPx(48));
-//        transformMatrix.mapPoints(point);
-//        primarySpotList.get(0).setTranslationX(point[0]);
-//        primarySpotList.get(0).setTranslationY(point[1]);
     }
 
     private void addEdgeNode(ImageNode imageNode, String iconColor) {
         imageNode.icon = new ImageView(context);
         if (iconColor.equals("blue"))
-            imageNode.icon.setImageResource(R.drawable.ftprint_trans);
+            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_trans);
         if (iconColor.equals("black"))
-            imageNode.icon.setImageResource(R.drawable.ftprint_black_trans);
+            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_black_trans);
         imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
         imageNode.icon.setTranslationX(imageNode.x - nodeIconWidth / 2);
         imageNode.icon.setTranslationY(imageNode.y - nodeIconHeight / 2);
         rootLayout.addView(imageNode.icon);
     }
 
-    private void removeEdgeNode(ImageNode imageNode) {
-        rootLayout.removeView(imageNode.icon);
-    }
+    public void showPathIdicator(SpotNode spotNode) {
+        for (ImageNode imageNode : pathEdgeNodeList) {
+            rootLayout.removeView(imageNode.icon);
+        }
 
-    private void addSpot(final SpotNode spotNode) {
-        // create icon
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-        View icon = inflater.inflate(R.layout.item_spot, null);
-        TextView spotNameView = (TextView) icon.findViewById(R.id.spot_name);
-        spotNameView.setText(spotNode.name);
-        spotNode.icon = icon;
-        // transform icon
-        Matrix iconTransform = new Matrix();
-        final float[] gpsDistorted = {spotNode.x, spotNode.y};
-        iconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
-        transformMat.mapPoints(gpsDistorted);
-        iconTransform.mapPoints(gpsDistorted);
-        icon.setTranslationX(gpsDistorted[0]);
-        icon.setTranslationY(gpsDistorted[1]);
-        icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, SpotInfoActivity.class);
-                intent.putExtra("spotName", spotNode.name);
-                startActivity(intent);
-//                // add path indicator
-//                for (ImageNode imageNode : pathEdgeNodeList) {
-//                    removeEdgeNode(imageNode);
-//                }
-
-//                EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
-//                EdgeNode.Vertex to = edgeNode.findVertex(gpsDistorted[0], gpsDistorted[1]);
-//                edgeNode.shortestPath(from, to);
-//                pathEdgeNodeList = edgeNode.getPathNodeList();
-//                for (ImageNode imageNode : pathEdgeNodeList) {
-//                    addEdgeNode(imageNode, "blue");
-//                }
-            }
-        });
-        // add to rootlayout
-        rootLayout.addView(icon);
-    }
-
-    private void addPrimarySpot() {
-        // create icon
-        ImageView icon = new ImageView(context);
-        icon.setImageDrawable(context.getDrawable(R.drawable.fuyou_temple));
-//        layoutParams = new RelativeLayout.LayoutParams(dpToPx(48), dpToPx(48));
-
-        // transform icon
-        Matrix iconTransform = new Matrix();
-        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, 25.17018f, 121.43994f);
-//        iconTransform.postTranslate(-dpToPx(48 / 2), -dpToPx(48 / 2));
-        transformMat.mapPoints(gpsDistorted);
-        iconTransform.mapPoints(gpsDistorted);
-        icon.setTranslationX(gpsDistorted[0]);
-        icon.setTranslationY(gpsDistorted[1]);
-        // add to rootlayout
-        primarySpotList.add(icon);
-        rootLayout.addView(icon);
+        EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
+        EdgeNode.Vertex to = edgeNode.findVertex(spotNode.x, spotNode.y);
+        edgeNode.shortestPath(from, to);
+        pathEdgeNodeList = edgeNode.getPathNodeList();
+        for (ImageNode imageNode : pathEdgeNodeList) {
+            addEdgeNode(imageNode, "blue");
+        }
     }
 
     private void updateCheckin() {
-        progressDialog.setMessage("Load check-in...");
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -665,65 +573,99 @@ public class MapFragment extends Fragment {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
                         checkin.key = issue.getKey();
-                        handleCheckinMsg(issue.getKey(), checkin);
+                        addCheckin(checkin);
                     }
                 }
 
-                if (scale < 2.2) {
-                    for (ImageNode imageNode : checkinList) {
-                        imageNode.icon.setVisibility(View.GONE);
-                    }
-
-                    for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
-                        mergedCheckinNode.icon.setVisibility(View.VISIBLE);
-                    }
-
-                    isMerged = true;
-                } else {
-                    for (ImageNode imageNode : checkinList) {
-                        imageNode.icon.setVisibility(View.VISIBLE);
-                    }
-
-                    for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
-                        mergedCheckinNode.icon.setVisibility(View.GONE);
-                    }
-
-                    isMerged = false;
-                }
-                // transform
                 reRender();
-
                 progressDialog.dismiss();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+                Toast.makeText(context, "updateCheckin(): onCancelled", Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void showDialog(final String postId) { // postId: unique key for data query
+    public void addCheckin(final Checkin checkin) {
 
-        progressDialog.show();
+        checkinList.add(checkin);
 
-        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
+        float[] imgPx = gpsToImgPx(realMesh, warpMesh, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+        ImageNode checkinNode = new ImageNode(imgPx[0], imgPx[1]);
+        checkinNodeList.add(checkinNode);
+
+        // create icon ImageView
+        checkinNode.icon = new ImageView(context);
+        checkinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(final DataSnapshot dataSnapshot) {
-                progressDialog.dismiss();
-                if (dataSnapshot.exists()) {
-                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                    checkin.key = postId;
-                    showDialog(checkin);
+            public void onClick(View v) {
+                showDialog(checkin);
+            }
+        });
+        checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
+        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        rootLayout.addView(checkinNode.icon);
+
+        addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
+    }
+
+    private void addMergedCheckin(String spotName, float x, float y) {
+
+        SpotNode spotNode = spotList.spotNodeMap.get(spotName);
+        if (spotNode != null) {
+            // add into spot
+            if (spotNode.mergedCheckinNode == null) {
+                // no checkin on spot yet
+                spotNode.mergedCheckinNode = newMergedCheckin(spotNode.x, spotNode.y, true);
+            } else {
+                spotNode.mergedCheckinNode.checkinNum++;
+                TextView checkinsNumCircle = (TextView) spotNode.mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+                checkinsNumCircle.setText(String.valueOf(spotNode.mergedCheckinNode.checkinNum));
+            }
+        } else {
+            // add into cluster
+            boolean newCluster = true;
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                if(mergedCheckinNode.onSpot) continue;
+
+                double distance = Math.pow(x - mergedCheckinNode.x, 2) + Math.pow(y - mergedCheckinNode.y, 2);
+                if (distance < CLUSTER_THRESHOLD) {
+                    int clusterSize = mergedCheckinNode.checkinNum;
+                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + x) / (clusterSize + 1);
+                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + y) / (clusterSize + 1);
+
+                    mergedCheckinNode.checkinNum++;
+                    TextView checkinsNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+                    checkinsNumCircle.setText(String.valueOf(mergedCheckinNode.checkinNum));
+
+                    newCluster = false;
+                    break;
                 }
             }
 
+            // cluster not found, create a new one
+            if (newCluster) {
+                newMergedCheckin(x, y, false);
+            }
+        }
+    }
+
+    private MergedCheckinNode newMergedCheckin(float x, float y, boolean onSpot) {
+        MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(x, y);
+        mergedCheckinNode.icon = inflater.inflate(R.layout.item_bigcheckin, null);
+        mergedCheckinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+            public void onClick(View v) {
+                translateToPos(v);
             }
         });
+        mergedCheckinNode.onSpot = onSpot;
+        rootLayout.addView(mergedCheckinNode.icon);
+        mergedCheckinNodeList.add(mergedCheckinNode);
+        return mergedCheckinNode;
     }
 
     private void showDialog(Checkin checkin) {
@@ -737,9 +679,9 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void translateToCenter() {
-        final float transX = rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2);
-        final float transY = rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2);
+    public void translateToCurrent() {
+        final float transX = mapCenterX - (gpsMarker.getTranslationX() + gpsMarkerPivotX);
+        final float transY = mapCenterY - (gpsMarker.getTranslationY() + gpsMarkerPivotY);
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
 
@@ -747,19 +689,19 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) <= Math.abs(deltaTransX) ||
-                        Math.abs(rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2)) <= Math.abs(deltaTransY)) {
-                    transformMat.postTranslate(
-                            rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2),
-                            rootLayoutHeight / 3 - (gpsMarker.getTranslationY() + gpsDirectionHeight + gpsMarkerHeight / 2));
-                    reRender();
+                float distanceToTransX = mapCenterX - (gpsMarker.getTranslationX() + gpsMarkerPivotX);
+                float distanceToTransY = mapCenterY - (gpsMarker.getTranslationY() + gpsMarkerPivotY);
+
+                if (Math.abs(distanceToTransX) <= Math.abs(deltaTransX) || Math.abs(distanceToTransY) <= Math.abs(deltaTransY)) {
+                    transformMat.postTranslate(distanceToTransX, distanceToTransY);
                     translationHandler.removeCallbacks(this);
+                    reRender();
                     gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
                     isGpsCurrent = true;
                 } else {
                     transformMat.postTranslate(deltaTransX, deltaTransY);
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - (gpsMarker.getTranslationX() + gpsMarkerWidth / 2)) < rootLayoutHeight / 4) {
+                    if (Math.abs(distanceToTransX) < 300) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -769,11 +711,40 @@ public class MapFragment extends Fragment {
             }
         };
         translationHandler.postDelayed(translationInterpolation, 2);
+//        final float alpha = 0.5f;
+//        final float threshold = 0.5f;
+//
+//        final Handler translationHandler = new Handler();
+//        Runnable translationInterpolation = new Runnable() {
+//            @Override
+//            public void run() {
+//                float fromX = gpsMarker.getTranslationX();
+//                float fromY = gpsMarker.getTranslationY();
+//                float toX = mapCenterX - gpsMarkerPivotX;
+//                float toY = mapCenterY - gpsMarkerPivotY;
+//
+//                if (Math.abs(fromX - toX) <= threshold || Math.abs(fromY - toY) <= threshold) {
+//                    transformMat.setTranslate(toX, toY);
+//                    reRender();
+//                    isGpsCurrent = true;
+//                    gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
+//                    translationHandler.removeCallbacks(this);
+//                } else {
+//                    transformMat.setTranslate(
+//                            lerp(fromX, toX, alpha),
+//                            lerp(fromY, toY, alpha)
+//                    );
+//                    reRender();
+//                    translationHandler.postDelayed(this, 2);
+//                }
+//            }
+//        };
+//        translationHandler.postDelayed(translationInterpolation, 2);
     }
 
-    private void translateToSpot(final SpotNode spotNode) {
-        final float transX = rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2));
-        final float transY = rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
+    public void translateToSpot(final SpotNode spotNode) {
+        final float transX = mapCenterX - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2));
+        final float transY = mapCenterY - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
         final float deltaTransX = transX / 10;
         final float deltaTransY = transY / 10;
         final float deltaScale = (2.2f - scale) / 10f;
@@ -782,11 +753,11 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransX) ||
-                        Math.abs(rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransY)) {
+                if (Math.abs(mapCenterX - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransX) ||
+                        Math.abs(mapCenterY - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2))) <= Math.abs(deltaTransY)) {
                     transformMat.postTranslate(
-                            rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2)),
-                            rootLayoutHeight / 3 - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2)));
+                            mapCenterX - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2)),
+                            mapCenterY - (spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2)));
 
                     if (scale < 2.2) {
                         transformMat.postTranslate(-spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2), -spotNode.icon.getTranslationY() - dpToPx(context, 12 / 2));
@@ -809,7 +780,7 @@ public class MapFragment extends Fragment {
                     }
 
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) < rootLayoutHeight / 4) {
+                    if (Math.abs(mapCenterY - (spotNode.icon.getTranslationX() - dpToPx(context, 12 / 2))) < 300) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -822,9 +793,9 @@ public class MapFragment extends Fragment {
         gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
     }
 
-    private void translateToPos(final View view) {
-        final float transX = rootLayoutWidth / 2 - view.getTranslationX();
-        final float transY = rootLayoutHeight / 3 - view.getTranslationY();
+    public void translateToPos(final View view) {
+        final float transX = mapCenterX - view.getTranslationX();
+        final float transY = mapCenterY - view.getTranslationY();
         final float deltaTransX = transX / 10f;
         final float deltaTransY = transY / 10f;
         final float deltaScale = (2.2f - scale) / 10f;
@@ -833,11 +804,11 @@ public class MapFragment extends Fragment {
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rootLayoutWidth / 2 - view.getTranslationX()) <= Math.abs(deltaTransX) ||
-                        Math.abs(rootLayoutHeight / 3 - view.getTranslationY()) <= Math.abs(deltaTransY)) {
+                if (Math.abs(mapCenterX - view.getTranslationX()) <= Math.abs(deltaTransX) ||
+                        Math.abs(mapCenterY - view.getTranslationY()) <= Math.abs(deltaTransY)) {
                     transformMat.postTranslate(
-                            rootLayoutWidth / 2 - view.getTranslationX(),
-                            rootLayoutHeight / 3 - view.getTranslationY());
+                            mapCenterX - view.getTranslationX(),
+                            mapCenterY - view.getTranslationY());
 
                     if (scale < 2.2) {
                         transformMat.postTranslate(-view.getTranslationX(), -view.getTranslationY());
@@ -859,7 +830,7 @@ public class MapFragment extends Fragment {
                     }
 
                     reRender();
-                    if (Math.abs(rootLayoutWidth / 2 - view.getTranslationX()) < rootLayoutHeight / 4) {
+                    if (Math.abs(mapCenterX - view.getTranslationX()) < 300) {
                         // slow down
                         translationHandler.postDelayed(this, 5);
                     } else {
@@ -872,22 +843,47 @@ public class MapFragment extends Fragment {
         gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
     }
 
-    private void rotateToNorth() {
+    public void translateToGps(float lat, float lng) {
+
+        if (scale < 2.2) {
+            transformMat.postTranslate(-mapCenterX, -mapCenterY);
+            transformMat.postScale(2.2f / scale, 2.2f / scale);
+            transformMat.postTranslate(mapCenterX, mapCenterY);
+            scale = 2.2f;
+        }
+
+        float[] point = gpsToImgPx(realMesh, warpMesh, lat, lng);
+        Matrix checkInIconTransform = new Matrix();
+        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
+        transformMat.mapPoints(point);
+        checkInIconTransform.mapPoints(point);
+
+        final float transX = mapCenterX - point[0];
+        final float transY = mapCenterY - point[1];
+        transformMat.postTranslate(transX, transY);
+
+        reRender();
+
+
+        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
+    }
+
+    public void rotateToNorth() {
         final float deltaAngle = rotation / 10;
 
         final Handler rotationHandler = new Handler();
         Runnable rotationInterpolation = new Runnable() {
             @Override
             public void run() {
-                transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
+                transformMat.postTranslate(-mapCenterX, -mapCenterY);
                 transformMat.postRotate(-deltaAngle);
-                transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
+                transformMat.postTranslate(mapCenterX, mapCenterY);
                 rotation -= deltaAngle;
                 reRender();
                 if (Math.abs(rotation) <= Math.abs(deltaAngle)) {
-                    transformMat.postTranslate(-rootLayoutWidth / 2, -rootLayoutHeight / 3);
+                    transformMat.postTranslate(-mapCenterX, -mapCenterY);
                     transformMat.postRotate(-rotation);
-                    transformMat.postTranslate(rootLayoutWidth / 2, rootLayoutHeight / 3);
+                    transformMat.postTranslate(mapCenterX, mapCenterY);
                     rotation = 0;
                     reRender();
                     rotationHandler.removeCallbacks(this);
@@ -900,18 +896,18 @@ public class MapFragment extends Fragment {
         rotationHandler.postDelayed(rotationInterpolation, 1);
     }
 
-    public void handleLocationChange(double lat, double lng) {
+    public void handleLocationChange(float lat, float lng) {
 
-        float[] point = gpsToImgPx(realMesh, warpMesh, (float) lat, (float) lng);
+        float[] imgPx = gpsToImgPx(realMesh, warpMesh, lat, lng);
 
-        gpsDistortedX = point[0];
-        gpsDistortedY = point[1];
+        gpsDistortedX = imgPx[0];
+        gpsDistortedY = imgPx[1];
 
         reRender();
 
         // check whether it should update fog or not
         double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
-        if (distance > 5.0) {
+        if (distance > FOG_UPDATE_THRESHOLD) {
             // update fog map
             Paint paint = new Paint();
             paint.setColor(Color.TRANSPARENT);
@@ -933,131 +929,6 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public void handleCheckinMsg(final String postId, double lat, double lng) {
-
-        // calculate distorted gps value
-        float latDistorted = 0;
-        float lngDistorted = 0;
-        double imgX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
-        double imgY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
-        IdxWeights idxWeights = realMesh.getPointInTriangleIdx(imgX, imgY);
-        if (idxWeights.idx >= 0) {
-            double[] newPos = warpMesh.interpolatePosition(idxWeights);
-            lngDistorted = (float) newPos[0];
-            latDistorted = (float) newPos[1];
-        }
-
-        // add new icon ImageView
-        ImageView checkinIcon = new ImageView(context);
-        checkinIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
-        checkinIcon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        checkinIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog(postId);
-            }
-        });
-        rootLayout.addView(checkinIcon);
-
-        // transform to distorted gps value
-        Matrix checkInIconTransform = new Matrix();
-        checkInIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
-        float[] point = new float[]{lngDistorted, latDistorted};
-        transformMat.mapPoints(point);
-        checkInIconTransform.mapPoints(point);
-        checkinIcon.setTranslationX(point[0]);
-        checkinIcon.setTranslationY(point[1]);
-//        checkinIconList.add(checkinIcon);
-    }
-
-    public void handleCheckinMsg(final String postId, final Checkin checkin) {
-
-        float[] gpsDistorted = gpsToImgPx(realMesh, warpMesh, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-        ImageNode checkinNode = new ImageNode(gpsDistorted[0], gpsDistorted[1]);
-
-        // create icon ImageView
-        ImageView checkinIcon = new ImageView(context);
-        checkinIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
-        checkinIcon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        checkinIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog(checkin);
-            }
-        });
-        // add to rootlayout
-        rootLayout.addView(checkinIcon);
-        // add into list
-        checkinNode.icon = checkinIcon;
-        checkinList.add(checkinNode);
-
-        // add into spot
-        // find out whether the location is in spotlist or not.
-        SpotNode spotNode = spotList.primarySpot.get(checkin.location);
-        if (spotNode != null) {
-            // this is the first checkinIcon of this spot
-            if (spotNode.checkins == null) {
-                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-                View icon = inflater.inflate(R.layout.item_bigcheckin, null);
-                icon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        translateToPos(v);
-                    }
-                });
-                rootLayout.addView(icon);
-
-                MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(spotNode.x, spotNode.y);
-                mergedCheckinNode.icon = icon;
-                spotNode.checkins = mergedCheckinNode;
-                spotCheckinList.add(mergedCheckinNode);
-            }
-            spotNode.checkins.checkinList.add(checkinNode);
-            TextView checkinNumCircle = (TextView) spotNode.checkins.icon.findViewById(R.id.checkin_num);
-            checkinNumCircle.setText(String.valueOf(spotNode.checkins.checkinList.size()));
-        } else {
-            // find cluster to join or create a new one
-            boolean newCluster = true;
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinList) {
-                double distance = Math.pow(checkinNode.x - mergedCheckinNode.x, 2) + Math.pow(checkinNode.y - mergedCheckinNode.y, 2);
-                if (distance < 20500) {
-                    int clusterSize = mergedCheckinNode.checkinList.size();
-                    mergedCheckinNode.checkinList.add(checkinNode);
-                    TextView checkinNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                    checkinNumCircle.setText(String.valueOf(clusterSize + 1));
-
-                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + checkinNode.x) / (clusterSize + 1);
-                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + checkinNode.y) / (clusterSize + 1);
-
-                    newCluster = false;
-                    break;
-                }
-            }
-
-            // cluster not found, create a new cluster
-            if (newCluster) {
-                LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-                View icon = inflater.inflate(R.layout.item_bigcheckin, null);
-                icon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        translateToPos(v);
-                    }
-                });
-                rootLayout.addView(icon);
-
-                MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(checkinNode.x, checkinNode.y);
-                mergedCheckinNode.checkinList.add(checkinNode);
-                mergedCheckinNode.icon = icon;
-
-                mergedCheckinList.add(mergedCheckinNode);
-                TextView checkinNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                checkinNumCircle.setText(String.valueOf(mergedCheckinNode.checkinList.size()));
-            }
-        }
-        reRender();
-    }
-
     public void switchFog(boolean flag) {
         if (flag) {
             fogMap.setVisibility(View.VISIBLE);
@@ -1074,16 +945,6 @@ public class MapFragment extends Fragment {
         } else {
             for (ImageNode imageNode : edgeNodeList) {
                 imageNode.icon.setVisibility(View.GONE);
-            }
-        }
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (actionBar != null) {
-            if (getUserVisibleHint()) {
-                actionBar.setSubtitle("Map");
             }
         }
     }

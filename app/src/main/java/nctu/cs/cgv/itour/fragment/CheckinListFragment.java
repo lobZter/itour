@@ -1,5 +1,6 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -35,7 +36,7 @@ public class CheckinListFragment extends Fragment {
     private static final String TAG = "CheckinListFragment";
     private List<Checkin> checkins;
     private CheckinItemAdapter checkinItemAdapter;
-    private ListView checkinList;
+    private SwipeMenuListView checkinList;
     private DatabaseReference databaseReference;
 
     public CheckinListFragment() {
@@ -50,21 +51,57 @@ public class CheckinListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        databaseReference = FirebaseDatabase.getInstance().getReference();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_checkin_list, container, false);
+        return inflater.inflate(R.layout.fragment_swipe_menu_list_view, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        databaseReference = FirebaseDatabase.getInstance().getReference();
+        checkinList = (SwipeMenuListView) view.findViewById(R.id.list_view);
+        checkinList.setMenuCreator(new SwipeMenuCreator() {
 
-        checkinList = (ListView) view.findViewById(R.id.checkin_list);
+            @Override
+            public void create(SwipeMenu menu) {
+                SwipeMenuItem mapItem = new SwipeMenuItem(getContext());
+                mapItem.setBackground(R.color.gps_marker_color);
+                mapItem.setWidth(dpToPx(getContext(), 72));
+                mapItem.setIcon(R.drawable.ic_gps_fixed_white_24dp);
+                mapItem.setTitle("locate");
+                mapItem.setTitleColor(Color.WHITE);
+                mapItem.setTitleSize(12);
+                menu.addMenuItem(mapItem);
 
-        // all checkins
+                SwipeMenuItem viewItem = new SwipeMenuItem(getContext());
+                viewItem.setBackground(R.color.md_blue_grey_500);
+                viewItem.setWidth(dpToPx(getContext(), 72));
+                viewItem.setIcon(R.drawable.ic_picture_in_picture_white_24dp);
+                viewItem.setTitle("view");
+                viewItem.setTitleColor(Color.WHITE);
+                viewItem.setTitleSize(12);
+                menu.addMenuItem(viewItem);
+
+            }
+        });
+        checkinList.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
+                switch (index) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                }
+                return false; // false : close the menu; true : not close the menu
+            }
+        });
+        checkinList.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
+
+        // all mergedCheckinNode
         Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -88,23 +125,8 @@ public class CheckinListFragment extends Fragment {
         });
     }
 
-    public void addCheckin(final String postId) {
-        Query query = databaseReference.child("checkin").child(mapTag).child(postId);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(final DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                    checkin.key = postId;
-                    checkinItemAdapter.add(checkin);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
-            }
-        });
+    public void addCheckin(final Checkin checkin) {
+        checkinItemAdapter.add(checkin);
     }
 
 }
