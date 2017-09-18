@@ -2,6 +2,7 @@ package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,9 +25,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
@@ -70,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
+    // Checkins
+    private ArrayList<Checkin> checkinList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,9 +89,43 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void init() {
+
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCanceledOnTouchOutside(false);
+        progressDialog.show();
+
         setSensors();
         setBroadcastReceiver();
         setView();
+
+        checkinList = new ArrayList<>();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        Query query = databaseReference.child("checkin").child(mapTag);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
+                        Checkin checkin = issue.getValue(Checkin.class);
+                        checkin.key = issue.getKey();
+                        checkinList.add(checkin);
+                    }
+                }
+
+                mapFragment.addCheckins(checkinList);
+                listFragment.addCheckins(checkinList);
+
+                progressDialog.dismiss();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
+                Toast.makeText(getApplicationContext(), "updateCheckin(): onCancelled", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void setView() {

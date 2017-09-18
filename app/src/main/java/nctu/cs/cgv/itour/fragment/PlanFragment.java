@@ -28,7 +28,7 @@ public class PlanFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_plan, parent, false);
+        return inflater.inflate(R.layout.fragment_list_view, parent, false);
     }
 
     @Override

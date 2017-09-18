@@ -70,6 +70,7 @@ import nctu.cs.cgv.itour.object.SpotNode;
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.dpToPx;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
@@ -122,8 +123,6 @@ public class MapFragment extends Fragment {
     private List<ImageNode> pathEdgeNodeList;
     private List<MergedCheckinNode> mergedCheckinNodeList;
     private List<ImageNode> checkinNodeList;
-    private List<Checkin> checkinList;
-    private SpotList spotList;
     private Mesh realMesh;
     private Mesh warpMesh;
     private EdgeNode edgeNode;
@@ -162,13 +161,11 @@ public class MapFragment extends Fragment {
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
-        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
         edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
         edgeNodeList = new ArrayList<>();
         pathEdgeNodeList = new ArrayList<>();
         checkinNodeList = new ArrayList<>();
         mergedCheckinNodeList = new ArrayList<>();
-        checkinList = new ArrayList<>();
         transformMat = new Matrix();
     }
 
@@ -271,8 +268,6 @@ public class MapFragment extends Fragment {
                 floatingActionsMenu.collapseImmediately();
             }
         });
-
-        updateCheckin();
 
         setTouchListener();
 
@@ -558,41 +553,7 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void updateCheckin() {
-        final ProgressDialog progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Loading...");
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-
-        Query query = databaseReference.child("checkin").child(mapTag);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                        Checkin checkin = issue.getValue(Checkin.class);
-                        checkin.key = issue.getKey();
-                        addCheckin(checkin);
-                    }
-                }
-
-                reRender();
-                progressDialog.dismiss();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
-                Toast.makeText(context, "updateCheckin(): onCancelled", Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
     public void addCheckin(final Checkin checkin) {
-
-        checkinList.add(checkin);
-
         float[] imgPx = gpsToImgPx(realMesh, warpMesh, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
         ImageNode checkinNode = new ImageNode(imgPx[0], imgPx[1]);
         checkinNodeList.add(checkinNode);
@@ -610,6 +571,13 @@ public class MapFragment extends Fragment {
         rootLayout.addView(checkinNode.icon);
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
+    }
+
+    public void addCheckins(ArrayList<Checkin> checkins) {
+        for(Checkin checkin : checkins) {
+            addCheckin(checkin);
+        }
+        reRender();
     }
 
     private void addMergedCheckin(String spotName, float x, float y) {

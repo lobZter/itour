@@ -34,11 +34,13 @@ public class PersonalFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_personal, parent, false);
+        return inflater.inflate(R.layout.fragment_list, parent, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+
+        actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
 
         tabTitles = new String[]{"Posted", "Saved"};
 
@@ -69,7 +71,6 @@ public class PersonalFragment extends Fragment {
 
         tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
-        actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
     }
 
     @Override
