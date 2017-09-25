@@ -25,20 +25,23 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import java.security.AlgorithmConstraints;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import nctu.cs.cgv.itour.MyViewPager;
 import nctu.cs.cgv.itour.R;
@@ -46,7 +49,6 @@ import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
-import nctu.cs.cgv.itour.fragment.SavedCheckinFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 
@@ -54,13 +56,16 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
-        SettingsFragment.OnDistanceIndicatorListener,
-        SavedCheckinFragment.CheckinListItemListener {
+        SettingsFragment.OnDistanceIndicatorListener {
 
     private static final String TAG = "MainActivity";
+    // Checkins
+    public static Map<String, Checkin> checkinMap;
+    public static Map<String, Boolean> savedPostId;
     // view objects
     private MyViewPager viewPager;
     private List<Fragment> fragmentList;
+    private ProgressDialog progressDialog;
     // MapFragment: communicate by calling fragment method
     private MapFragment mapFragment;
     private ListFragment listFragment;
@@ -73,8 +78,6 @@ public class MainActivity extends AppCompatActivity implements
     private Sensor magnetometer;
     private float[] gravity;
     private float[] geomagnetic;
-    // Checkins
-    private ArrayList<Checkin> checkinList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,8 +92,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void init() {
+        checkinMap = new HashMap<>();
+        savedPostId = new HashMap<>();
 
-        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Loading...");
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
@@ -99,7 +104,10 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setView();
 
-        checkinList = new ArrayList<>();
+        queryCheckin();
+    }
+
+    private void queryCheckin() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -110,20 +118,113 @@ public class MainActivity extends AppCompatActivity implements
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         Checkin checkin = issue.getValue(Checkin.class);
                         checkin.key = issue.getKey();
-                        checkinList.add(checkin);
+                        checkinMap.put(checkin.key, checkin);
                     }
                 }
 
-                mapFragment.addCheckins(checkinList);
-                listFragment.addCheckins(checkinList);
+                querySavedPostId();
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w(TAG, "queryCheckin(): onCancelled", databaseError.toException());
+                progressDialog.dismiss();
+            }
+        });
+
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                checkin.key = dataSnapshot.getKey();
+                checkinMap.put(dataSnapshot.getKey(), checkin);
+                mapFragment.addCheckin(checkin);
+                listFragment.addCheckin(checkin);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                // Won't encounter.
+                Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                checkin.key = dataSnapshot.getKey();
+                checkinMap.put(dataSnapshot.getKey(), checkin);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                checkin.key = dataSnapshot.getKey();
+                checkinMap.remove(dataSnapshot.getKey());
+                mapFragment.removeCheckin(checkin);
+                listFragment.removeCheckin(checkin);
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void querySavedPostId() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final Query saveQuery = databaseReference.child("user").child(uid).child("saved");
+        saveQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    savedPostId = (Map<String, Boolean>) dataSnapshot.getValue();
+                    for (Map.Entry<String, Boolean> entry : savedPostId.entrySet()) {
+                        if (entry.getValue()) {
+                            checkinMap.get(entry.getKey()).saved = true;
+                        }
+                    }
+                }
+
+                mapFragment.addCheckins();
+                listFragment.addCheckins();
                 progressDialog.dismiss();
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "updateCheckin(): onCancelled", databaseError.toException());
-                Toast.makeText(getApplicationContext(), "updateCheckin(): onCancelled", Toast.LENGTH_LONG).show();
+                Log.d(TAG, "querySavedPostId(): onCancelled");
+                progressDialog.dismiss();
+            }
+        });
+
+        saveQuery.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                checkinMap.get(dataSnapshot.getKey()).saved = (boolean) dataSnapshot.getValue();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                checkinMap.get(dataSnapshot.getKey()).saved = (boolean) dataSnapshot.getValue();
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                savedPostId.remove(dataSnapshot.getKey());
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "ChildEventListener: onCancelled");
             }
         });
     }
@@ -181,31 +282,34 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setBroadcastReceiver() {
-        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
+//        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
 
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, final Intent intent) {
                 switch (intent.getAction()) {
                     case "checkinIcon":
-                        final String postId = intent.getStringExtra("postId");
-                        Query query = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(postId);
-                        query.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(final DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.exists()) {
-                                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                                    checkin.key = postId;
-                                    mapFragment.addCheckin(checkin);
-                                    listFragment.addCheckin(checkin);
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-                                Log.w(TAG, "addCheckin(): onCancelled", databaseError.toException());
-                            }
-                        });
+//                        final String postId = intent.getStringExtra("postId");
+//                        Query query = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(postId);
+//                        query.addListenerForSingleValueEvent(new ValueEventListener() {
+//                            @Override
+//                            public void onDataChange(final DataSnapshot dataSnapshot) {
+//                                if (dataSnapshot.exists()) {
+//                                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+//                                    if (checkin.like == null) checkin.like = new HashMap<>();
+//                                    checkin.key = postId;
+//                                    checkinMap.put(checkin.key, checkin);
+//
+//                                    mapFragment.addCheckin(checkin);
+//                                    listFragment.addCheckin(checkin);
+//                                }
+//                            }
+//
+//                            @Override
+//                            public void onCancelled(DatabaseError databaseError) {
+//                                Log.w(TAG, "addCheckin(): onCancelled", databaseError.toException());
+//                            }
+//                        });
                         break;
 
                     case "gpsLocation":
@@ -341,8 +445,7 @@ public class MainActivity extends AppCompatActivity implements
                     boolean storagePermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
                     boolean gpsPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-                    if(storagePermission && gpsPermission)
-                    {
+                    if (storagePermission && gpsPermission) {
                         init();
                     } else {
                         showExplanation();
@@ -352,7 +455,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    @Override
     public void onLocateClick(Checkin checkin) {
         mapFragment.translateToGps(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
         viewPager.setCurrentItem(0);

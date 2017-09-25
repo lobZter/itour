@@ -1,8 +1,5 @@
 package nctu.cs.cgv.itour.object;
 
-import android.content.Context;
-import android.widget.ImageView;
-
 import com.google.firebase.database.Exclude;
 
 import java.util.HashMap;
@@ -22,7 +19,10 @@ public class Checkin {
     public String type;
     public String uid;
     public String username;
+
     public String key;
+    public boolean saved = false;
+    public Map<String, Boolean> like = new HashMap<>();
 
     public Checkin() {
     }

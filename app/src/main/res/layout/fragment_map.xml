@@ -12,20 +12,8 @@
         android:id="@+id/touristmap"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_gps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/menu_add"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="24dp"
-        android:elevation="8dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp"
-        app:backgroundTint="@color/md_white_1000" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" />
 
     <com.getbase.floatingactionbutton.FloatingActionsMenu
         android:id="@+id/menu_add"
@@ -33,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
         android:clipChildren="false"
         android:clipToPadding="false"
@@ -48,6 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_image_black_24dp"
+            android:visibility="gone"
             app:backgroundTint="@color/md_white_1000" />
 
         <android.support.design.widget.FloatingActionButton
@@ -55,9 +44,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_mic_black_24dp"
+            android:visibility="gone"
             app:backgroundTint="@color/md_white_1000" />
 
     </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/btn_gps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/menu_add"
+        android:layout_alignEnd="@+id/menu_add"
+        android:layout_marginBottom="16dp"
+        android:elevation="8dp"
+        android:src="@drawable/ic_gps_fixed_blue_24dp"
+        app:backgroundTint="@color/md_white_1000" />
 
     <LinearLayout
         android:id="@+id/gps_marker"

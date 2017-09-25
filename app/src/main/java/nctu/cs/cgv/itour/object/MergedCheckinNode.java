@@ -1,14 +1,10 @@
 package nctu.cs.cgv.itour.object;
 
-import android.view.View;
-
-import java.util.ArrayList;
-
 /**
  * Created by lobst3rd on 2017/8/15.
  */
 
-public class MergedCheckinNode extends ImageNode{
+public class MergedCheckinNode extends ImageNode {
 
     public int checkinNum;
     public boolean onSpot;

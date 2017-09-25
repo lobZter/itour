@@ -51,11 +51,13 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
@@ -118,6 +120,9 @@ public class MapFragment extends Fragment {
     private FloatingActionButton gpsBtn;
     private Bitmap fogBitmap;
     private ActionBar actionBar;
+    private FloatingActionButton audioBtn;
+    private FloatingActionButton photoBtn;
+    private FloatingActionsMenu floatingActionsMenu;
     // objects
     private List<ImageNode> edgeNodeList;
     private List<ImageNode> pathEdgeNodeList;
@@ -127,8 +132,6 @@ public class MapFragment extends Fragment {
     private Mesh warpMesh;
     private EdgeNode edgeNode;
     private LayoutInflater inflater;
-    // Firebase real-time database
-    private DatabaseReference databaseReference;
     // gestures
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
@@ -152,8 +155,6 @@ public class MapFragment extends Fragment {
 
         // load preferences
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-        databaseReference = FirebaseDatabase.getInstance().getReference();
 
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
 
@@ -180,10 +181,10 @@ public class MapFragment extends Fragment {
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
+        audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
+        photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
+        floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
         FrameLayout frameLayout = (FrameLayout) view.findViewById(R.id.touristmap);
-        FloatingActionButton audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
-        FloatingActionButton photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
-        final FloatingActionsMenu floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
 
         // set subtitle
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -266,6 +267,21 @@ public class MapFragment extends Fragment {
             public void onClick(View v) {
                 startActivity(new Intent(context, PhotoCheckinActivity.class));
                 floatingActionsMenu.collapseImmediately();
+            }
+        });
+        floatingActionsMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
+            @Override
+            public void onMenuExpanded() {
+                // make it clickable
+                audioBtn.setVisibility(View.VISIBLE);
+                photoBtn.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onMenuCollapsed() {
+                // prevent intercepting touch event for float action menu_search
+                audioBtn.setVisibility(View.GONE);
+                photoBtn.setVisibility(View.GONE);
             }
         });
 
@@ -573,11 +589,17 @@ public class MapFragment extends Fragment {
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
     }
 
-    public void addCheckins(ArrayList<Checkin> checkins) {
-        for(Checkin checkin : checkins) {
+    public void addCheckins() {
+
+        for(Map.Entry<String, Checkin> entry : ((MainActivity) getActivity()).checkinMap.entrySet()) {
+            Checkin checkin = entry.getValue();
             addCheckin(checkin);
         }
         reRender();
+    }
+
+    public void removeCheckin(final Checkin checkin) {
+
     }
 
     private void addMergedCheckin(String spotName, float x, float y) {
@@ -639,10 +661,10 @@ public class MapFragment extends Fragment {
     private void showDialog(Checkin checkin) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         if (Objects.equals(checkin.type, "audio")) {
-            AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin);
+            AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin.key);
             audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
         } else if (Objects.equals(checkin.type, "photo")) {
-            PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkin);
+            PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkin.key);
             photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
         }
     }

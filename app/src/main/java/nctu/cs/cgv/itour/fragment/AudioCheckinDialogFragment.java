@@ -36,19 +36,20 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
 public class AudioCheckinDialogFragment extends DialogFragment {
 
     private static final String TAG = "AudioCheckinDialogFragment";
 
+    private String postId;
+
+    private DatabaseReference databaseReference;
+
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
     private ImageView playBtn;
-
-    private Checkin checkin;
-
-    private DatabaseReference databaseReference;
 
     private Handler progressBarHandler;
     private Runnable progressBarRunnable;
@@ -58,21 +59,24 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     private boolean isPlaying = false;
     private boolean audioReady = false;
 
-    private boolean isSaved = false;
-    private boolean isLiked = false;
-
     public AudioCheckinDialogFragment() {
     }
 
-    public static AudioCheckinDialogFragment newInstance(Checkin checkin) {
+    public static AudioCheckinDialogFragment newInstance(String postId) {
         AudioCheckinDialogFragment audioCheckinDialogFragment = new AudioCheckinDialogFragment();
-        audioCheckinDialogFragment.checkin = checkin;
+        Bundle args = new Bundle();
+        args.putString("postId", postId);
+        audioCheckinDialogFragment.setArguments(args);
         return audioCheckinDialogFragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            postId = getArguments().getString("postId");
+        }
+
         databaseReference = FirebaseDatabase.getInstance().getReference();
         progressBarHandler = new Handler();
     }
@@ -85,6 +89,8 @@ public class AudioCheckinDialogFragment extends DialogFragment {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        final Checkin checkin = checkinMap.get(postId);
 
         ((TextView) view.findViewById(R.id.tv_name)).setText(checkin.username);
         ((TextView) view.findViewById(R.id.tv_location)).setText(checkin.location);
@@ -135,16 +141,17 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isLiked) {
-                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
-                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
-                } else {
+                if (checkin.like.get(uid)) {
                     likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_black_24dp));
                     likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                    checkinMap.get(postId).like.put(uid, false);
+                } else {
+                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
+                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
+                    checkinMap.get(postId).like.put(uid, true);
                 }
-                isLiked = !isLiked;
             }
         });
 
@@ -154,56 +161,28 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isSaved) {
-                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
-                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
-                } else {
+                if (checkinMap.get(postId).saved) {
                     saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_black_24dp));
                     saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
+                } else {
+                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
+                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
-                isSaved = !isSaved;
+                checkinMap.get(postId).saved = !checkinMap.get(postId).saved;
             }
         });
 
-        Query likeQuery = databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid);
-        likeQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
-                        likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
-                        likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                    }
-                }
-                Log.d(TAG, dataSnapshot.toString());
-            }
+        if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
+            likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
+            likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+        }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "onCancelled");
-            }
-        });
-
-        Query saveQuery = databaseReference.child("user").child(uid).child("saved").child(checkin.key);
-        saveQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    if(Boolean.valueOf(dataSnapshot.getValue().toString())) {
-                        saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
-                        saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                    }
-                }
-                Log.d(TAG, dataSnapshot.toString());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "onCancelled");
-            }
-        });
+        if (checkin.saved) {
+            saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
+            saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+        }
     }
 
     private void initAudio(final String filePath) {

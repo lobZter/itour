@@ -161,7 +161,7 @@ public class PostedCheckinFragment extends Fragment {
                         checkins.add(checkin);
                     }
                 }
-                checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(checkins), getActivity().getSupportFragmentManager());
+                checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<>(checkins));
                 checkinList.setAdapter(checkinItemAdapter);
             }
 

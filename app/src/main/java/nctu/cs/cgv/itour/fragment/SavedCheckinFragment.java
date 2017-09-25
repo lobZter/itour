@@ -37,11 +37,6 @@ public class SavedCheckinFragment extends Fragment {
     private CheckinItemAdapter checkinItemAdapter;
     private SwipeMenuListView checkinList;
     private DatabaseReference databaseReference;
-    private CheckinListItemListener checkinListItemListener;
-
-    public interface CheckinListItemListener {
-        void onLocateClick(Checkin checkin);
-    }
 
     public SavedCheckinFragment() {
         // Required empty public constructor
@@ -107,7 +102,6 @@ public class SavedCheckinFragment extends Fragment {
                 switch (index) {
                     case 0:
                         Checkin checkin = checkinItemAdapter.getItem(position);
-                        checkinListItemListener.onLocateClick(checkin);
                         break;
                     case 1:
                         break;
@@ -119,7 +113,7 @@ public class SavedCheckinFragment extends Fragment {
         });
         checkinList.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
 
-        checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<Checkin>(), getActivity().getSupportFragmentManager());
+        checkinItemAdapter = new CheckinItemAdapter(getContext(), new ArrayList<Checkin>());
         checkinList.setAdapter(checkinItemAdapter);
 
         final List<String> checkinIds = new ArrayList<>();
@@ -163,16 +157,6 @@ public class SavedCheckinFragment extends Fragment {
                 Log.w(TAG, "checkinIds: onCancelled", databaseError.toException());
             }
         });
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            checkinListItemListener = (CheckinListItemListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString() + " must implement checkinListItemListener");
-        }
     }
 
 }

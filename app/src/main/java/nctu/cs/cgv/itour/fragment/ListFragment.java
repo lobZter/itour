@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -106,7 +107,6 @@ public class ListFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        inflater.inflate(R.menu.menu_filter, menu);
         inflater.inflate(R.menu.checkin_filter_menu, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -114,17 +114,12 @@ public class ListFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-//            case R.id.btn_filter:
-//                Log.d(TAG, "onOptionsItemSelected():" + isMyCheckins);
-//                if (isMyCheckins) {
-//                    checkinList.setVisibility(View.VISIBLE);
-//                    myCheckinList.setVisibility(View.GONE);
-//                } else {
-//                    checkinList.setVisibility(View.GONE);
-//                    myCheckinList.setVisibility(View.VISIBLE);
-//                }
-//                isMyCheckins = !isMyCheckins;
-//                return true;
+            case R.id.hot:
+                return true;
+            case R.id.time:
+                return true;
+            case R.id.distance:
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -134,7 +129,11 @@ public class ListFragment extends Fragment {
         checkinListFragment.addCheckin(checkin);
     }
 
-    public void addCheckins(ArrayList<Checkin> checkins) {
-        checkinListFragment.addCheckins(checkins);
+    public void removeCheckin(Checkin checkin) {
+        checkinListFragment.removeCheckin(checkin);
+    }
+
+    public void addCheckins() {
+        checkinListFragment.addCheckins();
     }
 }

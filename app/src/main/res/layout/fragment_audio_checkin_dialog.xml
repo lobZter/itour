@@ -121,13 +121,13 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:padding="12dp"
             android:id="@+id/btn_like"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -150,13 +150,13 @@
             android:background="@color/divider" />
 
         <LinearLayout
-            android:padding="12dp"
             android:id="@+id/btn_save"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="wrap_content"
