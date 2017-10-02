@@ -138,13 +138,13 @@ public class MainActivity extends AppCompatActivity implements
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);
-                mapFragment.addCheckin(checkin);
-                listFragment.addCheckin(checkin);
+//                mapFragment.addCheckin(checkin);
+//                listFragment.addCheckin(checkin);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                // Won't encounter.
+                // like change
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);

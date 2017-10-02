@@ -23,12 +23,14 @@ import android.widget.Toast;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 
 public class PhotoCheckinActivity extends AppCompatActivity {
 
@@ -139,7 +141,7 @@ public class PhotoCheckinActivity extends AppCompatActivity {
                 Bitmap bitmap = BitmapFactory.decodeFile(path);
                 // /data/user/0/nctu.cs.cgv.itour/cache/cropped1795714260.jpg
                 // getCacheDir()
-                filename = path.substring(path.lastIndexOf("/") + 1);
+                moveFile(path.substring(0, path.lastIndexOf("/")), path.substring(path.lastIndexOf("/") + 1), getExternalCacheDir().toString());
                 pickedPhoto.setImageBitmap(bitmap);
                 pickedPhoto.setVisibility(View.VISIBLE);
                 cancelBtn.setVisibility(View.VISIBLE);

@@ -611,14 +611,14 @@ public class LocationChooseActivity extends AppCompatActivity {
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
         // rename file with postId
         if (type.equals("photo")) {
-            File from = new File(getCacheDir().toString() + "/" + filename);
-            File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
+            File from = new File(getExternalCacheDir().toString() + "/" + filename);
+            File to = new File(getExternalCacheDir().toString() + "/" + key + ".jpg");
             filename = key + ".jpg";
             from.renameTo(to);
         }
         if (type.equals("audio")) {
-            File from = new File(getCacheDir().toString() + "/" + filename);
-            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
+            File from = new File(getExternalCacheDir().toString() + "/" + filename);
+            File to = new File(getExternalCacheDir().toString() + "/" + key + ".mp4");
             from.renameTo(to);
             filename = key + ".mp4";
         }
@@ -641,7 +641,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    File file = new File(getCacheDir().toString() + "/" + filename);
+                    File file = new File(getExternalCacheDir().toString() + "/" + filename);
                     if (file.exists())
                         params.put("file", file);
                     params.put("mapTag", mapTag);

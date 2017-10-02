@@ -61,9 +61,6 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
     private boolean isPlaying = false;
     private boolean audioReady = false;
 
-    private boolean isLiked;
-    private boolean isSaved;
-
     public CheckinItemAdapter(Context context, List<Checkin> checkinItems) {
         super(context, 0, checkinItems);
         this.context = context;
@@ -161,16 +158,15 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
         likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isLiked) {
-                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
-                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
-                } else {
+                if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
                     likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_black_24dp));
                     likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                } else {
+                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
+                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
                 }
-                isLiked = !isLiked;
             }
         });
 
@@ -180,17 +176,16 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (isSaved) {
-                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
-                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
-                } else {
+                if (checkin.saved) {
                     saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_black_24dp));
                     saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
+                } else {
+                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
+                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
-                isSaved = !isSaved;
+                checkin.saved = !checkin.saved;
             }
         });
 

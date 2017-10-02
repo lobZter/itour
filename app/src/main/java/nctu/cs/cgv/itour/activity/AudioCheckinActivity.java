@@ -191,7 +191,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(getCacheDir().toString() + "/" + filename);
+        mediaRecorder.setOutputFile(getExternalCacheDir().toString() + "/" + filename);
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
@@ -250,7 +250,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
-            mediaPlayer.setDataSource(getCacheDir().toString() + "/" + filename);
+            mediaPlayer.setDataSource(getExternalCacheDir().toString() + "/" + filename);
             mediaPlayer.prepare();
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
