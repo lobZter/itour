@@ -7,13 +7,17 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
@@ -78,9 +82,8 @@ public class Utility {
         try {
 
             //create output directory if it doesn't exist
-            File dir = new File (outputPath);
-            if (!dir.exists())
-            {
+            File dir = new File(outputPath);
+            if (!dir.exists()) {
                 dir.mkdirs();
             }
 
@@ -108,6 +111,32 @@ public class Utility {
         } catch (Exception e) {
             Log.e("moveFile", e.getMessage());
         }
+    }
 
+    public static void actionLog(String log) {
+        AsyncHttpClient client = new AsyncHttpClient();
+        client.get("https://food-map-lobst3rd.c9users.io/actionLog?user="+ FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+"&log="+log,
+                new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        // called when response HTTP status is "200 OK"
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                    }
+                });
     }
 }

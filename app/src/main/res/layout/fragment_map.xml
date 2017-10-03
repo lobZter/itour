@@ -56,6 +56,7 @@
         android:layout_above="@+id/menu_add"
         android:layout_alignEnd="@+id/menu_add"
         android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
         android:elevation="8dp"
         android:src="@drawable/ic_gps_fixed_blue_24dp"
         app:backgroundTint="@color/md_white_1000" />

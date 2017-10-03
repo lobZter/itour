@@ -60,6 +60,7 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
@@ -636,6 +637,9 @@ public class LocationChooseActivity extends AppCompatActivity {
         databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+
+                actionLog("Post Checkin");
+
                 // upload file
                 AsyncHttpClient client = new AsyncHttpClient();
                 RequestParams params = new RequestParams();

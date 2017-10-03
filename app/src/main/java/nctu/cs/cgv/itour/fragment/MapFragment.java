@@ -73,6 +73,7 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.dpToPx;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
@@ -229,6 +230,7 @@ public class MapFragment extends Fragment {
                     Intent intent = new Intent(context, SpotInfoActivity.class);
                     intent.putExtra("spotName", spotNode.name);
                     startActivity(intent);
+                    actionLog("Browse Spot: " + spotNode.name);
                 }
             });
             ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
@@ -318,6 +320,7 @@ public class MapFragment extends Fragment {
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
                 translateToSpot(spotList.spotNodeMap.get(autocompleteStr));
+                actionLog("Search for " + autocompleteStr);
             }
         });
     }
@@ -667,6 +670,7 @@ public class MapFragment extends Fragment {
             PhotoCheckinDialogFragment photoCheckinDialogFragment = PhotoCheckinDialogFragment.newInstance(checkin.key);
             photoCheckinDialogFragment.show(fragmentManager, "fragment_photo_checkin_dialog");
         }
+        actionLog("Browse Checkin: " + checkin.location);
     }
 
     public void translateToCurrent() {

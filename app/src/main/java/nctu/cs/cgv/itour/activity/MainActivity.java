@@ -53,6 +53,7 @@ import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
@@ -263,18 +264,23 @@ public class MainActivity extends AppCompatActivity implements
                 switch (tabId) {
                     case R.id.tab_map:
                         viewPager.setCurrentItem(0);
+                        actionLog("Current Page: map");
                         break;
                     case R.id.tab_list:
                         viewPager.setCurrentItem(1);
+                        actionLog("Current Page: list");
                         break;
                     case R.id.tab_person:
                         viewPager.setCurrentItem(2);
+                        actionLog("Current Page: personal");
                         break;
                     case R.id.tab_plan:
                         viewPager.setCurrentItem(3);
+                        actionLog("Current Page: plan");
                         break;
                     case R.id.tab_settings:
                         viewPager.setCurrentItem(4);
+                        actionLog("Current Page: setting");
                         break;
                 }
             }
