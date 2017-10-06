@@ -23,8 +23,7 @@ public class CheckinListFragment extends Fragment {
     private CheckinItemAdapter checkinItemAdapter;
 
     public static CheckinListFragment newInstance() {
-        CheckinListFragment fragment = new CheckinListFragment();
-        return fragment;
+        return new CheckinListFragment();
     }
 
     @Override

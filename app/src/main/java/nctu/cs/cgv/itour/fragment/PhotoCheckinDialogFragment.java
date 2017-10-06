@@ -84,7 +84,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
         ((TextView) view.findViewById(R.id.tv_name)).setText(checkin.username);
         final ImageView photo = (ImageView) view.findViewById(R.id.photo);
 
-        final String path = getContext().getCacheDir().toString() + "/" + checkin.filename;
+        final String path = getContext().getCacheDir().toString() + "/" + checkin.photo;
         File file = new File(path);
         if(file.exists()) {
             // load thumb from storage
@@ -95,7 +95,7 @@ public class PhotoCheckinDialogFragment extends DialogFragment {
         else {
             // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + checkin.filename, new FileAsyncHttpResponseHandler(getContext()) {
+            client.get(fileDownloadURL + "?filename=" + checkin.photo, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
                     response.renameTo(new File(path));

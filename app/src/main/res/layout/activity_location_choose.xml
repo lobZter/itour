@@ -112,45 +112,45 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/layout_et_location">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            android:orientation="horizontal"
-            android:paddingBottom="8dp"
-            android:paddingEnd="16dp"
-            android:paddingStart="16dp"
-            android:paddingTop="4dp">
+        <!--<LinearLayout-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:clipToPadding="false"-->
+            <!--android:orientation="horizontal"-->
+            <!--android:paddingBottom="8dp"-->
+            <!--android:paddingEnd="16dp"-->
+            <!--android:paddingStart="16dp"-->
+            <!--android:paddingTop="4dp">-->
 
-            <TextView
-                android:id="@+id/textView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/chips_grey"
-                android:elevation="4dp"
-                android:text="淡水福佑宮"
-                android:textColor="@android:color/white" />
+            <!--<TextView-->
+                <!--android:id="@+id/textView"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_marginEnd="8dp"-->
+                <!--android:background="@drawable/chips_grey"-->
+                <!--android:elevation="4dp"-->
+                <!--android:text="淡水福佑宮"-->
+                <!--android:textColor="@android:color/white" />-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/chips_grey"
-                android:elevation="4dp"
-                android:text="淡水老街"
-                android:textColor="@android:color/white" />
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_marginEnd="8dp"-->
+                <!--android:background="@drawable/chips_grey"-->
+                <!--android:elevation="4dp"-->
+                <!--android:text="淡水老街"-->
+                <!--android:textColor="@android:color/white" />-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/chips_grey"
-                android:elevation="4dp"
-                android:text="阿婆鐵蛋"
-                android:textColor="@android:color/white" />
+            <!--<TextView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_marginEnd="8dp"-->
+                <!--android:background="@drawable/chips_grey"-->
+                <!--android:elevation="4dp"-->
+                <!--android:text="阿婆鐵蛋"-->
+                <!--android:textColor="@android:color/white" />-->
 
-        </LinearLayout>
+        <!--</LinearLayout>-->
 
     </ScrollView>
 

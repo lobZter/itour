@@ -21,7 +21,7 @@ public class Mesh {
     int vertexNumber;
     int faceNumber;
     int lineNumber;
-    // x- and y- coordinates of spotNodeMap
+    // x- and y- coordinates of nodeMap
     float[][] vertices;
 
     // face connectivity

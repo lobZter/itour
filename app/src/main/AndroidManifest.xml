@@ -32,7 +32,7 @@
             android:name=".activity.MainActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".activity.AudioCheckinActivity"
+            android:name=".activity.CheckinActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.PhotoCheckinActivity"

@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +20,11 @@ import static nctu.cs.cgv.itour.Utility.lerp;
 
 public class SpotList {
 
-    public Map<String, SpotNode> spotNodeMap;
+    public Map<String, Node> nodeMap;
     public int primarySpotMaxIdx = 13;
-    public int length;
 
     public SpotList(File spotListFile, Mesh realMesh, Mesh warpMesh) {
-        length = 0;
-        spotNodeMap = new LinkedHashMap<>();
+        nodeMap = new LinkedHashMap<>();
         readSpotsFile(spotListFile, realMesh, warpMesh);
     }
 
@@ -42,8 +39,7 @@ public class SpotList {
             while ((line = bufferedReader.readLine()) != null) {
                 String[] arr = line.split(","); // name,lat,lng
                 float[] imgPx = gpsToImgPx(realMesh, warpMesh, Float.valueOf(arr[1]), Float.valueOf(arr[2]));
-                spotNodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[0]));
-                length++;
+                nodeMap.put(arr[0], new Node(imgPx[0], imgPx[1]));
             }
 
             bufferedReader.close();
@@ -53,10 +49,10 @@ public class SpotList {
     }
 
     public Set<String> getSpotsName() {
-        return spotNodeMap.keySet();
+        return nodeMap.keySet();
     }
 
-    public List<SpotNode> getSpotsList() {
-        return new ArrayList<>(spotNodeMap.values());
+    public List<Node> getSpotsList() {
+        return new ArrayList<>(nodeMap.values());
     }
 }

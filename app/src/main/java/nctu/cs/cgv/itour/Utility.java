@@ -21,6 +21,9 @@ import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
+import static nctu.cs.cgv.itour.MyApplication.realMesh;
+import static nctu.cs.cgv.itour.MyApplication.warpMesh;
+
 /**
  * Created by lobZter on 2017/6/21.
  */
@@ -57,16 +60,15 @@ public class Utility {
         return warpMeshPos;
     }
 
-    public static float[] imgPxToGps(Mesh realMesh, Mesh warpMesh, float imgX, float imgY) {
+    public static float[] imgPxToGps(float imgX, float imgY) {
         float[] realMeshPos = new float[]{0, 0};
         IdxWeights idxWeights = warpMesh.getPointInTriangleIdx(imgX, imgY);
         if (idxWeights.idx >= 0) {
             realMeshPos = realMesh.interpolatePosition(idxWeights);
+            realMeshPos[0] = realMeshPos[0] / realMesh.mapWidth * (realMesh.maxLon - realMesh.minLon) + realMesh.minLon;
+            realMeshPos[1] = realMesh.maxLat - realMeshPos[1] / realMesh.mapHeight * (realMesh.maxLat - realMesh.minLat);
         }
         return realMeshPos;
-    }
-
-    public static void screenPxToGps(Mesh realMesh, Mesh warpMesh, float screenPxX, float screenPxY, Matrix imgTransMat) {
     }
 
 

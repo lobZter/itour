@@ -1,6 +1,5 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,7 +21,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,15 +36,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.getbase.floatingactionbutton.FloatingActionsMenu;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,9 +45,8 @@ import java.util.Objects;
 
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.AudioCheckinActivity;
+import nctu.cs.cgv.itour.activity.CheckinActivity;
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.activity.PhotoCheckinActivity;
 import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.map.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -66,7 +54,6 @@ import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Mesh;
-import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
@@ -119,11 +106,9 @@ public class MapFragment extends Fragment {
     private ImageView fogMap;
     private LinearLayout gpsMarker;
     private FloatingActionButton gpsBtn;
+    private FloatingActionButton addBtn;
     private Bitmap fogBitmap;
     private ActionBar actionBar;
-    private FloatingActionButton audioBtn;
-    private FloatingActionButton photoBtn;
-    private FloatingActionsMenu floatingActionsMenu;
     // objects
     private List<ImageNode> edgeNodeList;
     private List<ImageNode> pathEdgeNodeList;
@@ -145,8 +130,7 @@ public class MapFragment extends Fragment {
     private boolean isMerged = true;
 
     public static MapFragment newInstance() {
-        MapFragment mapFragment = new MapFragment();
-        return mapFragment;
+        return new MapFragment();
     }
 
     @Override
@@ -182,9 +166,7 @@ public class MapFragment extends Fragment {
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
-        audioBtn = (FloatingActionButton) view.findViewById(R.id.btn_audio);
-        photoBtn = (FloatingActionButton) view.findViewById(R.id.btn_photo);
-        floatingActionsMenu = (FloatingActionsMenu) view.findViewById(R.id.menu_add);
+        addBtn = (FloatingActionButton) view.findViewById(R.id.btn_add);
         FrameLayout frameLayout = (FrameLayout) view.findViewById(R.id.touristmap);
 
         // set subtitle
@@ -222,20 +204,20 @@ public class MapFragment extends Fragment {
         }
 
         // draw spots
-        for (final SpotNode spotNode : spotList.getSpotsList()) {
-            spotNode.icon = inflater.inflate(R.layout.item_spot, null);
-            spotNode.icon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(context, SpotInfoActivity.class);
-                    intent.putExtra("spotName", spotNode.name);
-                    startActivity(intent);
-                    actionLog("Browse Spot: " + spotNode.name);
-                }
-            });
-            ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
-            rootLayout.addView(spotNode.icon);
-        }
+//        for (final SpotNode spotNode : spotList.getSpotsList()) {
+//            spotNode.icon = inflater.inflate(R.layout.item_spot, null);
+//            spotNode.icon.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Intent intent = new Intent(context, SpotInfoActivity.class);
+//                    intent.putExtra("spotName", spotNode.name);
+//                    startActivity(intent);
+//                    actionLog("Browse Spot: " + spotNode.name);
+//                }
+//            });
+//            ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
+//            rootLayout.addView(spotNode.icon);
+//        }
 
         // set gpsMarker
         int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
@@ -257,33 +239,10 @@ public class MapFragment extends Fragment {
                     rotateToNorth();
             }
         });
-        audioBtn.setOnClickListener(new View.OnClickListener() {
+        addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(context, AudioCheckinActivity.class));
-                floatingActionsMenu.collapseImmediately();
-            }
-        });
-        photoBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(context, PhotoCheckinActivity.class));
-                floatingActionsMenu.collapseImmediately();
-            }
-        });
-        floatingActionsMenu.setOnFloatingActionsMenuUpdateListener(new FloatingActionsMenu.OnFloatingActionsMenuUpdateListener() {
-            @Override
-            public void onMenuExpanded() {
-                // make it clickable
-                audioBtn.setVisibility(View.VISIBLE);
-                photoBtn.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onMenuCollapsed() {
-                // prevent intercepting touch event for float action menu_search
-                audioBtn.setVisibility(View.GONE);
-                photoBtn.setVisibility(View.GONE);
+                startActivity(new Intent(context, CheckinActivity.class));
             }
         });
 
@@ -299,7 +258,6 @@ public class MapFragment extends Fragment {
             public void run() {
                 mapCenterX = rootLayout.getWidth() / 2;
                 mapCenterY = rootLayout.getHeight() / 5 * 2;
-                reRender();
             }
         });
     }
@@ -319,7 +277,7 @@ public class MapFragment extends Fragment {
                 String autocompleteStr = adapter.getItem(position);
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
-                translateToSpot(spotList.spotNodeMap.get(autocompleteStr));
+//                translateToSpot(spotList.nodeMap.get(autocompleteStr));
                 actionLog("Search for " + autocompleteStr);
             }
         });
@@ -482,16 +440,16 @@ public class MapFragment extends Fragment {
         }
 
         // transform spot
-        for (SpotNode spotNode : spotList.getSpotsList()) {
-            point[0] = spotNode.x;
-            point[1] = spotNode.y;
-            Matrix spotIconTransform = new Matrix();
-            spotIconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
-            transformMat.mapPoints(point);
-            spotIconTransform.mapPoints(point);
-            spotNode.icon.setTranslationX(point[0]);
-            spotNode.icon.setTranslationY(point[1]);
-        }
+//        for (SpotNode spotNode : spotList.getSpotsList()) {
+//            point[0] = spotNode.x;
+//            point[1] = spotNode.y;
+//            Matrix spotIconTransform = new Matrix();
+//            spotIconTransform.postTranslate(-dpToPx(context, 12 / 2), -dpToPx(context, 12 / 2));
+//            transformMat.mapPoints(point);
+//            spotIconTransform.mapPoints(point);
+//            spotNode.icon.setTranslationX(point[0]);
+//            spotNode.icon.setTranslationY(point[1]);
+//        }
 
         // transform mergedCheckinNode
         for (ImageNode imageNode : checkinNodeList) {
@@ -525,10 +483,10 @@ public class MapFragment extends Fragment {
                 mergedCheckinNode.icon.setVisibility(View.VISIBLE);
             }
 
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
-                SpotNode spotNode = spotList.getSpotsList().get(i);
-                spotNode.icon.setVisibility(View.GONE);
-            }
+//            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
+//                SpotNode spotNode = spotList.getSpotsList().get(i);
+//                spotNode.icon.setVisibility(View.GONE);
+//            }
 
         } else {
             for (ImageNode imageNode : checkinNodeList) {
@@ -539,10 +497,10 @@ public class MapFragment extends Fragment {
                 mergedCheckinNode.icon.setVisibility(View.GONE);
             }
 
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
-                SpotNode spotNode = spotList.getSpotsList().get(i);
-                spotNode.icon.setVisibility(View.VISIBLE);
-            }
+//            for (int i = spotList.primarySpotMaxIdx + 1; i < spotList.length; i++) {
+//                SpotNode spotNode = spotList.getSpotsList().get(i);
+//                spotNode.icon.setVisibility(View.VISIBLE);
+//            }
         }
     }
 
@@ -594,7 +552,7 @@ public class MapFragment extends Fragment {
 
     public void addCheckins() {
 
-        for(Map.Entry<String, Checkin> entry : ((MainActivity) getActivity()).checkinMap.entrySet()) {
+        for (Map.Entry<String, Checkin> entry : ((MainActivity) getActivity()).checkinMap.entrySet()) {
             Checkin checkin = entry.getValue();
             addCheckin(checkin);
         }
@@ -607,43 +565,43 @@ public class MapFragment extends Fragment {
 
     private void addMergedCheckin(String spotName, float x, float y) {
 
-        SpotNode spotNode = spotList.spotNodeMap.get(spotName);
-        if (spotNode != null) {
-            // add into spot
-            if (spotNode.mergedCheckinNode == null) {
-                // no checkin on spot yet
-                spotNode.mergedCheckinNode = newMergedCheckin(spotNode.x, spotNode.y, true);
-            } else {
-                spotNode.mergedCheckinNode.checkinNum++;
-                TextView checkinsNumCircle = (TextView) spotNode.mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                checkinsNumCircle.setText(String.valueOf(spotNode.mergedCheckinNode.checkinNum));
-            }
-        } else {
-            // add into cluster
-            boolean newCluster = true;
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                if(mergedCheckinNode.onSpot) continue;
-
-                double distance = Math.pow(x - mergedCheckinNode.x, 2) + Math.pow(y - mergedCheckinNode.y, 2);
-                if (distance < CLUSTER_THRESHOLD) {
-                    int clusterSize = mergedCheckinNode.checkinNum;
-                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + x) / (clusterSize + 1);
-                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + y) / (clusterSize + 1);
-
-                    mergedCheckinNode.checkinNum++;
-                    TextView checkinsNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                    checkinsNumCircle.setText(String.valueOf(mergedCheckinNode.checkinNum));
-
-                    newCluster = false;
-                    break;
-                }
-            }
-
-            // cluster not found, create a new one
-            if (newCluster) {
-                newMergedCheckin(x, y, false);
-            }
-        }
+//        SpotNode spotNode = spotList.nodeMap.get(spotName);
+//        if (spotNode != null) {
+//            // add into spot
+//            if (spotNode.mergedCheckinNode == null) {
+//                // no checkin on spot yet
+//                spotNode.mergedCheckinNode = newMergedCheckin(spotNode.x, spotNode.y, true);
+//            } else {
+//                spotNode.mergedCheckinNode.checkinNum++;
+//                TextView checkinsNumCircle = (TextView) spotNode.mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+//                checkinsNumCircle.setText(String.valueOf(spotNode.mergedCheckinNode.checkinNum));
+//            }
+//        } else {
+//            // add into cluster
+//            boolean newCluster = true;
+//            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+//                if (mergedCheckinNode.onSpot) continue;
+//
+//                double distance = Math.pow(x - mergedCheckinNode.x, 2) + Math.pow(y - mergedCheckinNode.y, 2);
+//                if (distance < CLUSTER_THRESHOLD) {
+//                    int clusterSize = mergedCheckinNode.checkinNum;
+//                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + x) / (clusterSize + 1);
+//                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + y) / (clusterSize + 1);
+//
+//                    mergedCheckinNode.checkinNum++;
+//                    TextView checkinsNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
+//                    checkinsNumCircle.setText(String.valueOf(mergedCheckinNode.checkinNum));
+//
+//                    newCluster = false;
+//                    break;
+//                }
+//            }
+//
+//            // cluster not found, create a new one
+//            if (newCluster) {
+//                newMergedCheckin(x, y, false);
+//            }
+//        }
     }
 
     private MergedCheckinNode newMergedCheckin(float x, float y, boolean onSpot) {

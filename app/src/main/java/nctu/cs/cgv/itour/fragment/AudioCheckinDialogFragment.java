@@ -112,7 +112,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
 
-        final String path = getContext().getCacheDir().toString() + "/" + checkin.filename;
+        final String path = getContext().getCacheDir().toString() + "/" + checkin.audio;
         File file = new File(path);
         if (file.exists()) {
             // load thumb from storage
@@ -120,7 +120,7 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         } else {
             // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + checkin.filename, new FileAsyncHttpResponseHandler(getContext()) {
+            client.get(fileDownloadURL + "?filename=" + checkin.audio, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
                     response.renameTo(new File(path));

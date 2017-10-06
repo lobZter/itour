@@ -6,15 +6,12 @@ import android.view.View;
  * Created by lobst3rd on 2017/7/7.
  */
 
-public class ImageNode {
+public class ImageNode extends Node {
 
-    public float x;
-    public float y;
     public View icon;
 
     public ImageNode(float x, float y) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.icon = null;
     }
 }

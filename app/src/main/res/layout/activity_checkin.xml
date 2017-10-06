@@ -1,89 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/parent_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_margin="16dp"
-    android:background="@color/light_theme_background"
-    android:orientation="vertical">
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="24dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingEnd="8dp"
-                    android:paddingStart="8dp"
-                    android:src="@drawable/ic_location_on_black_24dp" />
-
-                <EditText
-                    android:id="@+id/et_location"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="地點"
-                    android:singleLine="true" />
-
-            </LinearLayout>
-
-            <ScrollView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/textView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips_grey"
-                        android:text="淡水福佑宮"
-                        android:textColor="@android:color/white" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips_grey"
-                        android:text="淡水老街"
-                        android:textColor="@android:color/white" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:background="@drawable/chips_grey"
-                        android:text="阿婆鐵蛋"
-                        android:textColor="@android:color/white" />
-
-                </LinearLayout>
-
-            </ScrollView>
-
-        </LinearLayout>
-
-    </android.support.v7.widget.CardView>
+    android:layout_height="match_parent">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
@@ -92,106 +11,278 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:layout_marginEnd="24dp"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:paddingBottom="12dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="12dp">
 
                 <ImageView
-                    android:id="@+id/imageView"
+                    android:id="@+id/edit_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginStart="8dp"
-                    android:src="@drawable/ic_mic_black_48dp" />
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:src="@drawable/ic_mode_edit_black_24dp" />
 
-                <LinearLayout
+                <EditText
+                    android:id="@+id/et_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical"
-                    android:paddingTop="20dp">
+                    android:layout_toEndOf="@id/edit_icon"
+                    android:background="@color/transparent"
+                    android:hint="在想些什麼..."
+                    android:imeOptions="actionDone" />
 
-                    <ProgressBar
-                        android:id="@+id/progressbar"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:gravity="bottom"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tv_progress_current"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0:00"
-                            android:textColor="@color/secondary_text"
-                            android:textSize="21sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text=" / "
-                            android:textColor="@color/secondary_text"
-                            android:textSize="16sp" />
-
-                        <TextView
-                            android:id="@+id/tv_progress_duration"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="10:00"
-                            android:textColor="@color/secondary_text"
-                            android:textSize="16sp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </LinearLayout>
+            </RelativeLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:background="@color/divider" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <RelativeLayout
+                android:id="@+id/btn_photo"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_margin="8dp"
-                android:orientation="horizontal">
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/checkin_activity_btn"
+                android:paddingBottom="12dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="12dp">
 
-                <Button
-                    android:id="@+id/btn_cancel"
-                    style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                <ImageView
+                    android:id="@+id/photo_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:src="@drawable/ic_insert_photo_black_24dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/photo_icon"
+                    android:text="新增張照片吧..."
+                    android:textSize="18sp" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/picked_photo_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <nctu.cs.cgv.itour.SquareImageView
+                    android:id="@+id/picked_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true" />
+
+                <ImageView
+                    android:id="@+id/btn_cancel_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
                     android:layout_marginEnd="8dp"
-                    android:drawableLeft="@drawable/ic_close_black_24dp"
-                    android:text="CANCEL"
-                    android:textColor="@color/primary_text"
-                    android:visibility="gone" />
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/circle_btn_white"
+                    android:src="@drawable/ic_close_black_24dp" />
 
-                <Button
-                    android:id="@+id/btn_record"
-                    style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <RelativeLayout
+                android:id="@+id/btn_audio"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/checkin_activity_btn"
+                android:paddingBottom="12dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="12dp">
+
+                <ImageView
+                    android:id="@+id/mic_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:drawableLeft="@drawable/ic_fiber_manual_record_red_a700_24dp"
-                    android:text="RECORD"
-                    android:textColor="@color/primary_text" />
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:src="@drawable/ic_mic_black_24dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/mic_icon"
+                    android:text="留下聲音..."
+                    android:textSize="18sp" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/recode_audio_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginEnd="36dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/imageView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginStart="8dp"
+                            android:src="@drawable/ic_mic_black_48dp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="vertical"
+                            android:paddingTop="20dp">
+
+                            <ProgressBar
+                                android:id="@+id/progressbar"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:max="100" />
+
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:gravity="bottom"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tv_progress_current"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0:00"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="21sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text=" / "
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="16sp" />
+
+                                <TextView
+                                    android:id="@+id/tv_progress_duration"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="10:00"
+                                    android:textColor="@color/secondary_text"
+                                    android:textSize="16sp" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/btn_cancel_audio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="4dp"
+                        android:src="@drawable/ic_close_black_24dp" />
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btn_redo"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:drawableLeft="@drawable/ic_redo_black_24dp"
+                        android:text="REDO"
+                        android:textColor="@color/primary_text"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/btn_play"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:drawableLeft="@drawable/ic_play_arrow_black_24dp"
+                        android:text="PLAY "
+                        android:textColor="@color/primary_text"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/btn_pause"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:drawableLeft="@drawable/ic_pause_black_24dp"
+                        android:text="PAUSE"
+                        android:textColor="@color/primary_text"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/btn_stop"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:drawableLeft="@drawable/ic_stop_red_a700_24dp"
+                        android:text="STOP"
+                        android:textColor="@color/primary_text"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/btn_record"
+                        style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:drawableLeft="@drawable/ic_fiber_manual_record_red_a700_24dp"
+                        android:text="RECORD"
+                        android:textColor="@color/primary_text" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -199,4 +290,4 @@
 
     </android.support.v7.widget.CardView>
 
-</LinearLayout>
+</RelativeLayout>

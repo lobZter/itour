@@ -32,16 +32,13 @@ public class ListFragment extends Fragment {
 
     private static final String TAG = "ListFragment";
     private ActionBar actionBar;
-    private MyViewPager viewPager;
-    private TabLayout tabLayout;
     private List<Fragment> fragmentList;
-    private String tabTitles[];
+
 
     private CheckinListFragment checkinListFragment;
 
     public static ListFragment newInstance() {
-        ListFragment fragment = new ListFragment();
-        return fragment;
+        return new ListFragment();
     }
 
     @Override
@@ -60,15 +57,16 @@ public class ListFragment extends Fragment {
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
 
-        tabTitles = new String[]{"Checkin", "Spot"};
-
         checkinListFragment = CheckinListFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(checkinListFragment);
         fragmentList.add(SpotListFragment.newInstance());
 
-        viewPager = (MyViewPager) view.findViewById(R.id.view_pager);
+        MyViewPager viewPager = (MyViewPager) view.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+
+            String tabTitles[] = new String[]{"Checkin", "Spot"};
+
             @Override
             public Fragment getItem(int position) {
                 return fragmentList.get(position);
@@ -88,7 +86,7 @@ public class ListFragment extends Fragment {
         viewPager.setPagingEnabled(false);
         viewPager.setOffscreenPageLimit(2);
 
-        tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
+        TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
     }
 

@@ -1,10 +1,10 @@
 package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -20,11 +20,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -32,17 +41,22 @@ import java.util.Calendar;
 
 import nctu.cs.cgv.itour.R;
 
-public class AudioCheckinActivity extends AppCompatActivity {
+import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 
-    private static final String TAG = "AudioCheckinActivity";
-    // mediaRecorder
-    private boolean audioReady = false;
-    private boolean isPlaying = false;
-    private boolean isRecording = false;
-    private MediaRecorder mediaRecorder;
-    private MediaPlayer mediaPlayer;
-    private String filename = null;
+public class CheckinActivity extends AppCompatActivity {
+
+    private static final String TAG = "CheckinActivity";
+    private static final int REQUEST_CODE = 123;
     // UI references
+    private EditText descriptionEdit;
+    private RelativeLayout photoBtn;
+    private RelativeLayout audioBtn;
+    private RelativeLayout pickedPhotoLayout;
+    private LinearLayout recordAudioLayout;
+    private ImageView cancelPhotoBtn;
+    private ImageView cancelAudioBtn;
+    private ImageView pickedPhoto;
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
@@ -52,6 +66,17 @@ public class AudioCheckinActivity extends AppCompatActivity {
     private Button pauseBtn;
     private Button redoBtn;
 
+    private String photoFile = "";
+
+    // mediaRecorder
+    private boolean micAvailable = false;
+    private boolean audioReady = false;
+    private boolean isPlaying = false;
+    private boolean isRecording = false;
+    private MediaRecorder mediaRecorder;
+    private MediaPlayer mediaPlayer;
+    private String audioFile = "";
+
     private int timeTick = 0;
     private CountDownTimer countDownTimer;
     private Handler progressBarHandler;
@@ -60,32 +85,39 @@ public class AudioCheckinActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_audio_checkin);
+        setContentView(R.layout.activity_checkin);
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle("");
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
 
-        // Verify that the device has a mic first
-        PackageManager packageManager = this.getPackageManager();
-        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
-            Toast.makeText(getApplicationContext(), "找不到麥克風QQ", Toast.LENGTH_LONG).show();
-            finish();
-        }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
-        } else {
-            setView();
         }
+
+        setView();
     }
 
     private void setView() {
 
-        progressBarHandler = new Handler();
+        // Verify that the device has a mic first
+        PackageManager packageManager = this.getPackageManager();
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)) {
+            micAvailable = false;
+        }
 
         // set view
+        descriptionEdit = (EditText) findViewById(R.id.et_description);
+        photoBtn = (RelativeLayout) findViewById(R.id.btn_photo);
+        audioBtn = (RelativeLayout) findViewById(R.id.btn_audio);
+        pickedPhotoLayout = (RelativeLayout) findViewById(R.id.picked_photo_layout);
+        recordAudioLayout = (LinearLayout) findViewById(R.id.recode_audio_layout);
+        cancelPhotoBtn = (ImageView) findViewById(R.id.btn_cancel_photo);
+        cancelAudioBtn = (ImageView) findViewById(R.id.btn_cancel_audio);
+
+        pickedPhoto = (ImageView) findViewById(R.id.picked_photo);
+
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
@@ -94,6 +126,49 @@ public class AudioCheckinActivity extends AppCompatActivity {
         playBtn = (Button) findViewById(R.id.btn_play);
         pauseBtn = (Button) findViewById(R.id.btn_pause);
         redoBtn = (Button) findViewById(R.id.btn_redo);
+
+        photoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CropImage.activity()
+                        .setGuidelines(CropImageView.Guidelines.ON)
+                        .setFixAspectRatio(true)
+                        .setAspectRatio(1, 1)
+                        .start(CheckinActivity.this);
+            }
+        });
+
+        audioBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(micAvailable) {
+                    audioBtn.setVisibility(View.GONE);
+                    recordAudioLayout.setVisibility(View.VISIBLE);
+                } else {
+                    Toast.makeText(getApplicationContext(), "找不到麥克風", Toast.LENGTH_LONG);
+                }
+            }
+        });
+
+        cancelPhotoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                photoFile = "";
+                pickedPhotoLayout.setVisibility(View.GONE);
+                photoBtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+        cancelAudioBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                audioFile = "";
+                recordAudioLayout.setVisibility(View.GONE);
+                audioBtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+        progressBarHandler = new Handler();
 
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,7 +218,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 progressBar.setProgress(0);
                 mediaPlayer.release();
                 mediaPlayer = null;
-                filename = null;
+                audioFile = "";
                 audioReady = false;
                 recordBtn.setVisibility(View.VISIBLE);
                 playBtn.setVisibility(View.GONE);
@@ -151,6 +226,8 @@ public class AudioCheckinActivity extends AppCompatActivity {
                 redoBtn.setVisibility(View.GONE);
             }
         });
+
+        setHideKeyboard(findViewById(R.id.parent_layout));
     }
 
     @Override
@@ -163,18 +240,14 @@ public class AudioCheckinActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.btn_next:
-                if (filename == null) {
-                    Toast.makeText(getApplicationContext(), "無錄音音檔", Toast.LENGTH_LONG).show();
-                    return true;
-                }
                 if (isRecording) {
                     Toast.makeText(getApplicationContext(), "請先完成錄音", Toast.LENGTH_LONG).show();
                     return true;
                 }
-                Intent intent = new Intent(AudioCheckinActivity.this, LocationChooseActivity.class);
-                intent.putExtra("description", "");
-                intent.putExtra("filename", filename);
-                intent.putExtra("type", "audio");
+                Intent intent = new Intent(CheckinActivity.this, LocationChooseActivity.class);
+                intent.putExtra("description", descriptionEdit.getText().toString().trim());
+                intent.putExtra("photo", photoFile);
+                intent.putExtra("audio", audioFile);
                 startActivity(intent);
                 return true;
             case android.R.id.home:
@@ -185,13 +258,33 @@ public class AudioCheckinActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                String path = result.getUri().getPath();
+                Bitmap bitmap = BitmapFactory.decodeFile(path);
+                // /data/user/0/nctu.cs.cgv.itour/cache/cropped1795714260.jpg
+                // getCacheDir()
+                photoFile = path.substring(path.lastIndexOf("/") + 1);
+                moveFile(getCacheDir().toString(), photoFile, getExternalCacheDir().toString());
+                pickedPhoto.setImageBitmap(bitmap);
+                photoBtn.setVisibility(View.GONE);
+                pickedPhotoLayout.setVisibility(View.VISIBLE);
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+                Exception error = result.getError();
+            }
+        }
+    }
+
     private void startRecording() {
-        filename = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
+        audioFile = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(getExternalCacheDir().toString() + "/" + filename);
+        mediaRecorder.setOutputFile(getExternalCacheDir().toString() + "/" + audioFile);
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
@@ -250,7 +343,7 @@ public class AudioCheckinActivity extends AppCompatActivity {
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
-            mediaPlayer.setDataSource(getExternalCacheDir().toString() + "/" + filename);
+            mediaPlayer.setDataSource(getExternalCacheDir().toString() + "/" + audioFile);
             mediaPlayer.prepare();
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
@@ -295,33 +388,48 @@ public class AudioCheckinActivity extends AppCompatActivity {
         isPlaying = false;
     }
 
+    public void setHideKeyboard(View view) {
+
+        // Set up touch listener for non-text box views to hide keyboard.
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(CheckinActivity.this);
+                    return false;
+                }
+            });
+        }
+
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setHideKeyboard(innerView);
+            }
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
 
         if (micPermission != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_MULTIPLE_REQUEST);
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_CODE);
         } else {
-            setView();
+            micAvailable = true;
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
-
         switch (requestCode) {
-            case PERMISSIONS_MULTIPLE_REQUEST:
+            case REQUEST_CODE:
                 if (grantResults.length > 0) {
                     boolean micPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
                     if(micPermission)
                     {
-                        setView();
-                    } else {
-                        Toast.makeText(getApplicationContext(), "需要麥克風權限", Toast.LENGTH_LONG).show();
-                        finish();
+                        micAvailable = true;
                     }
                 }
                 break;
