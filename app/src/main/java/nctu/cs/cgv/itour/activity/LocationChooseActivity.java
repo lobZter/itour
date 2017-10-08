@@ -173,7 +173,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             public void onClick(View v) {
                 hideSoftKeyboard(LocationChooseActivity.this);
                 if (!isGpsCurrent)
-                    translateToPos(gpsDistortedX, gpsDistortedY, true);
+                    translateToImgPx(gpsDistortedX, gpsDistortedY, true);
                 else if (!isOrientationCurrent)
                     rotateToNorth();
             }
@@ -204,7 +204,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 hideSoftKeyboard(LocationChooseActivity.this);
                 Node node = spotList.nodeMap.get(adapter.getItem(position));
-                translateToPos(node.x, node.y, false);
+                translateToImgPx(node.x, node.y, false);
             }
         });
 
@@ -412,7 +412,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         }
     }
 
-    private void translateToPos(final float x, final float y, final boolean toCurrent) {
+    private void translateToImgPx(final float x, final float y, final boolean toCurrent) {
 
         final Handler translationHandler = new Handler();
         Runnable translationInterpolation = new Runnable() {
@@ -494,7 +494,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // translate to center when handleLocationChange first time
         if (!isTranslated) {
-            translateToPos(gpsDistortedX, gpsDistortedY, true);
+            translateToImgPx(gpsDistortedX, gpsDistortedY, true);
             isTranslated = true;
         }
     }

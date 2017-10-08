@@ -112,6 +112,7 @@ public class MapFragment extends Fragment {
     private List<ImageNode> checkinNodeList;
     private List<MergedCheckinNode> mergedCheckinNodeList;
     private LayoutInflater inflater;
+    private Handler translationHandler;
     // gestures
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
@@ -142,6 +143,7 @@ public class MapFragment extends Fragment {
         mergedCheckinNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
+        translationHandler = new Handler();
     }
 
     @Override
@@ -217,7 +219,7 @@ public class MapFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (!isGpsCurrent)
-                    translateToPos(gpsDistortedX, gpsDistortedY, true);
+                    translateToImgPx(gpsDistortedX, gpsDistortedY, true);
                 else if (!isOrientationCurrent)
                     rotateToNorth();
             }
@@ -258,10 +260,11 @@ public class MapFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String autocompleteStr = adapter.getItem(position);
+                Node node = spotList.nodeMap.get(autocompleteStr);
+                translateToImgPx(node.x, node.y, false);
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
-                Node node = spotList.nodeMap.get(autocompleteStr);
-                translateToPos(node.x, node.y, false);
+                // send action log to server
                 actionLog("Search for " + autocompleteStr);
             }
         });
@@ -365,6 +368,7 @@ public class MapFragment extends Fragment {
         rootLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                translationHandler.removeCallbacksAndMessages(null);
                 boolean res = false;
                 res |= scaleGestureDetector.onTouchEvent(event);
                 res |= rotationGestureDetector.onTouchEvent(event);
@@ -532,8 +536,8 @@ public class MapFragment extends Fragment {
     private void showDialog(Checkin checkin) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
-        checkinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
-
+        checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
+        // send action log to server
         actionLog("Browse Checkin: " + checkin.location);
     }
 
@@ -612,12 +616,12 @@ public class MapFragment extends Fragment {
     }
 
     private MergedCheckinNode newMergedCheckin(float x, float y, boolean onSpot) {
-        MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(x, y);
+        final MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(x, y);
         mergedCheckinNode.icon = inflater.inflate(R.layout.item_bigcheckin, null);
         mergedCheckinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                translateToView(v);
+                translateToImgPx(mergedCheckinNode.x, mergedCheckinNode.y, false);
             }
         });
         mergedCheckinNode.onSpot = onSpot;
@@ -626,9 +630,8 @@ public class MapFragment extends Fragment {
         return mergedCheckinNode;
     }
 
-    public void translateToPos(final float x, final float y, final boolean toCurrent) {
+    public void translateToImgPx(final float x, final float y, final boolean toCurrent) {
 
-        final Handler translationHandler = new Handler();
         Runnable translationInterpolation = new Runnable() {
             @Override
             public void run() {
@@ -669,56 +672,6 @@ public class MapFragment extends Fragment {
             }
         };
         translationHandler.postDelayed(translationInterpolation, 5);
-    }
-
-    private void translateToView(final View view) {
-        final float transX = mapCenterX - view.getTranslationX();
-        final float transY = mapCenterY - view.getTranslationY();
-        final float deltaTransX = transX / 10f;
-        final float deltaTransY = transY / 10f;
-        final float deltaScale = (2.2f - scale) / 10f;
-
-        final Handler translationHandler = new Handler();
-        Runnable translationInterpolation = new Runnable() {
-            @Override
-            public void run() {
-                if (Math.abs(mapCenterX - view.getTranslationX()) <= Math.abs(deltaTransX) ||
-                        Math.abs(mapCenterY - view.getTranslationY()) <= Math.abs(deltaTransY)) {
-                    transformMat.postTranslate(
-                            mapCenterX - view.getTranslationX(),
-                            mapCenterY - view.getTranslationY());
-
-                    if (scale < 2.2) {
-                        transformMat.postTranslate(-view.getTranslationX(), -view.getTranslationY());
-                        transformMat.postScale(2.2f / scale, 2.2f / scale);
-                        transformMat.postTranslate(view.getTranslationX(), view.getTranslationY());
-                        scale = 2.2f;
-                    }
-
-                    reRender();
-                    translationHandler.removeCallbacks(this);
-                } else {
-                    transformMat.postTranslate(deltaTransX, deltaTransY);
-
-                    if (scale < 2.2) {
-                        transformMat.postTranslate(-view.getTranslationX(), -view.getTranslationY());
-                        transformMat.postScale((scale + deltaScale) / scale, (scale + deltaScale) / scale);
-                        transformMat.postTranslate(view.getTranslationX(), view.getTranslationY());
-                        scale += deltaScale;
-                    }
-
-                    reRender();
-                    if (Math.abs(mapCenterX - view.getTranslationX()) < 300) {
-                        // slow down
-                        translationHandler.postDelayed(this, 5);
-                    } else {
-                        translationHandler.postDelayed(this, 2);
-                    }
-                }
-            }
-        };
-        translationHandler.postDelayed(translationInterpolation, 2);
-        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
     }
 
     public void rotateToNorth() {

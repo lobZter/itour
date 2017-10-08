@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onLocateClick(Checkin checkin) {
         float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-        mapFragment.translateToPos(imgPx[0], imgPx[1], false);
+        mapFragment.translateToImgPx(imgPx[0], imgPx[1], false);
         viewPager.setCurrentItem(0);
     }
 }
