@@ -1,5 +1,7 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -7,23 +9,18 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
@@ -32,42 +29,36 @@ import java.io.IOException;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
-public class AudioCheckinDialogFragment extends DialogFragment {
+public class CheckinDialogFragment extends DialogFragment {
 
-    private static final String TAG = "AudioCheckinDialogFragment";
+    private static final String TAG = "CheckinDialogFragment";
 
     private String postId;
-
-    private DatabaseReference databaseReference;
 
     private ProgressBar progressBar;
     private TextView progressTextCurrent;
     private TextView progressTextDuration;
     private ImageView playBtn;
-
     private Handler progressBarHandler;
     private Runnable progressBarRunnable;
-
     private MediaPlayer mediaPlayer;
-
     private boolean isPlaying = false;
     private boolean audioReady = false;
 
-    public AudioCheckinDialogFragment() {
-    }
-
-    public static AudioCheckinDialogFragment newInstance(String postId) {
-        AudioCheckinDialogFragment audioCheckinDialogFragment = new AudioCheckinDialogFragment();
+    public static CheckinDialogFragment newInstance(String postId) {
+        CheckinDialogFragment checkinDialogFragment = new CheckinDialogFragment();
         Bundle args = new Bundle();
         args.putString("postId", postId);
-        audioCheckinDialogFragment.setArguments(args);
-        return audioCheckinDialogFragment;
+        checkinDialogFragment.setArguments(args);
+        return checkinDialogFragment;
     }
 
     @Override
@@ -76,14 +67,11 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         if (getArguments() != null) {
             postId = getArguments().getString("postId");
         }
-
-        databaseReference = FirebaseDatabase.getInstance().getReference();
-        progressBarHandler = new Handler();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_audio_checkin_dialog, container);
+        return inflater.inflate(R.layout.fragment_checkin_dialog, container);
     }
 
     @Override
@@ -92,9 +80,49 @@ public class AudioCheckinDialogFragment extends DialogFragment {
 
         final Checkin checkin = checkinMap.get(postId);
 
-        ((TextView) view.findViewById(R.id.tv_name)).setText(checkin.username);
-        ((TextView) view.findViewById(R.id.tv_location)).setText(checkin.location);
+        TextView username = (TextView) view.findViewById(R.id.tv_username);
+        TextView location = (TextView) view.findViewById(R.id.tv_location);
+        TextView description = (TextView) view.findViewById(R.id.tv_description);
+        username.setText(checkin.username);
+        location.setText(checkin.location);
+        description.setText(checkin.description);
 
+        setPhoto(view, checkin);
+        setAudio(view, checkin);
+        setActionBtn(view, checkin);
+    }
+
+    private void setPhoto(View view, final Checkin checkin) {
+        final ImageView photo = (ImageView) view.findViewById(R.id.photo);
+        final String photoPath = getContext().getExternalCacheDir().toString() + "/" + checkin.photo;
+        File photoFile = new File(photoPath);
+        if (photoFile.exists()) {
+            // load photo from storage
+            Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
+            photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            photo.setImageBitmap(bitmap);
+        } else {
+            // download photo
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.get(fileDownloadURL + "?filename=" + checkin.photo, new FileAsyncHttpResponseHandler(getContext()) {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, File response) {
+                    moveFile(getContext().getCacheDir().toString(),
+                            checkin.photo,
+                            getContext().getExternalCacheDir().toString());
+                    Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
+                    photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    photo.setImageBitmap(bitmap);
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+                }
+            });
+        }
+    }
+
+    private void setAudio(View view, Checkin checkin) {
         playBtn = (ImageView) view.findViewById(R.id.btn_play);
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,20 +139,21 @@ public class AudioCheckinDialogFragment extends DialogFragment {
         progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
         progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
+        progressBarHandler = new Handler();
 
-        final String path = getContext().getCacheDir().toString() + "/" + checkin.audio;
-        File file = new File(path);
-        if (file.exists()) {
+        final String audioPath = getContext().getExternalCacheDir().toString() + "/" + checkin.audio;
+        File audioFile = new File(audioPath);
+        if (audioFile.exists()) {
             // load thumb from storage
-            initAudio(path);
+            initAudio(audioPath);
         } else {
             // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
             client.get(fileDownloadURL + "?filename=" + checkin.audio, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    response.renameTo(new File(path));
-                    initAudio(path);
+                    response.renameTo(new File(audioPath));
+                    initAudio(audioPath);
                 }
 
                 @Override
@@ -133,57 +162,56 @@ public class AudioCheckinDialogFragment extends DialogFragment {
                 }
             });
         }
+    }
 
-        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid().toString();
-        final LinearLayout likeBtn = (LinearLayout) view.findViewById(R.id.btn_like);
-        final ImageView likeIcon = (ImageView) likeBtn.getChildAt(0);
-        final TextView likeText = (TextView) likeBtn.getChildAt(1);
+    private void setActionBtn(View view, final Checkin checkin) {
+        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        final Button likeBtn = (Button) view.findViewById(R.id.btn_like);
         likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkin.like.get(uid)) {
-                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_border_black_24dp));
-                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
+                    likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                    likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
-                    checkinMap.get(postId).like.put(uid, false);
                 } else {
-                    likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
-                    likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+                    likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
-                    checkinMap.get(postId).like.put(uid, true);
                 }
             }
         });
 
-        LinearLayout saveBtn = (LinearLayout) view.findViewById(R.id.btn_save);
-        final ImageView saveIcon = (ImageView) saveBtn.getChildAt(0);
-        final TextView saveText = (TextView) saveBtn.getChildAt(1);
+        final Button saveBtn = (Button) view.findViewById(R.id.btn_save);
         saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkinMap.get(postId).saved) {
-                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_border_black_24dp));
-                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                if (checkin.saved) {
+                    saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+                    saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
                 } else {
-                    saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
-                    saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+                    saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
-                checkinMap.get(postId).saved = !checkinMap.get(postId).saved;
+                checkin.saved = !checkin.saved;
             }
         });
 
         if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-            likeIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_red_500_24dp));
-            likeText.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+            likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+            likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
         }
 
         if (checkin.saved) {
-            saveIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_bookmark_blue_24dp));
-            saveText.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+            saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+            saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
         }
     }
+
 
     private void initAudio(final String filePath) {
         progressBar.setProgress(0);

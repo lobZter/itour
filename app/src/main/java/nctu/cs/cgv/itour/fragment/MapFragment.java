@@ -21,7 +21,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -38,12 +37,10 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
@@ -55,7 +52,6 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
-import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
@@ -535,8 +531,8 @@ public class MapFragment extends Fragment {
 
     private void showDialog(Checkin checkin) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        AudioCheckinDialogFragment audioCheckinDialogFragment = AudioCheckinDialogFragment.newInstance(checkin.key);
-        audioCheckinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
+        CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
+        checkinDialogFragment.show(fragmentManager, "fragment_audio_checkin_dialog");
 
         actionLog("Browse Checkin: " + checkin.location);
     }
