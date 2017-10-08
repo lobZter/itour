@@ -49,7 +49,7 @@ public class Utility {
         return from;
     }
 
-    public static float[] gpsToImgPx(Mesh realMesh, Mesh warpMesh, float lat, float lng) {
+    public static float[] gpsToImgPx(float lat, float lng) {
         float[] warpMeshPos = new float[]{0, 0};
         float realMeshX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
         float realMeshY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
@@ -70,7 +70,6 @@ public class Utility {
         }
         return realMeshPos;
     }
-
 
     public static void hideSoftKeyboard(Activity activity) {
         InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);

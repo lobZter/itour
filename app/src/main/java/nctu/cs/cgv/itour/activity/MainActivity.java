@@ -37,7 +37,6 @@ import com.google.firebase.database.ValueEventListener;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
-import java.security.AlgorithmConstraints;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +53,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
@@ -462,7 +462,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onLocateClick(Checkin checkin) {
-        mapFragment.translateToGps(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+        float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+        mapFragment.translateToPos(imgPx[0], imgPx[1], false);
         viewPager.setCurrentItem(0);
     }
 }

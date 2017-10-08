@@ -35,9 +35,6 @@
             android:name=".activity.CheckinActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".activity.PhotoCheckinActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".activity.MapListActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar" />

@@ -42,7 +42,7 @@ public class MyApplication extends Application {
         realMesh = new Mesh(new File(dirPath + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + mapTag + "_warpMesh.txt"));
-        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"), realMesh, warpMesh);
+        spotList = new SpotList(new File(dirPath + mapTag + "_spot_list.txt"));
         edgeNode = new EdgeNode(new File(dirPath + mapTag + "_edge_length.txt"));
 
         mkdirs();

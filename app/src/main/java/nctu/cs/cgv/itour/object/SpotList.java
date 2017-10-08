@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
-import static nctu.cs.cgv.itour.Utility.lerp;
 
 /**
  * Created by lobZter on 2017/8/15.
@@ -20,15 +19,15 @@ import static nctu.cs.cgv.itour.Utility.lerp;
 
 public class SpotList {
 
-    public Map<String, Node> nodeMap;
+    public Map<String, SpotNode> nodeMap;
     public int primarySpotMaxIdx = 13;
 
-    public SpotList(File spotListFile, Mesh realMesh, Mesh warpMesh) {
+    public SpotList(File spotListFile) {
         nodeMap = new LinkedHashMap<>();
-        readSpotsFile(spotListFile, realMesh, warpMesh);
+        readSpotsFile(spotListFile);
     }
 
-    private void readSpotsFile(File spotListFile, Mesh realMesh, Mesh warpMesh) {
+    private void readSpotsFile(File spotListFile) {
 
         try {
             FileInputStream inputStream = new FileInputStream(spotListFile);
@@ -38,8 +37,8 @@ public class SpotList {
 
             while ((line = bufferedReader.readLine()) != null) {
                 String[] arr = line.split(","); // name,lat,lng
-                float[] imgPx = gpsToImgPx(realMesh, warpMesh, Float.valueOf(arr[1]), Float.valueOf(arr[2]));
-                nodeMap.put(arr[0], new Node(imgPx[0], imgPx[1]));
+                float[] imgPx = gpsToImgPx(Float.valueOf(arr[1]), Float.valueOf(arr[2]));
+                nodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[0]));
             }
 
             bufferedReader.close();
@@ -50,9 +49,5 @@ public class SpotList {
 
     public Set<String> getSpotsName() {
         return nodeMap.keySet();
-    }
-
-    public List<Node> getSpotsList() {
-        return new ArrayList<>(nodeMap.values());
     }
 }

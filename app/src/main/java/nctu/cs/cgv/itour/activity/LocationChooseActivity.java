@@ -52,9 +52,7 @@ import nctu.cs.cgv.itour.object.SpotNode;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
-import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
-import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
@@ -74,12 +72,8 @@ public class LocationChooseActivity extends AppCompatActivity {
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private float currentLat = 0;
-    private float currentLng = 0;
     private float gpsDistortedX = 0;
     private float gpsDistortedY = 0;
-    private int touristMapWidth = 0;
-    private int touristMapHeight = 0;
     private int mapCenterX = 0;
     private int mapCenterY = 0;
     private int gpsMarkerPivotX = 0;
@@ -155,10 +149,8 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // set tourist map
         Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
-        touristMapWidth = touristMapBitmap.getWidth();
-        touristMapHeight = touristMapBitmap.getHeight();
         touristMap = new ImageView(this);
-        touristMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
+        touristMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapBitmap.getWidth(), touristMapBitmap.getHeight()));
         touristMap.setScaleType(ImageView.ScaleType.MATRIX);
         touristMap.setImageBitmap(touristMapBitmap);
         touristMap.setPivotX(0);
@@ -181,7 +173,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             public void onClick(View v) {
                 hideSoftKeyboard(LocationChooseActivity.this);
                 if (!isGpsCurrent)
-                    translateToPos(gpsDistortedX, gpsDistortedY);
+                    translateToPos(gpsDistortedX, gpsDistortedY, true);
                 else if (!isOrientationCurrent)
                     rotateToNorth();
             }
@@ -192,14 +184,13 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         spotNodeList = new ArrayList<>();
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        for (Map.Entry<String, Node> nodeEntry : spotList.nodeMap.entrySet()) {
-            Node node = nodeEntry.getValue();
-            SpotNode spotNode = new SpotNode(node.x, node.y, nodeEntry.getKey());
+        for (Map.Entry<String, SpotNode> nodeEntry : spotList.nodeMap.entrySet()) {
+            SpotNode spotNode = nodeEntry.getValue();
             View icon = inflater.inflate(R.layout.item_spot, null);
             ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
             spotNode.icon = icon;
             spotNodeList.add(spotNode);
-            rootLayout.addView(icon, 1);
+            rootLayout.addView(icon, 1); // index 0 is for tourist map
         }
 
         // set location autocomplete
@@ -213,7 +204,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 hideSoftKeyboard(LocationChooseActivity.this);
                 Node node = spotList.nodeMap.get(adapter.getItem(position));
-                translateToPos(node.x, node.y);
+                translateToPos(node.x, node.y, false);
             }
         });
 
@@ -421,7 +412,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         }
     }
 
-    private void translateToPos(final float x, final float y) {
+    private void translateToPos(final float x, final float y, final boolean toCurrent) {
 
         final Handler translationHandler = new Handler();
         Runnable translationInterpolation = new Runnable() {
@@ -441,73 +432,70 @@ public class LocationChooseActivity extends AppCompatActivity {
                         transformMat.postTranslate(point[0], point[1]);
                         scale = 2.2f;
                     }
-
                     reRender();
                     translationHandler.removeCallbacks(this);
+                    if (toCurrent) {
+                        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
+                        isGpsCurrent = true;
+                    } else {
+                        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
+                        isGpsCurrent = false;
+                    }
                 } else {
                     transformMat.postTranslate(distanceToCenterX / 5, distanceToCenterY / 5);
-
                     if (scale < 2.2) {
                         transformMat.postTranslate(-point[0], -point[1]);
                         transformMat.postScale((scale + scaleTo22 / 5) / scale, (scale + scaleTo22 / 5) / scale);
                         transformMat.postTranslate(point[0], point[1]);
                         scale += scaleTo22 / 5;
                     }
-
                     reRender();
                     translationHandler.postDelayed(this, 5);
                 }
             }
         };
         translationHandler.postDelayed(translationInterpolation, 5);
-        isGpsCurrent = false;
-        gpsBtn.setImageResource(R.drawable.ic_gps_fixed_black_24dp);
     }
 
     private void rotateToNorth() {
-        final float deltaAngle = rotation / 10;
-
         final Handler rotationHandler = new Handler();
         Runnable rotationInterpolation = new Runnable() {
             @Override
             public void run() {
-                transformMat.postTranslate(-mapCenterX, -mapCenterY);
-                transformMat.postRotate(-deltaAngle);
-                transformMat.postTranslate(mapCenterX, mapCenterY);
-                rotation -= deltaAngle;
-                reRender();
-                if (Math.abs(rotation) <= Math.abs(deltaAngle)) {
+                if (Math.abs(rotation) <= Math.abs(6)) {
                     transformMat.postTranslate(-mapCenterX, -mapCenterY);
                     transformMat.postRotate(-rotation);
                     transformMat.postTranslate(mapCenterX, mapCenterY);
-                    rotationHandler.removeCallbacks(this);
                     rotation = 0;
                     reRender();
+                    rotationHandler.removeCallbacks(this);
                     isOrientationCurrent = true;
                 } else {
-                    rotationHandler.postDelayed(this, 1);
+                    transformMat.postTranslate(-mapCenterX, -mapCenterY);
+                    transformMat.postRotate(-rotation / 5);
+                    transformMat.postTranslate(mapCenterX, mapCenterY);
+                    rotation -= rotation / 5;
+                    reRender();
+                    rotationHandler.postDelayed(this, 5);
                 }
             }
         };
-        rotationHandler.postDelayed(rotationInterpolation, 1);
+        rotationHandler.postDelayed(rotationInterpolation, 5);
     }
 
     private void handleLocationChange(float lat, float lng) {
 
-        currentLat = lat;
-        currentLng = lng;
+        float[] imgPx = gpsToImgPx(lat, lng);
 
-        float[] point = gpsToImgPx(realMesh, warpMesh, currentLat, currentLng);
-
-        gpsDistortedX = point[0];
-        gpsDistortedY = point[1];
+        gpsDistortedX = imgPx[0];
+        gpsDistortedY = imgPx[1];
 
         reRender();
 
         // translate to center when handleLocationChange first time
         if (!isTranslated) {
+            translateToPos(gpsDistortedX, gpsDistortedY, true);
             isTranslated = true;
-            translateToPos(gpsDistortedX, gpsDistortedY);
         }
     }
 
