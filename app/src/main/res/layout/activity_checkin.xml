@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/parent_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -38,63 +38,6 @@
                     android:background="@color/transparent"
                     android:hint="在想些什麼..."
                     android:imeOptions="actionDone" />
-
-            </RelativeLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider" />
-
-            <RelativeLayout
-                android:id="@+id/btn_photo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:background="@drawable/checkin_activity_btn"
-                android:paddingBottom="12dp"
-                android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="12dp">
-
-                <ImageView
-                    android:id="@+id/photo_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingEnd="8dp"
-                    android:paddingStart="8dp"
-                    android:src="@drawable/ic_insert_photo_black_24dp" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/photo_icon"
-                    android:text="新增張照片吧..."
-                    android:textSize="18sp" />
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:id="@+id/picked_photo_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone">
-
-                <nctu.cs.cgv.itour.custom.SquareImageView
-                    android:id="@+id/picked_photo"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentStart="true" />
-
-                <ImageView
-                    android:id="@+id/btn_cancel_photo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/circle_btn_white"
-                    android:src="@drawable/ic_close_black_24dp" />
 
             </RelativeLayout>
 
@@ -286,8 +229,65 @@
 
             </LinearLayout>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <RelativeLayout
+                android:id="@+id/btn_photo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/checkin_activity_btn"
+                android:paddingBottom="12dp"
+                android:paddingEnd="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="12dp">
+
+                <ImageView
+                    android:id="@+id/photo_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="8dp"
+                    android:paddingStart="8dp"
+                    android:src="@drawable/ic_insert_photo_black_24dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/photo_icon"
+                    android:text="新增張照片吧..."
+                    android:textSize="18sp" />
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/picked_photo_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone">
+
+                <nctu.cs.cgv.itour.custom.SquareImageView
+                    android:id="@+id/picked_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentStart="true" />
+
+                <ImageView
+                    android:id="@+id/btn_cancel_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/circle_btn_white"
+                    android:src="@drawable/ic_close_black_24dp" />
+
+            </RelativeLayout>
+
         </LinearLayout>
 
     </android.support.v7.widget.CardView>
 
-</RelativeLayout>
+</ScrollView>

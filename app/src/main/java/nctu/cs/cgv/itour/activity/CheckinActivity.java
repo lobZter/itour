@@ -17,7 +17,6 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -42,7 +41,6 @@ import java.util.Calendar;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
-import static nctu.cs.cgv.itour.Utility.moveFile;
 
 public class CheckinActivity extends AppCompatActivity {
 
@@ -67,6 +65,7 @@ public class CheckinActivity extends AppCompatActivity {
     private Button redoBtn;
 
     private String photoFile = "";
+    private String audioFile = "";
 
     // mediaRecorder
     private boolean micAvailable = false;
@@ -75,7 +74,6 @@ public class CheckinActivity extends AppCompatActivity {
     private boolean isRecording = false;
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer;
-    private String audioFile = "";
 
     private int timeTick = 0;
     private CountDownTimer countDownTimer;
@@ -118,9 +116,32 @@ public class CheckinActivity extends AppCompatActivity {
 
         pickedPhoto = (ImageView) findViewById(R.id.picked_photo);
 
+        // set progress bar
         progressBar = (ProgressBar) findViewById(R.id.progressbar);
         progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
         progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
+        final int timeTotal = 10000;
+        final int timeInterval = 100;
+        countDownTimer = new CountDownTimer(timeTotal, timeInterval) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                timeTick++;
+                String str = String.format("%d:%02d", timeTick * timeInterval / 1000, ((timeTick * timeInterval) % 1000) * 60 / 1000);
+                progressTextCurrent.setText(str);
+                progressBar.setProgress(timeTick * 100 / (timeTotal / timeInterval));
+            }
+
+            @Override
+            public void onFinish() {
+                progressTextCurrent.setText(getString(R.string.default_maximum_time));
+                progressBar.setProgress(100);
+                if (stopRecording())
+                    initAudio();
+            }
+        };
+
+
         recordBtn = (Button) findViewById(R.id.btn_record);
         stopBtn = (Button) findViewById(R.id.btn_stop);
         playBtn = (Button) findViewById(R.id.btn_play);
@@ -141,11 +162,11 @@ public class CheckinActivity extends AppCompatActivity {
         audioBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(micAvailable) {
+                if (micAvailable) {
                     audioBtn.setVisibility(View.GONE);
                     recordAudioLayout.setVisibility(View.VISIBLE);
                 } else {
-                    Toast.makeText(getApplicationContext(), "找不到麥克風", Toast.LENGTH_LONG);
+                    Toast.makeText(getApplicationContext(), getString(R.string.toast_mic_not_found), Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -173,19 +194,25 @@ public class CheckinActivity extends AppCompatActivity {
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startRecording();
-                recordBtn.setVisibility(View.GONE);
-                stopBtn.setVisibility(View.VISIBLE);
+                if (startRecording()) {
+                    recordBtn.setVisibility(View.GONE);
+                    stopBtn.setVisibility(View.VISIBLE);
+                }
             }
         });
 
         stopBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                stopRecording();
-                stopBtn.setVisibility(View.GONE);
-                playBtn.setVisibility(View.VISIBLE);
-                redoBtn.setVisibility(View.VISIBLE);
+                if (stopRecording()) {
+                    initAudio();
+                    stopBtn.setVisibility(View.GONE);
+                    playBtn.setVisibility(View.VISIBLE);
+                    redoBtn.setVisibility(View.VISIBLE);
+                } else {
+                    stopBtn.setVisibility(View.GONE);
+                    recordBtn.setVisibility(View.VISIBLE);
+                }
             }
         });
 
@@ -213,13 +240,15 @@ public class CheckinActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 progressBarHandler.removeCallbacks(progressBarRunnable);
-                progressTextCurrent.setText("0:00");
-                progressTextDuration.setText("10:00");
+                progressTextCurrent.setText(getString(R.string.default_start_time));
+                progressTextDuration.setText(getString(R.string.default_maximum_time));
                 progressBar.setProgress(0);
                 mediaPlayer.release();
                 mediaPlayer = null;
                 audioFile = "";
                 audioReady = false;
+                isPlaying = false;
+
                 recordBtn.setVisibility(View.VISIBLE);
                 playBtn.setVisibility(View.GONE);
                 pauseBtn.setVisibility(View.GONE);
@@ -263,12 +292,11 @@ public class CheckinActivity extends AppCompatActivity {
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                String path = result.getUri().getPath();
-                Bitmap bitmap = BitmapFactory.decodeFile(path);
                 // /data/user/0/nctu.cs.cgv.itour/cache/cropped1795714260.jpg
                 // getCacheDir()
+                String path = result.getUri().getPath();
+                Bitmap bitmap = BitmapFactory.decodeFile(path);
                 photoFile = path.substring(path.lastIndexOf("/") + 1);
-                moveFile(getCacheDir().toString(), photoFile, getExternalCacheDir().toString());
                 pickedPhoto.setImageBitmap(bitmap);
                 photoBtn.setVisibility(View.GONE);
                 pickedPhotoLayout.setVisibility(View.VISIBLE);
@@ -278,82 +306,75 @@ public class CheckinActivity extends AppCompatActivity {
         }
     }
 
-    private void startRecording() {
+    private boolean startRecording() {
         audioFile = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()) + ".mp4";
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setOutputFile(getExternalCacheDir().toString() + "/" + audioFile);
+        mediaRecorder.setOutputFile(getCacheDir().toString() + "/" + audioFile);
         try {
             mediaRecorder.prepare();
             mediaRecorder.start();
+            // start timer
+            timeTick = 0;
+            countDownTimer.start();
+            // set flag
+            isRecording = true;
+
+            return true;
         } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
-            return;
+            Toast.makeText(getApplicationContext(), getString(R.string.toast_audio_recorder_prepare_failed), Toast.LENGTH_SHORT).show();
+            // stop recording
+            mediaRecorder.release();
+            mediaRecorder = null;
+            // stop timer
+            countDownTimer.cancel();
+            // set flag
+            isRecording = false;
+
+            return false;
         }
-
-        // set flag
-        isRecording = true;
-
-        // set progress bar
-        timeTick = 0;
-        final int timeTotal = 10000;
-        final int timeInterval = 100;
-        countDownTimer = new CountDownTimer(timeTotal, timeInterval) {
-
-            @Override
-            public void onTick(long millisUntilFinished) {
-                timeTick++;
-                String str = String.format("%d:%02d", timeTick * timeInterval / 1000, ((timeTick * timeInterval) % 1000) * 60 / 1000);
-                progressTextCurrent.setText(str);
-                progressBar.setProgress(timeTick * 100 / (timeTotal / timeInterval));
-            }
-
-            @Override
-            public void onFinish() {
-                stopRecording();
-                progressTextCurrent.setText("10:00");
-                progressBar.setProgress(100);
-            }
-        };
-        countDownTimer.start();
     }
 
-    private void stopRecording() {
+    private boolean stopRecording() {
         // stop recording
-        mediaRecorder.stop();
-        mediaRecorder.release();
-        mediaRecorder = null;
+        try {
+            mediaRecorder.stop();
+        } catch (RuntimeException stopException) {
+            Toast.makeText(getApplicationContext(), getString(R.string.toast_audio_recorder_stop_failed), Toast.LENGTH_LONG).show();
+            audioFile = "";
+            return false;
+        } finally {
+            mediaRecorder.release();
+            mediaRecorder = null;
+            countDownTimer.cancel();
+            // set flag
+            isRecording = false;
+            // init progress bar
+            progressTextCurrent.setText(getString(R.string.default_start_time));
+            progressTextDuration.setText(getString(R.string.default_maximum_time));
+            progressBar.setProgress(0);
+        }
 
-        // stop timer
-        countDownTimer.cancel();
-        countDownTimer = null;
-
-        isRecording = false;
-
-        initAudio();
+        return true;
     }
 
     private void initAudio() {
-        progressBar.setProgress(0);
-        progressTextCurrent.setText("0:00");
-        progressTextDuration.setText("0:00");
-
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                progressBarHandler.removeCallbacksAndMessages(null);
+                initAudio();
+                pauseBtn.setVisibility(View.GONE);
+                playBtn.setVisibility(View.VISIBLE);
+            }
+        });
         try {
-            mediaPlayer.setDataSource(getExternalCacheDir().toString() + "/" + audioFile);
+            mediaPlayer.setDataSource(getCacheDir().toString() + "/" + audioFile);
             mediaPlayer.prepare();
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    progressBarHandler.removeCallbacks(progressBarRunnable);
-                    initAudio();
-                    pauseBtn.setVisibility(View.GONE);
-                    playBtn.setVisibility(View.VISIBLE);
-                }
-            });
 
             String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
             progressTextDuration.setText(str);
@@ -427,8 +448,7 @@ public class CheckinActivity extends AppCompatActivity {
                 if (grantResults.length > 0) {
                     boolean micPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 
-                    if(micPermission)
-                    {
+                    if (micPermission) {
                         micAvailable = true;
                     }
                 }
