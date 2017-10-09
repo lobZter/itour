@@ -42,12 +42,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import nctu.cs.cgv.itour.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.SpotInfoActivity;
-import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
+import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.ImageNode;
@@ -651,7 +651,7 @@ public class MapFragment extends Fragment {
                     }
                     reRender();
                     translationHandler.removeCallbacks(this);
-                    if(toCurrent) {
+                    if (toCurrent) {
                         gpsBtn.setImageResource(R.drawable.ic_gps_fixed_blue_24dp);
                         isGpsCurrent = true;
                     } else {

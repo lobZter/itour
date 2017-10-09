@@ -1,7 +1,6 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.custom;
 
 import android.content.Context;
-import android.graphics.Rect;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.widget.SearchView;
 import android.util.AttributeSet;

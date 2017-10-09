@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.map.RotationGestureDetector;
+import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;

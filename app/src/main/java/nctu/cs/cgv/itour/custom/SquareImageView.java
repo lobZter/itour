@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.custom;
 
 import android.content.Context;
 import android.util.AttributeSet;

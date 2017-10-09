@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.custom;
 
 /**
  * Created by lobZter on 2017/7/10.

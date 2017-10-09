@@ -9,7 +9,7 @@
             android:title="路線比例" />
 
         <SwitchPreferenceCompat
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="fog"
             android:title="迷霧系統" />
 

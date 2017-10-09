@@ -1,6 +1,5 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -24,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import nctu.cs.cgv.itour.CheckinItemAdapter;
+import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 

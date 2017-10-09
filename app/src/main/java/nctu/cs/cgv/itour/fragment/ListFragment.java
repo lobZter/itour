@@ -7,7 +7,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,7 +17,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import nctu.cs.cgv.itour.MyViewPager;
+import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 

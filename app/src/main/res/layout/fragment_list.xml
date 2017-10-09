@@ -10,7 +10,7 @@
         android:background="@color/md_white_1000"
         android:elevation="4dp" />
 
-    <nctu.cs.cgv.itour.MyViewPager
+    <nctu.cs.cgv.itour.custom.MyViewPager
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

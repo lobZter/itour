@@ -42,7 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nctu.cs.cgv.itour.MyViewPager;
+import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;

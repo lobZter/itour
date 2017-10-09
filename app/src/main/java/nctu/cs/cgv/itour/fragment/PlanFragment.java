@@ -11,11 +11,9 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-import nctu.cs.cgv.itour.PlanItem;
-import nctu.cs.cgv.itour.PlanItemAdapter;
+import nctu.cs.cgv.itour.custom.PlanItem;
+import nctu.cs.cgv.itour.custom.PlanItemAdapter;
 import nctu.cs.cgv.itour.R;
-
-import static nctu.cs.cgv.itour.Utility.dpToPx;
 
 public class PlanFragment extends Fragment {
 

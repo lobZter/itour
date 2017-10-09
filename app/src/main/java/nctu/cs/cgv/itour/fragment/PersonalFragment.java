@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import nctu.cs.cgv.itour.MyViewPager;
+import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.Utility.dpToPx;

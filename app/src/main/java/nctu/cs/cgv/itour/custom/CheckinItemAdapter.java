@@ -1,4 +1,4 @@
-package nctu.cs.cgv.itour;
+package nctu.cs.cgv.itour.custom;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.fragment.SavedCheckinFragment;
 import nctu.cs.cgv.itour.object.Checkin;
