@@ -23,7 +23,6 @@ public class Checkin {
     public String timestamp;
 
     public String key;
-    public boolean saved = false;
     public Map<String, Boolean> like = new HashMap<>();
 
     public Checkin() {

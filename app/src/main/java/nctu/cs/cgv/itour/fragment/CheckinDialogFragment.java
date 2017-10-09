@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,13 +30,13 @@ import java.io.IOException;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
+import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 public class CheckinDialogFragment extends DialogFragment {
 
@@ -87,32 +88,38 @@ public class CheckinDialogFragment extends DialogFragment {
         location.setText(checkin.location);
         description.setText(checkin.description);
 
-        setPhoto(view, checkin);
-        setAudio(view, checkin);
+        setPhoto(view, checkin.photo);
+        setAudio(view, checkin.audio);
         setActionBtn(view, checkin);
     }
 
-    private void setPhoto(View view, final Checkin checkin) {
+    private void setPhoto(View view, final String filename) {
+
         final ImageView photo = (ImageView) view.findViewById(R.id.photo);
-        final String photoPath = getContext().getExternalCacheDir().toString() + "/" + checkin.photo;
-        File photoFile = new File(photoPath);
-        if (photoFile.exists()) {
+
+        if (filename.equals("")) {
+            photo.setVisibility(View.GONE);
+            return;
+        }
+
+        final File externalCacheDir = getContext().getExternalCacheDir();
+        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
             // load photo from storage
-            Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
+            Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
             photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
             photo.setImageBitmap(bitmap);
         } else {
             // download photo
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + checkin.photo, new FileAsyncHttpResponseHandler(getContext()) {
+            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    moveFile(getContext().getCacheDir().toString(),
-                            checkin.photo,
-                            getContext().getExternalCacheDir().toString());
-                    Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
+                    Bitmap bitmap = BitmapFactory.decodeFile(getContext().getCacheDir().toString() + "/" + filename);
                     photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     photo.setImageBitmap(bitmap);
+
+                    if (externalCacheDir != null)
+                        moveFile(getContext().getCacheDir().toString(), filename, externalCacheDir.toString());
                 }
 
                 @Override
@@ -122,7 +129,16 @@ public class CheckinDialogFragment extends DialogFragment {
         }
     }
 
-    private void setAudio(View view, Checkin checkin) {
+    private void setAudio(View view, final String filename) {
+
+        if (filename.equals("")) {
+            View audioLayout = view.findViewById(R.id.audio);
+            View audioDivider = view.findViewById(R.id.audio_divider);
+            audioLayout.setVisibility(View.GONE);
+            audioDivider.setVisibility(View.GONE);
+            return;
+        }
+
         playBtn = (ImageView) view.findViewById(R.id.btn_play);
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -141,19 +157,19 @@ public class CheckinDialogFragment extends DialogFragment {
         progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
         progressBarHandler = new Handler();
 
-        final String audioPath = getContext().getExternalCacheDir().toString() + "/" + checkin.audio;
-        File audioFile = new File(audioPath);
-        if (audioFile.exists()) {
-            // load thumb from storage
-            initAudio(audioPath);
+        final File externalCacheDir = getContext().getExternalCacheDir();
+        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
+            initAudio(externalCacheDir.toString() + "/" + filename);
         } else {
             // download thumb
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + checkin.audio, new FileAsyncHttpResponseHandler(getContext()) {
+            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    response.renameTo(new File(audioPath));
-                    initAudio(audioPath);
+                    initAudio(getContext().getCacheDir().toString() + "/" + filename);
+
+                    if (externalCacheDir != null)
+                        moveFile(getContext().getCacheDir().toString(), filename, externalCacheDir.toString());
                 }
 
                 @Override
@@ -188,7 +204,7 @@ public class CheckinDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                if (checkin.saved) {
+                if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
                     saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
@@ -197,7 +213,6 @@ public class CheckinDialogFragment extends DialogFragment {
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
-                checkin.saved = !checkin.saved;
             }
         });
 
@@ -206,33 +221,30 @@ public class CheckinDialogFragment extends DialogFragment {
             likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
         }
 
-        if (checkin.saved) {
+        if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
             saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
             saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
         }
     }
 
-
     private void initAudio(final String filePath) {
         progressBar.setProgress(0);
-        progressTextCurrent.setText("0:00");
-        progressTextDuration.setText("0:00");
+        progressTextCurrent.setText(getString(R.string.default_start_time));
+        progressTextDuration.setText(getString(R.string.default_start_time));
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                progressBarHandler.removeCallbacksAndMessages(null);
+                audioReady = false;
+                initAudio(filePath);
+            }
+        });
         try {
             mediaPlayer.setDataSource(filePath);
             mediaPlayer.prepare();
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    progressBarHandler.removeCallbacks(progressBarRunnable);
-
-                    isPlaying = false;
-                    playBtn.setImageDrawable(getContext().getDrawable(R.drawable.ic_play_arrow_black_48dp));
-                    initAudio(filePath);
-                }
-            });
 
             String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
             progressTextDuration.setText(str);
@@ -252,22 +264,24 @@ public class CheckinDialogFragment extends DialogFragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         audioReady = true;
-        playBtn.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_black_48dp));
+        isPlaying = false;
+        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play_arrow_black_48dp, null));
     }
 
     private void playAudio() {
         mediaPlayer.start();
 
         isPlaying = true;
-        playBtn.setImageDrawable(getContext().getDrawable(R.drawable.ic_pause_black_48dp));
+        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_pause_black_48dp, null));
     }
 
     private void pauseAudio() {
         mediaPlayer.pause();
 
         isPlaying = false;
-        playBtn.setImageDrawable(getContext().getDrawable(R.drawable.ic_play_arrow_black_48dp));
+        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play_arrow_black_48dp, null));
     }
 
     @Override

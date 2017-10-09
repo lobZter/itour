@@ -208,7 +208,6 @@ public class CheckinActivity extends AppCompatActivity {
                 if (stopRecording()) {
                     initAudio();
                     stopBtn.setVisibility(View.GONE);
-                    playBtn.setVisibility(View.VISIBLE);
                     redoBtn.setVisibility(View.VISIBLE);
                 } else {
                     stopBtn.setVisibility(View.GONE);
@@ -240,7 +239,7 @@ public class CheckinActivity extends AppCompatActivity {
         redoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                progressBarHandler.removeCallbacks(progressBarRunnable);
+                progressBarHandler.removeCallbacksAndMessages(null);
                 progressTextCurrent.setText(getString(R.string.default_start_time));
                 progressTextDuration.setText(getString(R.string.default_maximum_time));
                 progressBar.setProgress(0);
@@ -372,8 +371,6 @@ public class CheckinActivity extends AppCompatActivity {
             public void onCompletion(MediaPlayer mp) {
                 progressBarHandler.removeCallbacksAndMessages(null);
                 initAudio();
-                pauseBtn.setVisibility(View.GONE);
-                playBtn.setVisibility(View.VISIBLE);
             }
         });
         try {
@@ -401,6 +398,8 @@ public class CheckinActivity extends AppCompatActivity {
 
         audioReady = true;
         isPlaying = false;
+        pauseBtn.setVisibility(View.GONE);
+        playBtn.setVisibility(View.VISIBLE);
     }
 
     private void playAudio() {

@@ -39,6 +39,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.moveFile;
+import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 /**
  * Created by lobZter on 2017/8/18.
@@ -140,7 +141,7 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             @Override
             public void onClick(View v) {
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                if (checkin.saved) {
+                if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
                     saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
@@ -149,7 +150,6 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
-                checkin.saved = !checkin.saved;
             }
         });
 
@@ -166,7 +166,7 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
         }
 
-        if (checkin.saved) {
+        if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
             saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
             saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
         }
