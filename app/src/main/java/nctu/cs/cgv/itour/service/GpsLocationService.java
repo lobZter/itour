@@ -67,7 +67,6 @@ public class GpsLocationService extends Service implements
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        // TODO
         LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 
         startLocationUpdate();
@@ -128,7 +127,6 @@ public class GpsLocationService extends Service implements
         locationRequest.setInterval(5000);
         locationRequest.setFastestInterval(2000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
     }
 
     private void startLocationUpdate() {

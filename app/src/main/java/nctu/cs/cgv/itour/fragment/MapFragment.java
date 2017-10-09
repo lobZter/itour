@@ -559,14 +559,6 @@ public class MapFragment extends Fragment {
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator) + 1);
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
-    }
-
-    public void addCheckins() {
-
-        for (Map.Entry<String, Checkin> entry : ((MainActivity) getActivity()).checkinMap.entrySet()) {
-            Checkin checkin = entry.getValue();
-            addCheckin(checkin);
-        }
         reRender();
     }
 

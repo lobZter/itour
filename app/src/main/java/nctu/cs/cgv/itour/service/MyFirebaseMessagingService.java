@@ -24,7 +24,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
             String postId = remoteMessage.getData().get("postId");
             String lat = remoteMessage.getData().get("lat");
             String lng = remoteMessage.getData().get("lng");
-            sendMessage(postId, lat, lng);
+//            sendMessage(postId, lat, lng);
         }
 
         if (remoteMessage.getNotification() != null) {

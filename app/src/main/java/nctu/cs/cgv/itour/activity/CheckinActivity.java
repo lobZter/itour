@@ -40,6 +40,7 @@ import java.util.Calendar;
 
 import nctu.cs.cgv.itour.R;
 
+import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
 public class CheckinActivity extends AppCompatActivity {
@@ -277,7 +278,7 @@ public class CheckinActivity extends AppCompatActivity {
                 intent.putExtra("description", descriptionEdit.getText().toString().trim());
                 intent.putExtra("photo", photoFile);
                 intent.putExtra("audio", audioFile);
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_CODE_CHECKIN_FINISH);
                 return true;
             case android.R.id.home:
                 finish();
@@ -303,6 +304,9 @@ public class CheckinActivity extends AppCompatActivity {
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
             }
+        }
+        if (requestCode == REQUEST_CODE_CHECKIN_FINISH && resultCode == REQUEST_CODE_CHECKIN_FINISH) {
+            finish();
         }
     }
 

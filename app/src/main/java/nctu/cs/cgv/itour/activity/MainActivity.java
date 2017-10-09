@@ -96,42 +96,17 @@ public class MainActivity extends AppCompatActivity implements
         checkinMap = new HashMap<>();
         savedPostId = new HashMap<>();
 
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Loading...");
-        progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.show();
-
         setSensors();
         setBroadcastReceiver();
         setView();
 
         queryCheckin();
+        querySavedPostId();
     }
 
     private void queryCheckin() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                        Checkin checkin = issue.getValue(Checkin.class);
-                        checkin.key = issue.getKey();
-                        checkinMap.put(checkin.key, checkin);
-                    }
-                }
-
-                querySavedPostId();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "queryCheckin(): onCancelled", databaseError.toException());
-                progressDialog.dismiss();
-            }
-        });
 
         query.addChildEventListener(new ChildEventListener() {
             @Override
@@ -139,8 +114,8 @@ public class MainActivity extends AppCompatActivity implements
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);
-//                mapFragment.addCheckin(checkin);
-//                listFragment.addCheckin(checkin);
+                mapFragment.addCheckin(checkin);
+                listFragment.addCheckin(checkin);
             }
 
             @Override
@@ -176,41 +151,16 @@ public class MainActivity extends AppCompatActivity implements
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final Query saveQuery = databaseReference.child("user").child(uid).child("saved");
-        saveQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    savedPostId = (Map<String, Boolean>) dataSnapshot.getValue();
-                    for (Map.Entry<String, Boolean> entry : savedPostId.entrySet()) {
-                        if (entry.getValue()) {
-                            checkinMap.get(entry.getKey()).saved = true;
-                        }
-                    }
-                }
-
-                mapFragment.addCheckins();
-                listFragment.addCheckins();
-                progressDialog.dismiss();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "querySavedPostId(): onCancelled");
-                progressDialog.dismiss();
-            }
-        });
 
         saveQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
-                checkinMap.get(dataSnapshot.getKey()).saved = (boolean) dataSnapshot.getValue();
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
-                checkinMap.get(dataSnapshot.getKey()).saved = (boolean) dataSnapshot.getValue();
             }
 
             @Override
@@ -225,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "ChildEventListener: onCancelled");
+
             }
         });
     }
@@ -288,36 +238,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setBroadcastReceiver() {
-//        FirebaseMessaging.getInstance().subscribeToTopic(mapTag);
-
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, final Intent intent) {
                 switch (intent.getAction()) {
-                    case "checkinIcon":
-//                        final String postId = intent.getStringExtra("postId");
-//                        Query query = FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(postId);
-//                        query.addListenerForSingleValueEvent(new ValueEventListener() {
-//                            @Override
-//                            public void onDataChange(final DataSnapshot dataSnapshot) {
-//                                if (dataSnapshot.exists()) {
-//                                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
-//                                    if (checkin.like == null) checkin.like = new HashMap<>();
-//                                    checkin.key = postId;
-//                                    checkinMap.put(checkin.key, checkin);
-//
-//                                    mapFragment.addCheckin(checkin);
-//                                    listFragment.addCheckin(checkin);
-//                                }
-//                            }
-//
-//                            @Override
-//                            public void onCancelled(DatabaseError databaseError) {
-//                                Log.w(TAG, "addCheckin(): onCancelled", databaseError.toException());
-//                            }
-//                        });
-                        break;
-
                     case "gpsLocation":
                         mapFragment.handleLocationChange(
                                 intent.getFloatExtra("lat", 0),

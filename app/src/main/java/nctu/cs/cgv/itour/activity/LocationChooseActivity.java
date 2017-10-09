@@ -50,6 +50,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
+import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
@@ -553,8 +554,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         if (photo.equals("")) {
             type.put("photo", false);
         } else {
-            File from = new File(getExternalCacheDir().toString() + "/" + photo);
-            File to = new File(getExternalCacheDir().toString() + "/" + key + ".jpg");
+            File from = new File(getCacheDir().toString() + "/" + photo);
+            File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
             photo = key + ".jpg";
             from.renameTo(to);
             type.put("photo", true);
@@ -562,8 +563,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         if (audio.equals("")) {
             type.put("audio", false);
         } else {
-            File from = new File(getExternalCacheDir().toString() + "/" + audio);
-            File to = new File(getExternalCacheDir().toString() + "/" + key + ".mp4");
+            File from = new File(getCacheDir().toString() + "/" + audio);
+            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
             from.renameTo(to);
             audio = key + ".mp4";
             type.put("audio", true);
@@ -583,9 +584,8 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                 actionLog("Post Checkin");
                 progressDialog.dismiss();
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                setResult(REQUEST_CODE_CHECKIN_FINISH);
+                finish();
 
                 // TODO: 2017/10/6 upload file
 //                AsyncHttpClient client = new AsyncHttpClient();
