@@ -32,18 +32,24 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -52,12 +58,14 @@ import nctu.cs.cgv.itour.object.SpotNode;
 
 import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 import static nctu.cs.cgv.itour.Utility.imgPxToGps;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 
 public class LocationChooseActivity extends AppCompatActivity {
 
@@ -149,7 +157,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsMarker = findViewById(R.id.gps_marker);
 
         // set tourist map
-        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
+        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + "/" + mapTag + "_distorted_map.png");
         touristMap = new ImageView(this);
         touristMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapBitmap.getWidth(), touristMapBitmap.getHeight()));
         touristMap.setScaleType(ImageView.ScaleType.MATRIX);
@@ -534,6 +542,7 @@ public class LocationChooseActivity extends AppCompatActivity {
     private void checkin() {
 
         final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.dialog_uploading));
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
 
@@ -549,7 +558,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
-        Map<String, Boolean> type = new HashMap<>();
+        final Map<String, Boolean> type = new HashMap<>();
+        final List<File> fileList = new ArrayList<>();
         // rename file with postId
         if (photo.equals("")) {
             type.put("photo", false);
@@ -558,6 +568,7 @@ public class LocationChooseActivity extends AppCompatActivity {
             File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
             photo = key + ".jpg";
             from.renameTo(to);
+            fileList.add(to);
             type.put("photo", true);
         }
         if (audio.equals("")) {
@@ -567,9 +578,11 @@ public class LocationChooseActivity extends AppCompatActivity {
             File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
             from.renameTo(to);
             audio = key + ".mp4";
+            fileList.add(to);
             type.put("audio", true);
         }
 
+        // save checkin data to firebase database
         String location = locationEdit.getText().toString().trim();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
@@ -581,48 +594,47 @@ public class LocationChooseActivity extends AppCompatActivity {
         databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-
                 actionLog("Post Checkin");
-                progressDialog.dismiss();
-                setResult(REQUEST_CODE_CHECKIN_FINISH);
-                finish();
 
-                // TODO: 2017/10/6 upload file
-//                AsyncHttpClient client = new AsyncHttpClient();
-//                RequestParams params = new RequestParams();
-//                params.setForceMultipartEntityContentType(true);
-//                try {
-//                    File file = new File(getExternalCacheDir().toString() + "/" + photo);
-//                    if (file.exists())
-//                        params.put("file", file);
-//                    params.put("mapTag", mapTag);
-//                    params.put("postId", key);
-//                    params.put("lat", finalLatCenter);
-//                    params.put("lng", finalLngCenter);
-//
-//                    client.post("https://itour-lobst3rd.c9users.io/upload", params, new AsyncHttpResponseHandler() {
-//                        @Override
-//                        public void onStart() {
-//                        }
-//
-//                        @Override
-//                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//                            progressDialog.dismiss();
-//                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-//                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//                            startActivity(intent);
-//                        }
-//
-//                        @Override
-//                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                            progressDialog.dismiss();
-//                            Toast.makeText(getApplicationContext(), "Upload failed." + statusCode, Toast.LENGTH_LONG).show();
-//                        }
-//                    });
-//
-//                } catch (FileNotFoundException e) {
-//                    e.printStackTrace();
-//                }
+                // upload files to app server
+                AsyncHttpClient client = new AsyncHttpClient();
+                RequestParams params = new RequestParams();
+                params.setForceMultipartEntityContentType(true);
+                try {
+                    File[] fileArray = new File[fileList.size()];
+                    fileList.toArray(fileArray);
+                    params.put("files", fileArray);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
+                    @Override
+                    public void onStart() {
+
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        // move files
+                        if (getExternalCacheDir() != null) {
+                            if(!photo.equals(""))
+                                moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
+                            if(!audio.equals(""))
+                                moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
+                        }
+                        progressDialog.dismiss();
+                        setResult(REQUEST_CODE_CHECKIN_FINISH);
+                        finish();
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
             }
         });
     }

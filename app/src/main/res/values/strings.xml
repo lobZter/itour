@@ -20,4 +20,6 @@
     <string name="toast_mic_not_found">找不到麥克風</string>
     <string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>
     <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
+    <string name="toast_upload_file_failed">檔案上傳失敗</string>
+    <string name="dialog_uploading">檔案上傳中...</string>
 </resources>

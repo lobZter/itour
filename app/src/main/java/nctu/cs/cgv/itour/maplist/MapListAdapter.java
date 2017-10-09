@@ -53,8 +53,8 @@ public class MapListAdapter extends RecyclerView.Adapter<MapListAdapter.ViewHold
         MapListItem currentItem = mapList.get(position);
         holder.title.setText(currentItem.mapName);
 
-        final String thumbURL = fileServerURL + currentItem.mapThumb;
-        final String thumbPath = dirPath + currentItem.mapThumb;
+        final String thumbURL = fileServerURL + "/" + currentItem.mapThumb;
+        final String thumbPath = dirPath + "/" + currentItem.mapThumb;
         File thumbFile = new File(thumbPath);
 
         if(thumbFile.exists()) {

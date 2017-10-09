@@ -120,11 +120,11 @@ public class MapListActivity extends AppCompatActivity {
                     @Override
                     public void onItemClick(View view, int position) {
                         mapTag = mapListItems.get(position).mapTag;
-                        File distortedMapFile = new File(dirPath + mapTag + "_distorted_map.png");
-                        File meshFile = new File(dirPath + mapTag + "_mesh.txt");
-                        File warpMeshFile = new File(dirPath + mapTag + "_warpMesh.txt");
-                        File boundBoxFile = new File(dirPath + mapTag + "_bound_box.txt");
-                        File edgeLengthFile = new File(dirPath + mapTag + "_edge_length.txt");
+                        File distortedMapFile = new File(dirPath+ "/"  + mapTag + "_distorted_map.png");
+                        File meshFile = new File(dirPath+ "/"  + mapTag + "_mesh.txt");
+                        File warpMeshFile = new File(dirPath+ "/"  + mapTag + "_warpMesh.txt");
+                        File boundBoxFile = new File(dirPath+ "/"  + mapTag + "_bound_box.txt");
+                        File edgeLengthFile = new File(dirPath+ "/"  + mapTag + "_edge_length.txt");
                         if (distortedMapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists()) {
                             Intent intent = new Intent(MapListActivity.this, MainActivity.class);
                             intent.putExtra("mapTag", mapTag);
@@ -148,13 +148,13 @@ public class MapListActivity extends AppCompatActivity {
     }
 
     private void downloadAndUpdate() {
-        final String jsonFilePath = dirPath + "jsonexample.json";
+        final String jsonFilePath = dirPath + "/jsonexample.json";
         final File jsonFile = new File(jsonFilePath);
 
         // download then call updateAdapter()
         // TODO automatic download at the first time
         AsyncHttpClient client = new AsyncHttpClient();
-        client.get(fileServerURL + "jsonexample.json", new AsyncHttpResponseHandler() {
+        client.get(fileServerURL + "/jsonexample.json", new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 try {
@@ -182,7 +182,7 @@ public class MapListActivity extends AppCompatActivity {
     }
 
     private void initListItem() {
-        final String jsonFilePath = dirPath + "jsonexample.json";
+        final String jsonFilePath = dirPath + "/jsonexample.json";
         final File jsonFile = new File(jsonFilePath);
 
         if (!jsonFile.exists()) {

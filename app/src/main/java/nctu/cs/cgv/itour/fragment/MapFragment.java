@@ -44,7 +44,6 @@ import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
-import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
@@ -166,7 +165,7 @@ public class MapFragment extends Fragment {
         actionBar.setSubtitle("Map");
 
         // set tourist map
-        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + mapTag + "_distorted_map.png");
+        Bitmap touristMapBitmap = BitmapFactory.decodeFile(dirPath + "/" + mapTag + "_distorted_map.png");
         int touristMapWidth = touristMapBitmap.getWidth();
         int touristMapHeight = touristMapBitmap.getHeight();
         touristMap = new ImageView(context);
@@ -381,8 +380,8 @@ public class MapFragment extends Fragment {
     private void reRender() {
 
         Matrix gpsMarkTransform = new Matrix();
-        Matrix nodeIconTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();
+        Matrix nodeIconTransform = new Matrix();
         Matrix checkinIconTransform = new Matrix();
         gpsMarkTransform.postTranslate(-gpsMarkerPivotX, -gpsMarkerPivotY);
         spotIconTransform.postTranslate(-spotIconPivotX, -spotIconPivotY);

@@ -64,11 +64,11 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
 
         try {
             URL[] urls = {
-                    new URL(fileServerURL + mapTag + "_distorted_map.png"),
-                    new URL(fileServerURL + mapTag + "_mesh.txt"),
-                    new URL(fileServerURL + mapTag + "_warpMesh.txt"),
-                    new URL(fileServerURL + mapTag + "_bound_box.txt"),
-                    new URL(fileServerURL + mapTag + "_edge_length.txt")};
+                    new URL(fileServerURL + "/" + mapTag + "_distorted_map.png"),
+                    new URL(fileServerURL + "/" + mapTag + "_mesh.txt"),
+                    new URL(fileServerURL + "/" + mapTag + "_warpMesh.txt"),
+                    new URL(fileServerURL + "/" + mapTag + "_bound_box.txt"),
+                    new URL(fileServerURL + "/" + mapTag + "_edge_length.txt")};
 
             for (URL url : urls) {
                 URLConnection urlConnection = url.openConnection();
