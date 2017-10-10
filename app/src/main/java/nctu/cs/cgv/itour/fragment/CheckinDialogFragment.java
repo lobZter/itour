@@ -191,10 +191,14 @@ public class CheckinDialogFragment extends DialogFragment {
                     likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                    checkin.like.put(uid, false);
+                    checkinMap.get(checkin.key).like.put(uid, false);
                 } else {
                     likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
                     likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
+                    checkin.like.put(uid, true);
+                    checkinMap.get(checkin.key).like.put(uid, true);
                 }
             }
         });
@@ -208,10 +212,12 @@ public class CheckinDialogFragment extends DialogFragment {
                     saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
+                    savedPostId.put(checkin.key, false);
                 } else {
                     saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
                     saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
+                    savedPostId.put(checkin.key, true);
                 }
             }
         });

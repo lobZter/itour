@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
@@ -30,12 +31,12 @@ import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.moveFile;
+import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 /**
@@ -193,10 +194,14 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                     viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
                     viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                    checkin.like.put(uid, false);
+                    checkinMap.get(checkin.key).like.put(uid, false);
                 } else {
                     viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
                     viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
+                    checkin.like.put(uid, true);
+                    checkinMap.get(checkin.key).like.put(uid, true);
                 }
             }
         });
@@ -209,10 +214,12 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                     viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
                     viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
+                    savedPostId.put(checkin.key, false);
                 } else {
                     viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
                     viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
+                    savedPostId.put(checkin.key, true);
                 }
             }
         });
@@ -220,6 +227,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         viewHolder.deleteBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(context, "not available", Toast.LENGTH_SHORT).show();
             }
         });
 
