@@ -152,6 +152,10 @@ public class CheckinActivity extends AppCompatActivity {
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (isRecording) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.toast_is_recording), Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
                         .setFixAspectRatio(true)

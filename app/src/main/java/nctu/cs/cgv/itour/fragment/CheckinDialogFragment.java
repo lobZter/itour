@@ -161,7 +161,7 @@ public class CheckinDialogFragment extends DialogFragment {
         if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
             initAudio(externalCacheDir.toString() + "/" + filename);
         } else {
-            // download thumb
+            // download audio
             AsyncHttpClient client = new AsyncHttpClient();
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(getContext()) {
                 @Override

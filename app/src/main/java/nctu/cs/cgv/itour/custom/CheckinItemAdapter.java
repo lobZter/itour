@@ -49,14 +49,6 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
 
     private Context context;
 
-    private ProgressBar progressBar;
-    private TextView progressTextCurrent;
-    private TextView progressTextDuration;
-    private ImageView playBtn;
-
-    private Handler progressBarHandler;
-    private Runnable progressBarRunnable;
-
     public CheckinItemAdapter(Context context, List<Checkin> checkinItems) {
         super(context, 0, checkinItems);
         this.context = context;
@@ -66,49 +58,68 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
     public View getView(int position, View view, @NonNull ViewGroup parent) {
         final Checkin checkin = getItem(position);
 
-        view = LayoutInflater.from(getContext()).inflate(R.layout.item_checkin_card, parent, false);
+        ViewHolder viewHolder;
+        if (view == null) {
+            viewHolder = new ViewHolder();
+            LayoutInflater inflater = LayoutInflater.from(context);
+            view = inflater.inflate(R.layout.item_checkin_card, parent, false);
+            viewHolder.username = (TextView) view.findViewById(R.id.tv_username);
+            viewHolder.location = (TextView) view.findViewById(R.id.tv_location);
+            viewHolder.description = (TextView) view.findViewById(R.id.tv_description);
 
-        TextView username = (TextView) view.findViewById(R.id.tv_username);
-        TextView location = (TextView) view.findViewById(R.id.tv_location);
-        TextView description = (TextView) view.findViewById(R.id.tv_description);
-        username.setText(checkin.username);
-        location.setText(checkin.location);
-        description.setText(checkin.description);
+            viewHolder.photo = (ImageView) view.findViewById(R.id.photo);
 
+            viewHolder.audioLayout = view.findViewById(R.id.audio);
+            viewHolder.audioDivider = view.findViewById(R.id.audio_divider);
+            viewHolder.playBtn = (ImageView) view.findViewById(R.id.btn_play);
+            viewHolder.progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
+            viewHolder.progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
+            viewHolder.progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
 
-        playBtn = (ImageView) view.findViewById(R.id.btn_play);
-        playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            }
-        });
+            viewHolder.likeBtn = (Button) view.findViewById(R.id.btn_like);
+            viewHolder.saveBtn = (Button) view.findViewById(R.id.btn_save);
+            viewHolder.locateBtn = (Button) view.findViewById(R.id.btn_locate);
+            view.setTag(viewHolder);
+        } else {
+            viewHolder = (ViewHolder) view.getTag();
+        }
 
-        progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-        progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
-        progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
-        progressBarHandler = new Handler();
+        viewHolder.username.setText(checkin.username);
+        viewHolder.location.setText(checkin.location);
+        viewHolder.description.setText(checkin.description);
 
-        // set photo
-        final ImageView photo = (ImageView) view.findViewById(R.id.photo);
-        final String photoPath = getContext().getExternalCacheDir().toString() + "/" + checkin.photo;
-        File photoFile = new File(photoPath);
-        if (photoFile.exists()) {
+        setPhoto(viewHolder, checkin.photo);
+        setAudio(viewHolder, checkin.audio);
+        setActionBtn(viewHolder, checkin);
+
+        return view;
+    }
+
+    private void setPhoto(final ViewHolder viewHolder, final String filename) {
+
+        if (filename.equals("")) {
+            viewHolder.photo.setVisibility(View.GONE);
+            return;
+        }
+
+        final File externalCacheDir = context.getExternalCacheDir();
+        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
             // load photo from storage
-            Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
-            photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            photo.setImageBitmap(bitmap);
+            Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
+            viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            viewHolder.photo.setImageBitmap(bitmap);
         } else {
             // download photo
             AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + checkin.photo, new FileAsyncHttpResponseHandler(getContext()) {
+            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    moveFile(getContext().getCacheDir().toString(),
-                            checkin.photo,
-                            getContext().getExternalCacheDir().toString());
-                    Bitmap bitmap = BitmapFactory.decodeFile(photoPath);
-                    photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    photo.setImageBitmap(bitmap);
+                    Bitmap bitmap = BitmapFactory.decodeFile(context.getCacheDir().toString() + "/" + filename);
+                    viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    viewHolder.photo.setImageBitmap(bitmap);
+
+                    if (externalCacheDir != null)
+                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
                 }
 
                 @Override
@@ -116,45 +127,100 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
                 }
             });
         }
+    }
 
-        // set action buttons
+    private void setAudio(final ViewHolder viewHolder, final String filename) {
+
+        if (filename.equals("")) {
+            viewHolder.audioLayout.setVisibility(View.GONE);
+            viewHolder.audioDivider.setVisibility(View.GONE);
+            return;
+        }
+
+        final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
+        final Handler progressBarHandler = new Handler();
+        final Runnable progressBarRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (mediaPlayer[0] != null && mediaPlayer[0].isPlaying()) {
+                    viewHolder.progressBar.setProgress(mediaPlayer[0].getCurrentPosition() * 100 / mediaPlayer[0].getDuration());
+                    String str = String.format("%d:%02d", mediaPlayer[0].getCurrentPosition() / 1000, (mediaPlayer[0].getCurrentPosition() % 1000) * 60 / 1000);
+                    viewHolder.progressTextCurrent.setText(str);
+                }
+                progressBarHandler.postDelayed(this, 100);
+            }
+        };
+
+        viewHolder.playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mediaPlayer[0] != null) {
+                    if (mediaPlayer[0].isPlaying())
+                        pauseAudio(viewHolder, mediaPlayer[0]);
+                    else
+                        playAudio(viewHolder, mediaPlayer[0]);
+                }
+            }
+        });
+
+        final File externalCacheDir = context.getExternalCacheDir();
+        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
+            mediaPlayer[0] = initAudio(viewHolder, externalCacheDir.toString() + "/" + filename, progressBarHandler, progressBarRunnable);
+        } else {
+            // download audio
+            AsyncHttpClient client = new AsyncHttpClient();
+            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, File response) {
+                    mediaPlayer[0] = initAudio(viewHolder, context.getCacheDir().toString() + "/" + filename, progressBarHandler, progressBarRunnable);
+
+                    if (externalCacheDir != null)
+                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+
+                }
+            });
+        }
+    }
+
+    private void setActionBtn(final ViewHolder viewHolder, final Checkin checkin) {
         final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final Button likeBtn = (Button) view.findViewById(R.id.btn_like);
-        likeBtn.setOnClickListener(new View.OnClickListener() {
+        viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                 if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                    likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-                    likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
+                    viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                    viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
                 } else {
-                    likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                    likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                    viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
+                    viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                     databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
                 }
             }
         });
 
-        final Button saveBtn = (Button) view.findViewById(R.id.btn_save);
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                 if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                    saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-                    saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+                    viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                    viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(false);
                 } else {
-                    saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                    saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+                    viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
+                    viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                     databaseReference.child("user").child(uid).child("saved").child(checkin.key).setValue(true);
                 }
             }
         });
 
-        Button locateBtn = (Button) view.findViewById(R.id.btn_locate);
-        locateBtn.setOnClickListener(new View.OnClickListener() {
+        viewHolder.locateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ((MainActivity) context).onLocateClick(checkin);
@@ -162,15 +228,72 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
         });
 
         if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-            likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-            likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+            viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
+            viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
         }
 
         if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-            saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-            saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+            viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
+            viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+        }
+    }
+
+    private MediaPlayer initAudio(final ViewHolder viewHolder, final String filePath, final Handler progressBarHandler, final Runnable progressBarRunnable) {
+        viewHolder.progressBar.setProgress(0);
+        viewHolder.progressTextCurrent.setText(context.getString(R.string.default_start_time));
+        viewHolder.progressTextDuration.setText(context.getString(R.string.default_start_time));
+
+        final MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                progressBarHandler.removeCallbacksAndMessages(null);
+                initAudio(viewHolder, filePath, progressBarHandler, progressBarRunnable);
+            }
+        });
+        try {
+            mediaPlayer.setDataSource(filePath);
+            mediaPlayer.prepare();
+
+            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
+            viewHolder.progressTextDuration.setText(str);
+
+            progressBarHandler.postDelayed(progressBarRunnable, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return view;
+        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
+        return mediaPlayer;
+    }
+
+    private void playAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
+        mediaPlayer.start();
+        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_pause_black_48dp, null));
+    }
+
+    private void pauseAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
+        mediaPlayer.pause();
+        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
+    }
+
+    private static class ViewHolder {
+        TextView username;
+        TextView location;
+        TextView description;
+
+        ImageView photo;
+
+        View audioLayout;
+        View audioDivider;
+        ImageView playBtn;
+        ProgressBar progressBar;
+        TextView progressTextCurrent;
+        TextView progressTextDuration;
+
+        Button likeBtn;
+        Button saveBtn;
+        Button locateBtn;
     }
 }

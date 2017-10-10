@@ -157,7 +157,7 @@
                 android:drawableLeft="@drawable/ic_favorite_border_black_24dp"
                 android:paddingStart="56dp"
                 android:paddingEnd="32dp"
-                android:text="LIKE"
+                android:text="@string/btn_like_string"
                 android:textColor="@color/md_black_1000" />
 
             <View
@@ -174,7 +174,7 @@
                 android:paddingStart="48dp"
                 android:paddingEnd="32dp"
                 android:drawableLeft="@drawable/ic_bookmark_border_black_24dp"
-                android:text="SAVE"
+                android:text="@string/btn_save_string"
                 android:textColor="@color/md_black_1000" />
 
         </LinearLayout>

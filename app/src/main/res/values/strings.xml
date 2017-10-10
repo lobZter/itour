@@ -18,6 +18,7 @@
     <string name="default_start_time">0:00</string>
 
     <string name="toast_mic_not_found">找不到麥克風</string>
+    <string name="toast_is_recording">請先完成錄音</string>
     <string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>
     <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
     <string name="toast_upload_file_failed">檔案上傳失敗</string>
@@ -28,4 +29,10 @@
     <string name="subtitle_personal">Personal</string>
     <string name="subtitle_plan">Plan</string>
     <string name="subtitle_setting">Setting</string>
+
+    <string name="btn_like_string">LIKE</string>
+    <string name="btn_save_string">SAVE</string>
+    <string name="btn_locate_string">LOCATE</string>
+    <string name="btn_delete_string">DELETE</string>
+
 </resources>
