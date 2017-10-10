@@ -49,7 +49,7 @@ public class PlanFragment extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setSubtitle("Plan");
+                actionBar.setSubtitle(getString(R.string.subtitle_plan));
             }
         }
     }

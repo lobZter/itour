@@ -13,8 +13,9 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.custom.MyViewPager;
+import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.Utility.dpToPx;
 
@@ -23,9 +24,9 @@ public class PersonalFragment extends Fragment {
     private static final String TAG = "PersonalFragment";
     private ActionBar actionBar;
     private MyViewPager viewPager;
-    private TabLayout tabLayout;
     private List<Fragment> fragmentList;
-    private String tabTitles[];
+    private PostedCheckinFragment postedCheckinFragment;
+    private SavedCheckinFragment savedCheckinFragment;
 
     public static PersonalFragment newInstance() {
         PersonalFragment fragment = new PersonalFragment();
@@ -42,14 +43,17 @@ public class PersonalFragment extends Fragment {
 
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
 
-        tabTitles = new String[]{"Posted", "Saved"};
-
+        postedCheckinFragment = PostedCheckinFragment.newInstance();
+        savedCheckinFragment = SavedCheckinFragment.newInstance();
         fragmentList = new ArrayList<>();
-        fragmentList.add(PostedCheckinFragment.newInstance());
-        fragmentList.add(SavedCheckinFragment.newInstance());
+        fragmentList.add(postedCheckinFragment);
+        fragmentList.add(savedCheckinFragment);
 
         viewPager = (MyViewPager) view.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+
+            String tabTitles[] = new String[]{"Posted", "Saved"};
+
             @Override
             public Fragment getItem(int position) {
                 return fragmentList.get(position);
@@ -69,20 +73,33 @@ public class PersonalFragment extends Fragment {
         viewPager.setPagingEnabled(false);
         viewPager.setOffscreenPageLimit(2);
 
-        tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
+        TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
     }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (actionBar != null) {
-            if (getUserVisibleHint()) {
+
+        if (getUserVisibleHint()) {
+            if (actionBar != null) {
                 actionBar.setElevation(0);
-                actionBar.setSubtitle("Personal");
-            } else {
+                actionBar.setSubtitle(getString(R.string.subtitle_personal));
+            }
+            postedCheckinFragment.refresh();
+            savedCheckinFragment.refresh();
+        } else {
+            if (actionBar != null) {
                 actionBar.setElevation(dpToPx(getContext(), 4));
             }
         }
+    }
+
+    public void addSavedCheckin(Checkin checkin) {
+        savedCheckinFragment.addSavedCheckin(checkin);
+    }
+
+    public void addPostedCheckin(Checkin checkin) {
+        postedCheckinFragment.addPostedCheckin(checkin);
     }
 }

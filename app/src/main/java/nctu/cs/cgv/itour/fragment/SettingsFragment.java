@@ -107,7 +107,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setSubtitle("Setting");
+                actionBar.setSubtitle(getString(R.string.subtitle_setting));
             }
         }
     }

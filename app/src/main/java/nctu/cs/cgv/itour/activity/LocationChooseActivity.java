@@ -193,8 +193,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         spotNodeList = new ArrayList<>();
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        for (Map.Entry<String, SpotNode> nodeEntry : spotList.nodeMap.entrySet()) {
-            SpotNode spotNode = nodeEntry.getValue();
+        for (SpotNode entryValues : spotList.nodeMap.values()) {
+            SpotNode spotNode = new SpotNode(entryValues.x, entryValues.y, entryValues.name);
             View icon = inflater.inflate(R.layout.item_spot, null);
             ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
             spotNode.icon = icon;

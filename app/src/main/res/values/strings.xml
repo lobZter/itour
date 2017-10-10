@@ -21,5 +21,11 @@
     <string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>
     <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
     <string name="toast_upload_file_failed">檔案上傳失敗</string>
-    <string name="dialog_uploading">檔案上傳中...</string>
+    <string name="dialog_uploading">檔案上傳中</string>
+
+    <string name="subtitle_map">Map</string>
+    <string name="subtitle_list">List</string>
+    <string name="subtitle_personal">Personal</string>
+    <string name="subtitle_plan">Plan</string>
+    <string name="subtitle_setting">Setting</string>
 </resources>

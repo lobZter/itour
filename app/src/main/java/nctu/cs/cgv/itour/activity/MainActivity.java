@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements
     // MapFragment: communicate by calling fragment method
     private MapFragment mapFragment;
     private ListFragment listFragment;
+    private PersonalFragment personalFragment;
     // use broadcast to send received checkinIcon data(fbc topic message) to activity
     private BroadcastReceiver messageReceiver;
     // device sensor manager
@@ -115,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);
                 mapFragment.addCheckin(checkin);
-                listFragment.addCheckin(checkin);
             }
 
             @Override
@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity implements
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.remove(dataSnapshot.getKey());
                 mapFragment.removeCheckin(checkin);
-                listFragment.removeCheckin(checkin);
             }
 
             @Override
@@ -156,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+
             }
 
             @Override
@@ -183,10 +183,11 @@ public class MainActivity extends AppCompatActivity implements
     private void setView() {
         mapFragment = MapFragment.newInstance();
         listFragment = ListFragment.newInstance();
+        personalFragment = PersonalFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
-        fragmentList.add(PersonalFragment.newInstance());
+        fragmentList.add(personalFragment);
         fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 

@@ -17,8 +17,8 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.Utility.dpToPx;
@@ -92,11 +92,14 @@ public class ListFragment extends Fragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (actionBar != null) {
-            if (getUserVisibleHint()) {
+        if (getUserVisibleHint()) {
+            if (actionBar != null) {
                 actionBar.setElevation(0);
-                actionBar.setSubtitle("List");
-            } else {
+                actionBar.setSubtitle(getString(R.string.subtitle_list));
+            }
+            checkinListFragment.refresh();
+        } else {
+            if (actionBar != null) {
                 actionBar.setElevation(dpToPx(getContext(), 4));
             }
         }
@@ -114,8 +117,6 @@ public class ListFragment extends Fragment {
             case R.id.hot:
                 return true;
             case R.id.time:
-                return true;
-            case R.id.distance:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

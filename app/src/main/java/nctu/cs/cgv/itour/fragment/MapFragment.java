@@ -198,10 +198,10 @@ public class MapFragment extends Fragment {
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         spotNodeMap = new LinkedHashMap<>(spotList.nodeMap);
-        for (Map.Entry<String, SpotNode> nodeEntry : spotNodeMap.entrySet()) {
-            addSpotNode(nodeEntry.getValue());
-        }
         spotNodeList = new ArrayList<>(spotNodeMap.values());
+        for (SpotNode spotNode : spotNodeList) {
+            addSpotNode(spotNode);
+        }
 
         // set gpsMarker
         int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
@@ -274,7 +274,7 @@ public class MapFragment extends Fragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (actionBar != null) {
             if (getUserVisibleHint()) {
-                actionBar.setSubtitle("Map");
+                actionBar.setSubtitle(getString(R.string.subtitle_map));
             }
         }
     }
@@ -430,7 +430,7 @@ public class MapFragment extends Fragment {
         }
 
         // transform spot
-        for (SpotNode spotNode : spotNodeMap.values()) {
+        for (SpotNode spotNode : spotNodeList) {
             point[0] = spotNode.x;
             point[1] = spotNode.y;
             transformMat.mapPoints(point);
