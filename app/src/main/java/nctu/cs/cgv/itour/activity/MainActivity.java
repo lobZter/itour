@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements
     private void querySavedPostId() {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final Query saveQuery = databaseReference.child("user").child(uid).child("saved");
+        final Query saveQuery = databaseReference.child("user").child(uid).child("saved").child(mapTag);
 
         saveQuery.addChildEventListener(new ChildEventListener() {
             @Override
