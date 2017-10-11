@@ -100,6 +100,8 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         if (filename.equals("")) {
             viewHolder.photo.setVisibility(View.GONE);
             return;
+        } else {
+            viewHolder.photo.setVisibility(View.VISIBLE);
         }
 
         final File externalCacheDir = context.getExternalCacheDir();
@@ -140,6 +142,9 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
             viewHolder.audioLayout.setVisibility(View.GONE);
             viewHolder.audioDivider.setVisibility(View.GONE);
             return;
+        } else {
+            viewHolder.audioLayout.setVisibility(View.VISIBLE);
+            viewHolder.audioDivider.setVisibility(View.VISIBLE);
         }
 
         final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
@@ -263,11 +268,17 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
             viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
             viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+        } else {
+            viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+            viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
         }
 
         if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
             viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
             viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+        } else {
+            viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+            viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
         }
     }
 
