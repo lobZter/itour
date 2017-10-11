@@ -24,6 +24,11 @@
     <string name="toast_upload_file_failed">檔案上傳失敗</string>
     <string name="dialog_uploading">檔案上傳中</string>
 
+    <string name="dialog_delete_title">Delete Post</string>
+    <string name="dialog_delete_message">Are you sure you want to delete this post?</string>
+    <string name="dialog_positive_btn">OK</string>
+    <string name="dialog_negative_btn">Cancel</string>
+
     <string name="subtitle_map">Map</string>
     <string name="subtitle_list">List</string>
     <string name="subtitle_personal">Personal</string>

@@ -70,8 +70,4 @@ public class PostedCheckinFragment extends Fragment {
     public void addPostedCheckin(Checkin checkin) {
         checkinItemAdapter.add(checkin);
     }
-
-    public void removePostedCheckin(String postId) {
-        FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(postId).removeValue();
-    }
 }

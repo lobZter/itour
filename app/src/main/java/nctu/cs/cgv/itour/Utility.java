@@ -30,7 +30,6 @@ import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 
 public class Utility {
 
-
     public static int dpToPx(Context context, int dp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
     }
@@ -115,29 +114,29 @@ public class Utility {
     }
 
     public static void actionLog(String log) {
-        AsyncHttpClient client = new AsyncHttpClient();
-        client.get("https://food-map-lobst3rd.c9users.io/actionLog?user="+ FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+"&log="+log,
-                new AsyncHttpResponseHandler() {
-
-                    @Override
-                    public void onStart() {
-                        // called before request is started
-                    }
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        // called when response HTTP status is "200 OK"
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                    }
-
-                    @Override
-                    public void onRetry(int retryNo) {
-                        // called when request is retried
-                    }
-                });
+//        AsyncHttpClient client = new AsyncHttpClient();
+//        client.get("https://food-map-lobst3rd.c9users.io/actionLog?user="+ FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+"&log="+log,
+//                new AsyncHttpResponseHandler() {
+//
+//                    @Override
+//                    public void onStart() {
+//                        // called before request is started
+//                    }
+//
+//                    @Override
+//                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+//                        // called when response HTTP status is "200 OK"
+//                    }
+//
+//                    @Override
+//                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+//                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+//                    }
+//
+//                    @Override
+//                    public void onRetry(int retryNo) {
+//                        // called when request is retried
+//                    }
+//                });
     }
 }
