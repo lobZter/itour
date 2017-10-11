@@ -112,12 +112,17 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(context.getCacheDir().toString() + "/" + filename);
+                    Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
                     viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     viewHolder.photo.setImageBitmap(bitmap);
 
-                    if (externalCacheDir != null)
-                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
+                    if (externalCacheDir != null) {
+                        String path = response.toString();
+                        String dirPath = path.substring(0, path.lastIndexOf("/"));
+                        File rename = new File(dirPath + "/" + filename);
+                        response.renameTo(rename);
+                        moveFile(dirPath, filename, externalCacheDir.toString());
+                    }
                 }
 
                 @Override
@@ -170,10 +175,15 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    mediaPlayer[0] = initAudio(viewHolder, context.getCacheDir().toString() + "/" + filename, progressBarHandler, progressBarRunnable);
+                    mediaPlayer[0] = initAudio(viewHolder, response.toString(), progressBarHandler, progressBarRunnable);
 
-                    if (externalCacheDir != null)
-                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
+                    if (externalCacheDir != null) {
+                        String path = response.toString();
+                        String dirPath = path.substring(0, path.lastIndexOf("/"));
+                        File rename = new File(dirPath + "/" + filename);
+                        response.renameTo(rename);
+                        moveFile(dirPath, filename, externalCacheDir.toString());
+                    }
                 }
 
                 @Override

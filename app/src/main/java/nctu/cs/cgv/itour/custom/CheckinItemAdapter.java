@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.fragment.SavedCheckinFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 
+import static android.content.Context.TELECOM_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.moveFile;
@@ -48,6 +50,7 @@ import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
 
+    private static final String TAG = "CheckinItemAdapter";
     private Context context;
 
     public CheckinItemAdapter(Context context, List<Checkin> checkinItems) {
@@ -117,12 +120,17 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(context.getCacheDir().toString() + "/" + filename);
+                    Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
                     viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     viewHolder.photo.setImageBitmap(bitmap);
 
-                    if (externalCacheDir != null)
-                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
+                    if (externalCacheDir != null) {
+                        String path = response.toString();
+                        String dirPath = path.substring(0, path.lastIndexOf("/"));
+                        File rename = new File(dirPath + "/" + filename);
+                        response.renameTo(rename);
+                        moveFile(dirPath, filename, externalCacheDir.toString());
+                    }
                 }
 
                 @Override
@@ -175,10 +183,15 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    mediaPlayer[0] = initAudio(viewHolder, context.getCacheDir().toString() + "/" + filename, progressBarHandler, progressBarRunnable);
+                    mediaPlayer[0] = initAudio(viewHolder, response.toString(), progressBarHandler, progressBarRunnable);
 
-                    if (externalCacheDir != null)
-                        moveFile(context.getCacheDir().toString(), filename, externalCacheDir.toString());
+                    if (externalCacheDir != null) {
+                        String path = response.toString();
+                        String dirPath = path.substring(0, path.lastIndexOf("/"));
+                        File rename = new File(dirPath + "/" + filename);
+                        response.renameTo(rename);
+                        moveFile(dirPath, filename, externalCacheDir.toString());
+                    }
                 }
 
                 @Override
