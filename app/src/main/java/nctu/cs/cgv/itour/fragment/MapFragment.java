@@ -727,20 +727,20 @@ public class MapFragment extends Fragment {
         reRender();
 
         // check whether it should update fog or not
-        double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
-        if (distance > FOG_UPDATE_THRESHOLD) {
-            // update fog map
-            Paint paint = new Paint();
-            paint.setColor(Color.TRANSPARENT);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-            paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
-            Canvas canvas = new Canvas(fogBitmap);
-            canvas.drawCircle(gpsDistortedX, gpsDistortedY, 25, paint);
-            fogMap.postInvalidate();
-
-            lastFogClearPosX = gpsDistortedX;
-            lastFogClearPosY = gpsDistortedY;
-        }
+//        double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
+//        if (fogSwitch && distance > FOG_UPDATE_THRESHOLD) {
+//            // update fog map
+//            Paint paint = new Paint();
+//            paint.setColor(Color.TRANSPARENT);
+//            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+//            paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
+//            Canvas canvas = new Canvas(fogBitmap);
+//            canvas.drawCircle(gpsDistortedX, gpsDistortedY, 25, paint);
+//            fogMap.postInvalidate();
+//
+//            lastFogClearPosX = gpsDistortedX;
+//            lastFogClearPosY = gpsDistortedY;
+//        }
     }
 
     public void handleSensorChange(float rotation) {

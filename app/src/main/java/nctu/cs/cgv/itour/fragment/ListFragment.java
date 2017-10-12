@@ -106,25 +106,25 @@ public class ListFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.checkin_filter_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.popular:
-                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
-                return true;
-            case R.id.time:
-                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
+//    @Override
+//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+//        inflater.inflate(R.menu.checkin_filter_menu, menu);
+//        super.onCreateOptionsMenu(menu, inflater);
+//    }
+//
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        switch (item.getItemId()) {
+//            case R.id.popular:
+//                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
+//                return true;
+//            case R.id.time:
+//                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
+//                return true;
+//            default:
+//                return super.onOptionsItemSelected(item);
+//        }
+//    }
 
     public void addCheckin(Checkin checkin) {
         checkinListFragment.addCheckin(checkin);
