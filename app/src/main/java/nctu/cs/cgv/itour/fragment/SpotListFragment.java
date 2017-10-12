@@ -5,14 +5,18 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.activity.MainActivity;
+import nctu.cs.cgv.itour.object.SpotNode;
 
 import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class SpotListFragment extends Fragment {
 
@@ -38,9 +42,15 @@ public class SpotListFragment extends Fragment {
         ArrayList<String> list = new ArrayList<>();
         list.addAll(spotList.getSpotsName());
 
-        ArrayAdapter<String> spotArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, list);
-        ListView spotList = (ListView) view.findViewById(R.id.list_view);
-        spotList.setAdapter(spotArrayAdapter);
+        final ArrayAdapter<String> spotArrayAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, list);
+        final ListView listView = (ListView) view.findViewById(R.id.list_view);
+        listView.setAdapter(spotArrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView adapterView, View view, int position, long id) {
+                SpotNode spotNode = spotList.nodeMap.get(spotArrayAdapter.getItem(position));
+                ((MainActivity) getActivity()).onLocateClick(spotNode.x, spotNode.y);
+            }
+        });
     }
 
 }

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -24,6 +25,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -57,7 +59,9 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
-        SettingsFragment.OnDistanceIndicatorListener {
+        SettingsFragment.OnDistanceIndicatorListener,
+        SettingsFragment.OnCheckinIconListener,
+        SettingsFragment.OnSpotIonListener {
 
     private static final String TAG = "MainActivity";
     // Checkins
@@ -100,9 +104,17 @@ public class MainActivity extends AppCompatActivity implements
         setSensors();
         setBroadcastReceiver();
         setView();
+        setCheckinPreference();
 
         queryCheckin();
         querySavedPostId();
+    }
+
+    private void setCheckinPreference() {
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putBoolean("checkin", true);
+        editor.apply();
     }
 
     private void queryCheckin() {
@@ -188,7 +200,7 @@ public class MainActivity extends AppCompatActivity implements
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
         fragmentList.add(personalFragment);
-        fragmentList.add(PlanFragment.newInstance());
+//        fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
         viewPager = (MyViewPager) findViewById(R.id.view_pager);
@@ -225,12 +237,12 @@ public class MainActivity extends AppCompatActivity implements
                         viewPager.setCurrentItem(2);
                         actionLog("Current Page: personal");
                         break;
-                    case R.id.tab_plan:
-                        viewPager.setCurrentItem(3);
-                        actionLog("Current Page: plan");
-                        break;
+//                    case R.id.tab_plan:
+//                        viewPager.setCurrentItem(3);
+//                        actionLog("Current Page: plan");
+//                        break;
                     case R.id.tab_settings:
-                        viewPager.setCurrentItem(4);
+                        viewPager.setCurrentItem(3);
                         actionLog("Current Page: setting");
                         break;
                 }
@@ -326,6 +338,18 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.switchFog(flag);
     }
 
+
+    @Override
+    public void onCheckinIconSwitched(boolean flag) {
+        mapFragment.switchCheckinIcon(flag);
+    }
+
+    @Override
+    public void onSpotIconSwitched(boolean flag) {
+        mapFragment.switchSpotIcon(flag);
+    }
+
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
         final int PERMISSIONS_MULTIPLE_REQUEST = 123;
@@ -386,9 +410,8 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    public void onLocateClick(Checkin checkin) {
-        float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-        mapFragment.translateToImgPx(imgPx[0], imgPx[1], false);
+    public void onLocateClick(float imgPxX, float imgPxY) {
+        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
         viewPager.setCurrentItem(0);
     }
 }

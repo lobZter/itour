@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/hot"
-        android:title="人氣度"/>
+        android:id="@+id/popular"
+        android:title="@string/menu_filter_popular"/>
     <item
         android:id="@+id/time"
-        android:title="時間"/>
+        android:title="@string/menu_filter_time"/>
 </menu>

@@ -36,7 +36,7 @@
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/edit_icon"
                     android:background="@color/transparent"
-                    android:hint="在想些什麼..."
+                    android:hint="@string/post_checkin_description_hint"
                     android:imeOptions="actionDone" />
 
             </RelativeLayout>
@@ -69,7 +69,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/mic_icon"
-                    android:text="留下聲音..."
+                    android:text="@string/post_checkin_audio_hint"
                     android:textSize="18sp" />
 
             </RelativeLayout>
@@ -257,7 +257,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/photo_icon"
-                    android:text="新增張照片吧..."
+                    android:text="@string/post_checkin_photo_hint"
                     android:textSize="18sp" />
 
             </RelativeLayout>

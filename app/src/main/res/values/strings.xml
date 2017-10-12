@@ -17,12 +17,18 @@
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>
 
-    <string name="toast_mic_not_found">找不到麥克風</string>
-    <string name="toast_is_recording">請先完成錄音</string>
-    <string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>
-    <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
-    <string name="toast_upload_file_failed">檔案上傳失敗</string>
-    <string name="dialog_uploading">檔案上傳中</string>
+    <!--<string name="toast_mic_not_found">找不到麥克風</string>-->
+    <!--<string name="toast_is_recording">請先完成錄音</string>-->
+    <!--<string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>-->
+    <!--<string name="toast_audio_recorder_stop_failed">錄製失敗</string>-->
+    <!--<string name="toast_upload_file_failed">檔案上傳失敗</string>-->
+    <!--<string name="dialog_uploading">檔案上傳中</string>-->
+    <string name="toast_mic_not_found">Microphone not found.</string>
+    <string name="toast_is_recording">Please finish recording first.</string>
+    <string name="toast_audio_recorder_prepare_failed">Microphone not working.</string>
+    <string name="toast_audio_recorder_stop_failed">Audio recording failed.</string>
+    <string name="toast_upload_file_failed">File uploading failed.</string>
+    <string name="dialog_uploading">File uploading.</string>
 
     <string name="dialog_delete_title">Delete Post</string>
     <string name="dialog_delete_message">Are you sure you want to delete this post?</string>
@@ -33,11 +39,35 @@
     <string name="subtitle_list">List</string>
     <string name="subtitle_personal">Personal</string>
     <string name="subtitle_plan">Plan</string>
-    <string name="subtitle_setting">Setting</string>
+    <string name="subtitle_setting">Settings</string>
 
     <string name="btn_like_string">LIKE</string>
     <string name="btn_save_string">SAVE</string>
     <string name="btn_locate_string">LOCATE</string>
     <string name="btn_delete_string">DELETE</string>
+
+    <string name="setting_category_account">Account</string>
+    <string name="setting_logout">Logout</string>
+    <string name="setting_category_map">Map</string>
+    <string name="setting_fog">迷霧系統</string>
+    <string name="setting_distance_indicator">距離比例</string>
+    <string name="setting_checkin">Display Checkins</string>
+    <string name="setting_spot">Display Spots</string>
+
+    <!--<string name="post_checkin_description_hint">在想些什麼...</string>-->
+    <!--<string name="post_checkin_audio_hint">留下聲音...</string>-->
+    <!--<string name="post_checkin_photo_hint">新增張照片吧...</string>-->
+    <string name="post_checkin_description_hint">What\'s on your mind?</string>
+    <string name="post_checkin_audio_hint">Make some noise here!</string>
+    <string name="post_checkin_photo_hint">Add a photo?</string>
+
+    <!--<string name="activity_choose_location_title">打卡地點</string>-->
+    <string name="activity_choose_location_title">Choose Checkin Location</string>
+
+    <!--<string name="menu_filter_popular">人氣度</string>-->
+    <!--<string name="menu_filter_time">時間</string>-->
+    <string name="menu_filter_popular">popularity</string>
+    <string name="menu_filter_time">time</string>
+
 
 </resources>

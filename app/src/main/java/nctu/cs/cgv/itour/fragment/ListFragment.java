@@ -115,7 +115,7 @@ public class ListFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.hot:
+            case R.id.popular:
                 Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.time:

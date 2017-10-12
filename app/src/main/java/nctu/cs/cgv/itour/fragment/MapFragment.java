@@ -121,7 +121,11 @@ public class MapFragment extends Fragment {
     // flags
     private boolean isGpsCurrent = false;
     private boolean isOrientationCurrent = true;
-    private boolean isMerged = true;
+    private boolean checkinSwitch = true;
+    //    private boolean spotSwitch = true;
+    private boolean spotSwitch = false;
+    private boolean fogSwitch = false;
+    private boolean edgeLengthSwitch = false;
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -177,31 +181,31 @@ public class MapFragment extends Fragment {
         frameLayout.addView(touristMap);
 
         // draw fog
-        fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(fogBitmap);
-        canvas.drawARGB(120, 0, 0, 0);
-        fogMap = new ImageView(context);
-        fogMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
-        fogMap.setScaleType(ImageView.ScaleType.MATRIX);
-        fogMap.setImageBitmap(fogBitmap);
-        fogMap.setPivotX(0);
-        fogMap.setPivotY(0);
-        frameLayout.addView(fogMap);
+//        fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(fogBitmap);
+//        canvas.drawARGB(120, 0, 0, 0);
+//        fogMap = new ImageView(context);
+//        fogMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
+//        fogMap.setScaleType(ImageView.ScaleType.MATRIX);
+//        fogMap.setImageBitmap(fogBitmap);
+//        fogMap.setPivotX(0);
+//        fogMap.setPivotY(0);
+//        frameLayout.addView(fogMap);
 
         // draw edge distance indicator
-        edgeNodeList = edgeNode.getNodeList();
-        for (ImageNode imageNode : edgeNodeList) {
-            addEdgeNode(imageNode, "black");
-        }
+//        edgeNodeList = edgeNode.getNodeList();
+//        for (ImageNode imageNode : edgeNodeList) {
+//            addEdgeNode(imageNode, "black");
+//        }
 
         // draw spots
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
         spotNodeMap = new LinkedHashMap<>(spotList.nodeMap);
         spotNodeList = new ArrayList<>(spotNodeMap.values());
-        for (SpotNode spotNode : spotNodeList) {
-            addSpotNode(spotNode);
-        }
+//        for (SpotNode spotNode : spotNodeList) {
+//            addSpotNode(spotNode);
+//        }
 
         // set gpsMarker
         int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
@@ -234,8 +238,9 @@ public class MapFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        switchFog(preferences.getBoolean("fog", false));
-        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
+//        switchFog(preferences.getBoolean("fog", false));
+//        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
+//        switchSpotIcon(preferences.getBoolean("spot", true));
 
         rootLayout.post(new Runnable() {
             @Override
@@ -379,6 +384,8 @@ public class MapFragment extends Fragment {
 
     private void reRender() {
 
+        boolean isMerged = scale < ZOOM_THRESHOLD;
+
         Matrix gpsMarkTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();
         Matrix nodeIconTransform = new Matrix();
@@ -396,12 +403,14 @@ public class MapFragment extends Fragment {
         touristMap.setRotation(rotation);
         touristMap.setTranslationX(point[0]);
         touristMap.setTranslationY(point[1]);
-        // transform fog map
-        fogMap.setScaleX(scale);
-        fogMap.setScaleY(scale);
-        fogMap.setRotation(rotation);
-        fogMap.setTranslationX(point[0]);
-        fogMap.setTranslationY(point[1]);
+//         transform fog map
+//        if (fogSwitch) {
+//            fogMap.setScaleX(scale);
+//            fogMap.setScaleY(scale);
+//            fogMap.setRotation(rotation);
+//            fogMap.setTranslationX(point[0]);
+//            fogMap.setTranslationY(point[1]);
+//        }
 
         // transform gpsMarker
         point[0] = gpsDistortedX;
@@ -412,82 +421,88 @@ public class MapFragment extends Fragment {
         gpsMarker.setTranslationY(point[1]);
 
         // transform nodeImage
-        for (ImageNode imageNode : edgeNodeList) {
-            point[0] = imageNode.x;
-            point[1] = imageNode.y;
-            transformMat.mapPoints(point);
-            nodeIconTransform.mapPoints(point);
-            imageNode.icon.setTranslationX(point[0]);
-            imageNode.icon.setTranslationY(point[1]);
-        }
-        for (ImageNode imageNode : pathEdgeNodeList) {
-            point[0] = imageNode.x;
-            point[1] = imageNode.y;
-            transformMat.mapPoints(point);
-            nodeIconTransform.mapPoints(point);
-            imageNode.icon.setTranslationX(point[0]);
-            imageNode.icon.setTranslationY(point[1]);
-        }
+//        if (edgeLengthSwitch) {
+//            for (ImageNode imageNode : edgeNodeList) {
+//                point[0] = imageNode.x;
+//                point[1] = imageNode.y;
+//                transformMat.mapPoints(point);
+//                nodeIconTransform.mapPoints(point);
+//                imageNode.icon.setTranslationX(point[0]);
+//                imageNode.icon.setTranslationY(point[1]);
+//            }
+//            for (ImageNode imageNode : pathEdgeNodeList) {
+//                point[0] = imageNode.x;
+//                point[1] = imageNode.y;
+//                transformMat.mapPoints(point);
+//                nodeIconTransform.mapPoints(point);
+//                imageNode.icon.setTranslationX(point[0]);
+//                imageNode.icon.setTranslationY(point[1]);
+//            }
+//        }
 
         // transform spot
-        for (SpotNode spotNode : spotNodeList) {
-            point[0] = spotNode.x;
-            point[1] = spotNode.y;
-            transformMat.mapPoints(point);
-            spotIconTransform.mapPoints(point);
-            spotNode.icon.setTranslationX(point[0]);
-            spotNode.icon.setTranslationY(point[1]);
-        }
+//        if (spotSwitch) {
+//            if (isMerged) {
+//                for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
+//                    SpotNode spotNode = spotNodeList.get(i);
+//                    spotNode.icon.setVisibility(View.GONE);
+//                }
+//            } else {
+//                for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
+//                    SpotNode spotNode = spotNodeList.get(i);
+//                    spotNode.icon.setVisibility(View.VISIBLE);
+//                }
+//            }
+//
+//            for (SpotNode spotNode : spotNodeList) {
+//                point[0] = spotNode.x;
+//                point[1] = spotNode.y;
+//                transformMat.mapPoints(point);
+//                spotIconTransform.mapPoints(point);
+//                spotNode.icon.setTranslationX(point[0]);
+//                spotNode.icon.setTranslationY(point[1]);
+//            }
+//        }
 
         // transform mergedCheckinNode
-        for (ImageNode imageNode : checkinNodeList) {
-            point[0] = imageNode.x;
-            point[1] = imageNode.y;
-            transformMat.mapPoints(point);
-            checkinIconTransform.mapPoints(point);
-            imageNode.icon.setTranslationX(point[0]);
-            imageNode.icon.setTranslationY(point[1]);
-        }
+        if (checkinSwitch) {
+            if (isMerged) {
+                for (ImageNode imageNode : checkinNodeList) {
+                    imageNode.icon.setVisibility(View.GONE);
+                }
 
-        for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-            point[0] = mergedCheckinNode.x;
-            point[1] = mergedCheckinNode.y;
-            transformMat.mapPoints(point);
-            Matrix mergedCheckinIconTransform = new Matrix();
-            mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
-            mergedCheckinIconTransform.mapPoints(point);
-            mergedCheckinNode.icon.setTranslationX(point[0]);
-            mergedCheckinNode.icon.setTranslationY(point[1]);
-        }
+                for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                    mergedCheckinNode.icon.setVisibility(View.VISIBLE);
+                }
 
-        isMerged = scale < ZOOM_THRESHOLD;
+            } else {
+                for (ImageNode imageNode : checkinNodeList) {
+                    imageNode.icon.setVisibility(View.VISIBLE);
+                }
 
-        if (isMerged) {
+                for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                    mergedCheckinNode.icon.setVisibility(View.GONE);
+                }
+            }
+
             for (ImageNode imageNode : checkinNodeList) {
-                imageNode.icon.setVisibility(View.GONE);
+                point[0] = imageNode.x;
+                point[1] = imageNode.y;
+                transformMat.mapPoints(point);
+                checkinIconTransform.mapPoints(point);
+                imageNode.icon.setTranslationX(point[0]);
+                imageNode.icon.setTranslationY(point[1]);
             }
 
             for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                mergedCheckinNode.icon.setVisibility(View.VISIBLE);
-            }
-
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                SpotNode spotNode = spotNodeList.get(i);
-                spotNode.icon.setVisibility(View.GONE);
-            }
-
-        } else {
-            for (ImageNode imageNode : checkinNodeList) {
-                imageNode.icon.setVisibility(View.VISIBLE);
-            }
-
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                mergedCheckinNode.icon.setVisibility(View.GONE);
-            }
-
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                SpotNode spotNode = spotNodeList.get(i);
-                spotNode.icon.setVisibility(View.VISIBLE);
+                point[0] = mergedCheckinNode.x;
+                point[1] = mergedCheckinNode.y;
+                transformMat.mapPoints(point);
+                Matrix mergedCheckinIconTransform = new Matrix();
+                mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
+                mergedCheckinIconTransform.mapPoints(point);
+                mergedCheckinNode.icon.setTranslationX(point[0]);
+                mergedCheckinNode.icon.setTranslationY(point[1]);
             }
         }
     }
@@ -725,14 +740,17 @@ public class MapFragment extends Fragment {
     }
 
     public void switchFog(boolean flag) {
+        fogSwitch = flag;
         if (flag) {
             fogMap.setVisibility(View.VISIBLE);
         } else {
             fogMap.setVisibility(View.GONE);
         }
+        reRender();
     }
 
     public void switchDistanceIndicator(boolean flag) {
+        edgeLengthSwitch = flag;
         if (flag) {
             for (ImageNode imageNode : edgeNodeList) {
                 imageNode.icon.setVisibility(View.VISIBLE);
@@ -742,5 +760,41 @@ public class MapFragment extends Fragment {
                 imageNode.icon.setVisibility(View.GONE);
             }
         }
+        reRender();
     }
+
+    public void switchCheckinIcon(boolean flag) {
+        checkinSwitch = flag;
+        if (flag) {
+            for (ImageNode imageNode : checkinNodeList) {
+                imageNode.icon.setVisibility(View.VISIBLE);
+            }
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                mergedCheckinNode.icon.setVisibility(View.VISIBLE);
+            }
+        } else {
+            for (ImageNode imageNode : checkinNodeList) {
+                imageNode.icon.setVisibility(View.GONE);
+            }
+            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
+                mergedCheckinNode.icon.setVisibility(View.GONE);
+            }
+        }
+        reRender();
+    }
+
+    public void switchSpotIcon(boolean flag) {
+        spotSwitch = flag;
+        if (flag) {
+            for (SpotNode spotNode : spotNodeList) {
+                spotNode.icon.setVisibility(View.VISIBLE);
+            }
+        } else {
+            for (SpotNode spotNode : spotNodeList) {
+                spotNode.icon.setVisibility(View.GONE);
+            }
+        }
+        reRender();
+    }
+
 }

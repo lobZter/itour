@@ -130,7 +130,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // set actionBar title, top-left icon
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("打卡地點");
+        actionBar.setTitle(R.string.activity_choose_location_title);
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_arrow_back_black_24dp);
 

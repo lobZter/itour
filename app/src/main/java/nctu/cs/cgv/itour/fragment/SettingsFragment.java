@@ -20,15 +20,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private FirebaseAuth firebaseAuth;
     private OnFogListener onFogListener;
     private OnDistanceIndicatorListener onDistanceIndicatorListener;
+    private OnCheckinIconListener onCheckinIconListener;
+    private OnSpotIonListener onSpotIonListener;
     private ActionBar actionBar;
-
-    public interface OnFogListener {
-        void onFogSwitched(boolean flag);
-    }
-
-    public interface OnDistanceIndicatorListener {
-        void onDistanceIndicatorSwitched(boolean flag);
-    }
 
     public static SettingsFragment newInstance() {
         SettingsFragment fragment = new SettingsFragment();
@@ -51,7 +45,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
-        Preference btnSignOut = getPreferenceManager().findPreference("signout");
+        Preference btnSignOut = getPreferenceManager().findPreference("logout");
         btnSignOut.setSummary(firebaseAuth.getCurrentUser().getEmail().toString());
         btnSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -63,23 +57,41 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
 
-        Preference distanceIndicatorSwitch = getPreferenceManager().findPreference("distance_indicator");
-        distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+        Preference checkinSwitch = getPreferenceManager().findPreference("checkin");
+        checkinSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onDistanceIndicatorListener.onDistanceIndicatorSwitched((Boolean) newValue);
+                onCheckinIconListener.onCheckinIconSwitched((Boolean) newValue);
                 return true;
             }
         });
 
-        Preference fogSwitch = getPreferenceManager().findPreference("fog");
-        fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onFogListener.onFogSwitched((Boolean) newValue);
-                return true;
-            }
-        });
+//        Preference spotSwitch = getPreferenceManager().findPreference("spot");
+//        spotSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                onSpotIonListener.onSpotIconSwitched((Boolean) newValue);
+//                return true;
+//            }
+//        });
+//
+//        Preference distanceIndicatorSwitch = getPreferenceManager().findPreference("distance_indicator");
+//        distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                onDistanceIndicatorListener.onDistanceIndicatorSwitched((Boolean) newValue);
+//                return true;
+//            }
+//        });
+//
+//        Preference fogSwitch = getPreferenceManager().findPreference("fog");
+//        fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                onFogListener.onFogSwitched((Boolean) newValue);
+//                return true;
+//            }
+//        });
     }
 
     @Override
@@ -88,9 +100,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         try {
             onFogListener = (OnFogListener) context;
             onDistanceIndicatorListener = (OnDistanceIndicatorListener) context;
+            onCheckinIconListener = (OnCheckinIconListener) context;
+            onSpotIonListener = (OnSpotIonListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement SettingFragment.OnFogSwitchedListener or OnDistanceIndicatorListener");
+            throw new ClassCastException(context.toString() + " must implement interfaces");
         }
     }
 
@@ -110,5 +123,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 actionBar.setSubtitle(getString(R.string.subtitle_setting));
             }
         }
+    }
+
+    public interface OnFogListener {
+        void onFogSwitched(boolean flag);
+    }
+
+    public interface OnDistanceIndicatorListener {
+        void onDistanceIndicatorSwitched(boolean flag);
+    }
+
+    public interface OnCheckinIconListener {
+        void onCheckinIconSwitched(boolean flag);
+    }
+
+    public interface OnSpotIonListener {
+        void onSpotIconSwitched(boolean flag);
     }
 }

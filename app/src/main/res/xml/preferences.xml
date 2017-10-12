@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory android:title="地圖設定">
+    <PreferenceCategory android:title="@string/setting_category_map">
+
+        <!--<SwitchPreferenceCompat-->
+            <!--android:defaultValue="false"-->
+            <!--android:key="distance_indicator"-->
+            <!--android:title="路線比例" />-->
+
+        <!--<SwitchPreferenceCompat-->
+            <!--android:defaultValue="false"-->
+            <!--android:key="fog"-->
+            <!--android:title="迷霧系統" />-->
 
         <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="distance_indicator"
-            android:title="路線比例" />
+            android:defaultValue="true"
+            android:key="checkin"
+            android:title="@string/setting_checkin" />
 
-        <SwitchPreferenceCompat
-            android:defaultValue="false"
-            android:key="fog"
-            android:title="迷霧系統" />
+        <!--<SwitchPreferenceCompat-->
+            <!--android:defaultValue="true"-->
+            <!--android:key="spot"-->
+            <!--android:title="@string/setting_spot" />-->
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="帳號設定">
+    <PreferenceCategory android:title="@string/setting_category_account">
 
         <Preference
-            android:key="signout"
-            android:title="登出" />
+            android:key="logout"
+            android:title="@string/setting_logout" />
 
     </PreferenceCategory>
 
