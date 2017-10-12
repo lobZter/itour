@@ -22,27 +22,32 @@
         android:background="@color/transparent"
         android:visibility="gone" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_add"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="24dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_add_white_24dp"
-        app:backgroundTint="@color/gps_marker_color" />
+        android:layout_marginBottom="8dp"
+        android:padding="16dp"
+        android:orientation="vertical"
+        android:clipToPadding="false">
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/btn_gps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/btn_add"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp"
-        app:backgroundTint="@color/md_white_1000" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_gps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_gps_fixed_blue_24dp"
+            app:backgroundTint="@color/md_white_1000" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/btn_add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_add_white_24dp"
+            app:backgroundTint="@color/gps_marker_color" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/gps_marker"

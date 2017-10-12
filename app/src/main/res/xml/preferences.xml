@@ -25,11 +25,17 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/setting_category_account">
+    <PreferenceCategory
+        android:key="category_account"
+        android:title="@string/setting_category_account">
 
         <Preference
             android:key="logout"
             android:title="@string/setting_logout" />
+
+        <Preference
+            android:key="register"
+            android:title="@string/setting_register" />
 
     </PreferenceCategory>
 

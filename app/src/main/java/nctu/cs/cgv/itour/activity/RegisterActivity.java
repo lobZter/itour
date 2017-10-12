@@ -140,8 +140,10 @@ public class RegisterActivity extends AppCompatActivity {
                                             if (!task.isSuccessful()) {
                                                 Toast.makeText(RegisterActivity.this, "Store profile failed.", Toast.LENGTH_LONG).show();
                                             }
+                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            startActivity(intent);
                                             finish();
-                                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
                                         }
                                     });
 

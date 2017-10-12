@@ -27,6 +27,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -90,6 +91,9 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        checkinMap = new HashMap<>();
+        savedPostId = new HashMap<>();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
         } else {
@@ -98,16 +102,10 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void init() {
-        checkinMap = new HashMap<>();
-        savedPostId = new HashMap<>();
-
         setSensors();
         setBroadcastReceiver();
         setView();
         setCheckinPreference();
-
-        queryCheckin();
-        querySavedPostId();
     }
 
     private void setCheckinPreference() {
@@ -117,7 +115,9 @@ public class MainActivity extends AppCompatActivity implements
         editor.apply();
     }
 
-    private void queryCheckin() {
+    public void queryCheckin() {
+        checkinMap.clear();
+
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("checkin").child(mapTag);
 
@@ -158,7 +158,9 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
-    private void querySavedPostId() {
+    public void querySavedPostId() {
+        savedPostId.clear();
+
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final Query saveQuery = databaseReference.child("user").child(uid).child("saved").child(mapTag);
@@ -235,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements
                         break;
                     case R.id.tab_person:
                         viewPager.setCurrentItem(2);
+                        Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                         actionLog("Current Page: personal");
                         break;
 //                    case R.id.tab_plan:

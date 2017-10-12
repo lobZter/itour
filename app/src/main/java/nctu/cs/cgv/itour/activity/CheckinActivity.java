@@ -31,6 +31,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
@@ -85,6 +86,10 @@ public class CheckinActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_checkin);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            finish();
+        }
 
         ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle("");

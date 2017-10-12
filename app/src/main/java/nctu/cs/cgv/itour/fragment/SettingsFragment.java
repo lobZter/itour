@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.Preference;
+import android.support.v7.preference.PreferenceCategory;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.view.View;
 
@@ -14,10 +15,10 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.LoginActivity;
+import nctu.cs.cgv.itour.activity.RegisterActivity;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
-    private FirebaseAuth firebaseAuth;
     private OnFogListener onFogListener;
     private OnDistanceIndicatorListener onDistanceIndicatorListener;
     private OnCheckinIconListener onCheckinIconListener;
@@ -25,20 +26,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     private ActionBar actionBar;
 
     public static SettingsFragment newInstance() {
-        SettingsFragment fragment = new SettingsFragment();
-        fragment.firebaseAuth = FirebaseAuth.getInstance();
-
-        return fragment;
+        return new SettingsFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (firebaseAuth.getCurrentUser() == null) {
-            getActivity().finish();
-            startActivity(new Intent(getContext(), LoginActivity.class));
-        }
     }
 
     @Override
@@ -46,16 +39,33 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
         Preference btnSignOut = getPreferenceManager().findPreference("logout");
-        btnSignOut.setSummary(firebaseAuth.getCurrentUser().getEmail().toString());
-        btnSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference arg0) {
-                firebaseAuth.signOut();
-                getActivity().finish();
-                startActivity(new Intent(getContext(), LoginActivity.class));
-                return true;
-            }
-        });
+        Preference btnRegister = getPreferenceManager().findPreference("register");
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            PreferenceCategory accountCategory = (PreferenceCategory) findPreference("category_account");
+            accountCategory.removePreference(btnSignOut);
+
+            btnRegister.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                    startActivity(new Intent(getContext(), RegisterActivity.class));
+                    return true;
+                }
+            });
+        } else {
+            PreferenceCategory accountCategory = (PreferenceCategory) findPreference("category_account");
+            accountCategory.removePreference(btnRegister);
+
+            btnSignOut.setSummary(FirebaseAuth.getInstance().getCurrentUser().getEmail().toString());
+            btnSignOut.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference arg0) {
+                    FirebaseAuth.getInstance().signOut();
+                    getActivity().finish();
+                    startActivity(new Intent(getContext(), LoginActivity.class));
+                    return true;
+                }
+            });
+        }
 
         Preference checkinSwitch = getPreferenceManager().findPreference("checkin");
         checkinSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {

@@ -40,10 +40,8 @@ public class LoginActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         if (firebaseAuth.getCurrentUser() != null) {
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
             finish();
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            intent.putExtra("mapTag", "Tamsui");
-            startActivity(intent);
         }
 
         progressDialog = new ProgressDialog(this);
@@ -66,11 +64,20 @@ public class LoginActivity extends AppCompatActivity {
                 signin();
             }
         });
+
         Button registerButton = (Button) findViewById(R.id.btn_register);
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
+            }
+        });
+        Button guestBtn = (Button) findViewById(R.id.btn_guest);
+        guestBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                finish();
             }
         });
     }

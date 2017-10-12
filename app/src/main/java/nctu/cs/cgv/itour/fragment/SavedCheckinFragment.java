@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -58,13 +60,15 @@ public class SavedCheckinFragment extends Fragment {
     }
 
     public void refresh() {
-        checkinItemAdapter.clear();
-        for (final Map.Entry<String, Boolean> entry : savedPostId.entrySet()) {
-            if (entry.getValue()) {
-                String postId = entry.getKey();
-                Checkin checkin = checkinMap.get(postId);
-                if(checkin != null)
-                    checkinItemAdapter.add(checkin);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            checkinItemAdapter.clear();
+            for (final Map.Entry<String, Boolean> entry : savedPostId.entrySet()) {
+                if (entry.getValue()) {
+                    String postId = entry.getKey();
+                    Checkin checkin = checkinMap.get(postId);
+                    if (checkin != null)
+                        checkinItemAdapter.add(checkin);
+                }
             }
         }
     }

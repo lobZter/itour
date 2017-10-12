@@ -37,6 +37,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
@@ -227,6 +230,9 @@ public class MapFragment extends Fragment {
                     rotateToNorth();
             }
         });
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            addBtn.setVisibility(View.GONE);
+        }
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -241,6 +247,11 @@ public class MapFragment extends Fragment {
 //        switchFog(preferences.getBoolean("fog", false));
 //        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
 //        switchSpotIcon(preferences.getBoolean("spot", true));
+
+        ((MainActivity) getActivity()).queryCheckin();
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            ((MainActivity) getActivity()).querySavedPostId();
+        }
 
         rootLayout.post(new Runnable() {
             @Override

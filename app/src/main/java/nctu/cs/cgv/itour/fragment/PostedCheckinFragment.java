@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -17,7 +16,6 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.PostedCheckinItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
 
-import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
 public class PostedCheckinFragment extends Fragment {
@@ -58,11 +56,13 @@ public class PostedCheckinFragment extends Fragment {
     }
 
     public void refresh() {
-        checkinItemAdapter.clear();
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        for (final Checkin checkin : checkinMap.values()) {
-            if (uid.equals(checkin.uid)) {
-                checkinItemAdapter.add(checkin);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            checkinItemAdapter.clear();
+            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            for (final Checkin checkin : checkinMap.values()) {
+                if (uid.equals(checkin.uid)) {
+                    checkinItemAdapter.add(checkin);
+                }
             }
         }
     }

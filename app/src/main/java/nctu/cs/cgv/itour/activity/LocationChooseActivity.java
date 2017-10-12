@@ -122,6 +122,10 @@ public class LocationChooseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_choose);
 
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            finish();
+        }
+
         // set variables
         Intent intent = getIntent();
         description = intent.getStringExtra("description");

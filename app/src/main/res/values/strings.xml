@@ -8,11 +8,13 @@
     <string name="prompt_confirm_password">Confirm Password</string>
     <string name="action_sign_in">Sign in</string>
     <string name="action_register">Register</string>
+    <string name="action_guest">guest</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_confirm_password">Password does not match</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="hint_new_account">Don\'t have an account?</string>
 
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>
@@ -28,6 +30,7 @@
     <string name="toast_audio_recorder_prepare_failed">Microphone not working.</string>
     <string name="toast_audio_recorder_stop_failed">Audio recording failed.</string>
     <string name="toast_upload_file_failed">File uploading failed.</string>
+    <string name="toast_guest_function">Please sign in to enable this function.</string>
     <string name="dialog_uploading">File uploading.</string>
 
     <string name="dialog_delete_title">Delete Post</string>
@@ -48,6 +51,7 @@
 
     <string name="setting_category_account">Account</string>
     <string name="setting_logout">Logout</string>
+    <string name="setting_register">Create an Account</string>
     <string name="setting_category_map">Map</string>
     <string name="setting_fog">迷霧系統</string>
     <string name="setting_distance_indicator">距離比例</string>
@@ -58,7 +62,7 @@
     <!--<string name="post_checkin_audio_hint">留下聲音...</string>-->
     <!--<string name="post_checkin_photo_hint">新增張照片吧...</string>-->
     <string name="post_checkin_description_hint">What\'s on your mind?</string>
-    <string name="post_checkin_audio_hint">Make some noise here!</string>
+    <string name="post_checkin_audio_hint">Leave sound here!</string>
     <string name="post_checkin_photo_hint">Add a photo?</string>
 
     <!--<string name="activity_choose_location_title">打卡地點</string>-->

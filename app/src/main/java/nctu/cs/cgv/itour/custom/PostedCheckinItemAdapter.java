@@ -202,83 +202,100 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
     }
 
     private void setActionBtn(final ViewHolder viewHolder, final Checkin checkin) {
-        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                    viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                    viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
-                    checkin.like.put(uid, false);
-                    checkinMap.get(checkin.key).like.put(uid, false);
-                } else {
-                    viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
-                    viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
-                    databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
-                    checkin.like.put(uid, true);
-                    checkinMap.get(checkin.key).like.put(uid, true);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(context, context.getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                 }
-            }
-        });
+            });
 
-        viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                    viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                    viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-                    databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
-                    savedPostId.put(checkin.key, false);
-                } else {
-                    viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
-                    viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-                    databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
-                    savedPostId.put(checkin.key, true);
+            viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(context, context.getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                 }
-            }
-        });
-
-        viewHolder.deleteBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(context)
-                        .setTitle(R.string.dialog_delete_title)
-                        .setMessage(R.string.dialog_delete_message)
-                        .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(checkin.key).removeValue();
-                                checkinMap.remove(checkin.key);
-                                remove(checkin);
-                            }
-                        })
-                        .setNegativeButton(R.string.dialog_negative_btn, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                            }
-                        })
-                        .show();
-            }
-        });
-
-        if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-            viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
-            viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+            });
         } else {
-            viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-            viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-        }
+            final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                    if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
+                        viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                        viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
+                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
+                        checkin.like.put(uid, false);
+                        checkinMap.get(checkin.key).like.put(uid, false);
+                    } else {
+                        viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
+                        viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
+                        checkin.like.put(uid, true);
+                        checkinMap.get(checkin.key).like.put(uid, true);
+                    }
+                }
+            });
 
-        if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-            viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
-            viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-        } else {
-            viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-            viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+            viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                    if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
+                        viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                        viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+                        databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
+                        savedPostId.put(checkin.key, false);
+                    } else {
+                        viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
+                        viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+                        databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
+                        savedPostId.put(checkin.key, true);
+                    }
+                }
+            });
+
+            viewHolder.deleteBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new AlertDialog.Builder(context)
+                            .setTitle(R.string.dialog_delete_title)
+                            .setMessage(R.string.dialog_delete_message)
+                            .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(checkin.key).removeValue();
+                                    checkinMap.remove(checkin.key);
+                                    remove(checkin);
+                                }
+                            })
+                            .setNegativeButton(R.string.dialog_negative_btn, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
+                            .show();
+                }
+            });
+
+            if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
+                viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
+                viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+            } else {
+                viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
+            }
+
+            if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
+                viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
+                viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+            } else {
+                viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
+                viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+            }
         }
     }
 
