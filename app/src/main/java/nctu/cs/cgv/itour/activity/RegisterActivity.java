@@ -21,9 +21,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 
+import java.io.File;
 import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
+
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -138,18 +143,13 @@ public class RegisterActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (!task.isSuccessful()) {
-                                                Toast.makeText(RegisterActivity.this, "Store profile failed.", Toast.LENGTH_LONG).show();
+                                                Toast.makeText(RegisterActivity.this, getString(R.string.error_store_profile_failed), Toast.LENGTH_LONG).show();
                                             }
-                                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            startActivity(intent);
-                                            finish();
+                                            startMainActivity();
                                         }
                                     });
-
-
                         } else {
-                            Toast.makeText(RegisterActivity.this, "Registration failed.", Toast.LENGTH_LONG).show();
+                            Toast.makeText(RegisterActivity.this, getString(R.string.error_registration_failed), Toast.LENGTH_LONG).show();
                         }
                         progressDialog.dismiss();
                     }
@@ -168,4 +168,20 @@ public class RegisterActivity extends AppCompatActivity {
         return Objects.equals(password, passwordConfirmed);
     }
 
+    private void startMainActivity() {
+        File mapFile = new File(dirPath+ "/"  + mapTag + "_distorted_map.png");
+        File meshFile = new File(dirPath+ "/"  + mapTag + "_mesh.txt");
+        File warpMeshFile = new File(dirPath+ "/"  + mapTag + "_warpMesh.txt");
+        File boundBoxFile = new File(dirPath+ "/"  + mapTag + "_bound_box.txt");
+        File edgeLengthFile = new File(dirPath+ "/"  + mapTag + "_edge_length.txt");
+        File spotListFile = new File(dirPath+ "/"  + mapTag + "_spot_list.txt");
+        if (mapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists() && spotListFile.exists()) {
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        } else {
+            new DownloadFileAsyncTask(this).execute(mapTag);
+        }
+    }
 }

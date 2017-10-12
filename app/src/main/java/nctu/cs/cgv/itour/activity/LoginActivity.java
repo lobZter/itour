@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -19,8 +20,12 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-import nctu.cs.cgv.itour.R;
+import java.io.File;
 
+import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
+
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class LoginActivity extends AppCompatActivity {
@@ -76,8 +81,7 @@ public class LoginActivity extends AppCompatActivity {
         guestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                finish();
+                startMainActivity();
             }
         });
     }
@@ -127,8 +131,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         progressDialog.dismiss();
                         if (task.isSuccessful()) {
-                            finish();
-                            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                            startMainActivity();
                         } else {
                             Toast.makeText(LoginActivity.this, "Sign in failed.", Toast.LENGTH_LONG).show();
                         }
@@ -142,6 +145,22 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean isPasswordValid(String password) {
         return true;
+    }
+
+    private void startMainActivity() {
+        File mapFile = new File(dirPath+ "/"  + mapTag + "_distorted_map.png");
+        File meshFile = new File(dirPath+ "/"  + mapTag + "_mesh.txt");
+        File warpMeshFile = new File(dirPath+ "/"  + mapTag + "_warpMesh.txt");
+        File boundBoxFile = new File(dirPath+ "/"  + mapTag + "_bound_box.txt");
+        File edgeLengthFile = new File(dirPath+ "/"  + mapTag + "_edge_length.txt");
+        File spotListFile = new File(dirPath+ "/"  + mapTag + "_spot_list.txt");
+        if (mapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists() && spotListFile.exists()) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        } else {
+            new DownloadFileAsyncTask(this).execute(mapTag);
+        }
     }
 
 }

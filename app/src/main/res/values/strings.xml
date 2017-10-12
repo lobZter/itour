@@ -16,6 +16,9 @@
     <string name="error_field_required">This field is required</string>
     <string name="hint_new_account">Don\'t have an account?</string>
 
+    <string name="error_registration_failed">Registration failed.</string>
+    <string name="error_store_profile_failed">Storing profile failed.</string>
+
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>
 
@@ -37,6 +40,8 @@
     <string name="dialog_delete_message">Are you sure you want to delete this post?</string>
     <string name="dialog_positive_btn">OK</string>
     <string name="dialog_negative_btn">Cancel</string>
+    <string name="dialog_download_file">Downloading map package...Please wait...</string>
+
 
     <string name="subtitle_map">Map</string>
     <string name="subtitle_list">List</string>
@@ -60,7 +65,7 @@
 
     <!--<string name="post_checkin_description_hint">在想些什麼...</string>-->
     <!--<string name="post_checkin_audio_hint">留下聲音...</string>-->
-    <!--<string name="post_checkin_photo_hint">新增張照片吧...</string>-->
+    <!--<string name="post_checkin_photo_hint">新增照片...</string>-->
     <string name="post_checkin_description_hint">What\'s on your mind?</string>
     <string name="post_checkin_audio_hint">Leave sound here!</string>
     <string name="post_checkin_photo_hint">Add a photo?</string>

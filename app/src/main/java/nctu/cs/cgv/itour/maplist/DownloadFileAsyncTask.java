@@ -16,8 +16,10 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
 
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileServerURL;
 
 /**
@@ -34,7 +36,7 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
     public DownloadFileAsyncTask(Context context) {
         this.context = context;
         progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Downloading package..Please wait..");
+        progressDialog.setMessage(context.getString(R.string.dialog_download_file));
         progressDialog.setIndeterminate(false);
         progressDialog.setMax(100);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
@@ -57,7 +59,7 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
         ArrayList<FileOutputStream> fileOutputStreams = new ArrayList<>();
 
         // Make a directory if needed.
-        File iTourDir = new File(Environment.getExternalStorageDirectory().toString() + "/iTour/");
+        File iTourDir = new File(dirPath);
         iTourDir.mkdirs();
 
         Log.d(TAG, String.valueOf(Calendar.getInstance().getTime()));
@@ -68,7 +70,8 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
                     new URL(fileServerURL + "/" + mapTag + "_mesh.txt"),
                     new URL(fileServerURL + "/" + mapTag + "_warpMesh.txt"),
                     new URL(fileServerURL + "/" + mapTag + "_bound_box.txt"),
-                    new URL(fileServerURL + "/" + mapTag + "_edge_length.txt")};
+                    new URL(fileServerURL + "/" + mapTag + "_edge_length.txt"),
+                    new URL(fileServerURL + "/" + mapTag + "_spot_list.txt")};
 
             for (URL url : urls) {
                 URLConnection urlConnection = url.openConnection();
@@ -83,23 +86,27 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
             // And attach the OutputStream to the file object,
             // instead of a String representation.
             fileOutputStreams.add(new FileOutputStream(
-                    new File(iTourDir, mapTag + "_distorted_map.png")
+                    new File(iTourDir + "/" + mapTag + "_distorted_map.png")
             ));
             fileOutputStreams.add(new FileOutputStream(
-                    new File(iTourDir, mapTag + "_mesh.txt")
+                    new File(iTourDir + "/" + mapTag + "_mesh.txt")
             ));
             fileOutputStreams.add(new FileOutputStream(
-                    new File(iTourDir, mapTag + "_warpMesh.txt")
+                    new File(iTourDir + "/" + mapTag + "_warpMesh.txt")
             ));
             fileOutputStreams.add(new FileOutputStream(
-                    new File(iTourDir, mapTag + "_bound_box.txt")
+                    new File(iTourDir + "/" + mapTag + "_bound_box.txt")
             ));
             fileOutputStreams.add(new FileOutputStream(
-                    new File(iTourDir, mapTag + "_edge_length.txt")
+                    new File(iTourDir + "/" + mapTag + "_edge_length.txt")
+            ));
+            fileOutputStreams.add(new FileOutputStream(
+                    new File(iTourDir + "/" + mapTag + "_spot_list.txt")
             ));
 
+
             // Write files and set progress.
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 6; i++) {
                 byte data[] = new byte[1024];
                 int lengthTotal = 0;
                 int lengthCount;
@@ -129,9 +136,7 @@ public class DownloadFileAsyncTask extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String unused) {
         progressDialog.dismiss();
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra("MAP", mapTag);
-        context.startActivity(intent);
+        context.startActivity(new Intent(context, MainActivity.class));
     }
 
 }
