@@ -16,6 +16,8 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.PostedCheckinItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
 
+import static nctu.cs.cgv.itour.MyApplication.adminUid;
+import static nctu.cs.cgv.itour.activity.MainActivity.busCheckinMapForAdmin;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
 public class PostedCheckinFragment extends Fragment {
@@ -59,9 +61,15 @@ public class PostedCheckinFragment extends Fragment {
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             checkinItemAdapter.clear();
             String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            for (final Checkin checkin : checkinMap.values()) {
-                if (uid.equals(checkin.uid)) {
+            if (uid.equals(adminUid)) {
+                for (final Checkin checkin : busCheckinMapForAdmin.values()) {
                     checkinItemAdapter.add(checkin);
+                }
+            } else {
+                for (final Checkin checkin : checkinMap.values()) {
+                    if (uid.equals(checkin.uid)) {
+                        checkinItemAdapter.add(checkin);
+                    }
                 }
             }
         }

@@ -26,7 +26,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -36,12 +35,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,14 +48,13 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
-import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 
+import static nctu.cs.cgv.itour.MyApplication.adminUid;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
@@ -69,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
     // Checkins
     public static Map<String, Checkin> checkinMap;
+    public static Map<String, Checkin> busCheckinMapForAdmin;
     public static Map<String, Boolean> savedPostId;
     // view objects
     private MyViewPager viewPager;
@@ -96,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements
 
         checkinMap = new LinkedHashMap<>();
         savedPostId = new LinkedHashMap<>();
+        busCheckinMapForAdmin = new LinkedHashMap<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
@@ -130,8 +128,13 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
-                checkinMap.put(dataSnapshot.getKey(), checkin);
-                mapFragment.addCheckin(checkin);
+                if (checkin.uid.equals(adminUid)) {
+                    busCheckinMapForAdmin.put(dataSnapshot.getKey(), checkin);
+                    mapFragment.addBusIcon(checkin);
+                } else {
+                    checkinMap.put(dataSnapshot.getKey(), checkin);
+                    mapFragment.addCheckin(checkin);
+                }
             }
 
             @Override

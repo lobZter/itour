@@ -35,9 +35,11 @@ import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 
+import static nctu.cs.cgv.itour.MyApplication.adminUid;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.moveFile;
+import static nctu.cs.cgv.itour.activity.MainActivity.busCheckinMapForAdmin;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -267,7 +269,11 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(checkin.key).removeValue();
-                                    checkinMap.remove(checkin.key);
+                                    if (checkin.uid.equals(adminUid)) {
+                                        busCheckinMapForAdmin.remove(checkin.key);
+                                    } else {
+                                        checkinMap.remove(checkin.key);
+                                    }
                                     remove(checkin);
                                 }
                             })

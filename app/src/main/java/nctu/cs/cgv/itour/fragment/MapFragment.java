@@ -109,6 +109,7 @@ public class MapFragment extends Fragment {
     private FloatingActionButton addBtn;
     private Bitmap fogBitmap;
     private ActionBar actionBar;
+    private View seperator;
     // objects
     private List<ImageNode> edgeNodeList;
     private List<ImageNode> pathEdgeNodeList;
@@ -116,6 +117,7 @@ public class MapFragment extends Fragment {
     private List<SpotNode> spotNodeList;
     private List<ImageNode> checkinNodeList;
     private List<MergedCheckinNode> mergedCheckinNodeList;
+    private List<ImageNode> busIconList;
     private LayoutInflater inflater;
     private Handler translationHandler;
     // gestures
@@ -150,6 +152,7 @@ public class MapFragment extends Fragment {
         pathEdgeNodeList = new ArrayList<>();
         checkinNodeList = new ArrayList<>();
         mergedCheckinNodeList = new ArrayList<>();
+        busIconList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         translationHandler = new Handler();
@@ -168,6 +171,7 @@ public class MapFragment extends Fragment {
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
         addBtn = (FloatingActionButton) view.findViewById(R.id.btn_add);
         FrameLayout frameLayout = (FrameLayout) view.findViewById(R.id.touristmap);
+        seperator = view.findViewById(R.id.seperator);
 
         // set subtitle
         actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
@@ -543,6 +547,17 @@ public class MapFragment extends Fragment {
                 mergedCheckinNode.icon.setTranslationY(point[1]);
             }
         }
+
+        Matrix busIconTransform = new Matrix();
+        busIconTransform.postTranslate(-dpToPx(context, 25), -dpToPx(context, 70));
+        for (ImageNode imageNode : busIconList) {
+            point[0] = imageNode.x;
+            point[1] = imageNode.y;
+            transformMat.mapPoints(point);
+            busIconTransform.mapPoints(point);
+            imageNode.icon.setTranslationX(point[0]);
+            imageNode.icon.setTranslationY(point[1]);
+        }
     }
 
     private void addSpotNode(final SpotNode spotNode) {
@@ -558,7 +573,7 @@ public class MapFragment extends Fragment {
             }
         });
         ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
-        rootLayout.addView(icon, rootLayout.indexOfChild(gpsMarker));
+        rootLayout.addView(icon, rootLayout.indexOfChild(seperator));
     }
 
     private void addEdgeNode(ImageNode imageNode, String iconColor) {
@@ -568,7 +583,7 @@ public class MapFragment extends Fragment {
         if (iconColor.equals("black"))
             ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_black_trans);
         imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(gpsMarker));
+        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(seperator));
     }
 
     public void showPathIdicator(SpotNode spotNode) {
@@ -608,7 +623,7 @@ public class MapFragment extends Fragment {
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
         ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
-        rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(gpsMarker) + 1);
+        rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
         reRender();
@@ -665,7 +680,7 @@ public class MapFragment extends Fragment {
             }
         });
         mergedCheckinNode.onSpot = onSpot;
-        rootLayout.addView(mergedCheckinNode.icon, rootLayout.indexOfChild(gpsMarker) + 1);
+        rootLayout.addView(mergedCheckinNode.icon, rootLayout.indexOfChild(seperator));
         mergedCheckinNodeList.add(mergedCheckinNode);
         return mergedCheckinNode;
     }
@@ -852,4 +867,23 @@ public class MapFragment extends Fragment {
         reRender();
     }
 
+    public void addBusIcon(final Checkin checkin) {
+        float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+        ImageNode imageNode = new ImageNode(imgPx[0], imgPx[1]);
+        busIconList.add(imageNode);
+
+        // create icon ImageView
+        imageNode.icon = new ImageView(context);
+        imageNode.icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialog(checkin);
+            }
+        });
+        imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(dpToPx(context, 50), dpToPx(context, 70)));
+        ((ImageView) imageNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.bus));
+        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(seperator) + 1);
+
+        reRender();
+    }
 }

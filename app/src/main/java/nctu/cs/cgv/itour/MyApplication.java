@@ -5,10 +5,13 @@ import android.content.Intent;
 import android.os.Environment;
 
 import java.io.File;
+import java.io.StreamCorruptedException;
+import java.io.StringReader;
 
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
+import nctu.cs.cgv.itour.object.SpotNode;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 
 /**
@@ -21,6 +24,7 @@ public class MyApplication extends Application {
 //    public static final String mapTag = "nctu";
     public static final String mapTag = "NTUtaipei";
 //    public static final String mapTag = "TamsuiNewFull";
+    public static final String adminUid = "jwA6ZoRuiqQOqS4Xzix7bkZAGQ73";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps";
     public static final String APPServerURL = "http://140.113.210.17";
     public static final String fileUploadURL = APPServerURL + "/upload";
