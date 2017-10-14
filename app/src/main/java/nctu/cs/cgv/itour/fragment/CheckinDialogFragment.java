@@ -85,13 +85,23 @@ public class CheckinDialogFragment extends DialogFragment {
         TextView username = (TextView) view.findViewById(R.id.tv_username);
         TextView location = (TextView) view.findViewById(R.id.tv_location);
         TextView description = (TextView) view.findViewById(R.id.tv_description);
-        username.setText(checkin.username);
-        location.setText(checkin.location);
-        description.setText(checkin.description);
 
-        setPhoto(view, checkin.photo);
-        setAudio(view, checkin.audio);
-        setActionBtn(view, checkin);
+        if (checkin != null) {
+            username.setText(checkin.username);
+            location.setText(checkin.location);
+            description.setText(checkin.description);
+
+            setPhoto(view, checkin.photo);
+            setAudio(view, checkin.audio);
+            setActionBtn(view, checkin);
+        } else {
+            username.setText("");
+            location.setText("");
+            description.setText(getString(R.string.tv_checkin_remove));
+
+            setPhoto(view, "");
+            setAudio(view, "");
+        }
     }
 
     private void setPhoto(View view, final String filename) {

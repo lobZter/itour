@@ -525,7 +525,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 Toast.makeText(this, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
             } else {
                 // translate to center when handleLocationChange first time
-                translateToImgPx(gpsDistortedX, gpsDistortedY, true);
+                translateToImgPx(imgPx[0], imgPx[1], true);
             }
         }
 

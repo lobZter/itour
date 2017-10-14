@@ -81,5 +81,7 @@
     <string name="menu_filter_popular">popularity</string>
     <string name="menu_filter_time">time</string>
 
+    <string name="tv_checkin_remove">This post may have been removed.</string>
+
 
 </resources>

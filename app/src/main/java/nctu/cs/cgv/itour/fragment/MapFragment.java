@@ -102,7 +102,6 @@ public class MapFragment extends Fragment {
     private int spotIconPivotY = 0;
     // UI references
     private RelativeLayout rootLayout;
-    private View seperator;
     private ImageView touristMap;
     private ImageView fogMap;
     private LinearLayout gpsMarker;
@@ -165,7 +164,6 @@ public class MapFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
         rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
-        seperator = view.findViewById(R.id.seperator);
         gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
         gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
         addBtn = (FloatingActionButton) view.findViewById(R.id.btn_add);
@@ -560,7 +558,7 @@ public class MapFragment extends Fragment {
             }
         });
         ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
-        rootLayout.addView(icon, rootLayout.indexOfChild(seperator));
+        rootLayout.addView(icon, rootLayout.indexOfChild(gpsMarker));
     }
 
     private void addEdgeNode(ImageNode imageNode, String iconColor) {
@@ -570,7 +568,7 @@ public class MapFragment extends Fragment {
         if (iconColor.equals("black"))
             ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_black_trans);
         imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(seperator));
+        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(gpsMarker));
     }
 
     public void showPathIdicator(SpotNode spotNode) {
@@ -610,14 +608,10 @@ public class MapFragment extends Fragment {
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
         ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
-        rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator) + 1);
+        rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(gpsMarker) + 1);
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
         reRender();
-    }
-
-    public void removeCheckin(final Checkin checkin) {
-
     }
 
     private void addMergedCheckin(String spotName, float x, float y) {
@@ -671,7 +665,7 @@ public class MapFragment extends Fragment {
             }
         });
         mergedCheckinNode.onSpot = onSpot;
-        rootLayout.addView(mergedCheckinNode.icon);
+        rootLayout.addView(mergedCheckinNode.icon, rootLayout.indexOfChild(gpsMarker) + 1);
         mergedCheckinNodeList.add(mergedCheckinNode);
         return mergedCheckinNode;
     }

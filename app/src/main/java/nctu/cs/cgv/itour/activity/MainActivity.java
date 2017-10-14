@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.remove(dataSnapshot.getKey());
-                mapFragment.removeCheckin(checkin);
             }
 
             @Override
