@@ -204,16 +204,16 @@ public class LocationChooseActivity extends AppCompatActivity {
         // draw spots
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
-        spotNodeList = new ArrayList<>();
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        for (SpotNode entryValues : spotList.nodeMap.values()) {
-            SpotNode spotNode = new SpotNode(entryValues.x, entryValues.y, entryValues.name);
-            View icon = inflater.inflate(R.layout.item_spot, null);
-            ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
-            spotNode.icon = icon;
-            spotNodeList.add(spotNode);
-            rootLayout.addView(icon, 1); // index 0 is for tourist map
-        }
+//        spotNodeList = new ArrayList<>();
+//        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+//        for (SpotNode entryValues : spotList.nodeMap.values()) {
+//            SpotNode spotNode = new SpotNode(entryValues.x, entryValues.y, entryValues.name);
+//            View icon = inflater.inflate(R.layout.item_spot, null);
+//            ((TextView) icon.findViewById(R.id.spot_name)).setText(spotNode.name);
+//            spotNode.icon = icon;
+//            spotNodeList.add(spotNode);
+//            rootLayout.addView(icon, 1); // index 0 is for tourist map
+//        }
 
         // set location autocomplete
         ArrayList<String> array = new ArrayList<>();
@@ -424,14 +424,14 @@ public class LocationChooseActivity extends AppCompatActivity {
         gpsMarker.setTranslationY(point[1]);
 
         // transform spot
-        for (SpotNode spotNode : spotNodeList) {
-            point[0] = spotNode.x;
-            point[1] = spotNode.y;
-            transformMat.mapPoints(point);
-            spotIconTransform.mapPoints(point);
-            spotNode.icon.setTranslationX(point[0]);
-            spotNode.icon.setTranslationY(point[1]);
-        }
+//        for (SpotNode spotNode : spotNodeList) {
+//            point[0] = spotNode.x;
+//            point[1] = spotNode.y;
+//            transformMat.mapPoints(point);
+//            spotIconTransform.mapPoints(point);
+//            spotNode.icon.setTranslationX(point[0]);
+//            spotNode.icon.setTranslationY(point[1]);
+//        }
     }
 
     private void translateToImgPx(final float x, final float y, final boolean toCurrent) {
