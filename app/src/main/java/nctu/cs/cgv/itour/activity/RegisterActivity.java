@@ -1,9 +1,17 @@
 package nctu.cs.cgv.itour.activity;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -145,11 +153,15 @@ public class RegisterActivity extends AppCompatActivity {
                                             if (!task.isSuccessful()) {
                                                 Toast.makeText(RegisterActivity.this, getString(R.string.error_store_profile_failed), Toast.LENGTH_LONG).show();
                                             }
-                                            startMainActivity();
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                checkPermission();
+                                            } else {
+                                                startMainActivity();
+                                            }
                                         }
                                     });
                         } else {
-                            Toast.makeText(RegisterActivity.this, getString(R.string.error_registration_failed), Toast.LENGTH_LONG).show();
+                            Toast.makeText(RegisterActivity.this, getString(R.string.error_registration_failed) + "\n" + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                         }
                         progressDialog.dismiss();
                     }
@@ -182,6 +194,66 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         } else {
             new DownloadFileAsyncTask(this).execute(mapTag);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkPermission() {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+        int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int gpsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (gpsPermission + storagePermission != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                showExplanation();
+            } else {
+                requestPermissions(
+                        new String[]{
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSIONS_MULTIPLE_REQUEST);
+            }
+        } else {
+            startMainActivity();
+        }
+    }
+
+    private void showExplanation() {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Permission Needed")
+                .setMessage("We need to store map package on the device and track your GPS location to run this app!")
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    public void onClick(DialogInterface dialog, int id) {
+                        requestPermissions(
+                                new String[]{
+                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                        Manifest.permission.ACCESS_FINE_LOCATION},
+                                PERMISSIONS_MULTIPLE_REQUEST);
+                    }
+                });
+        builder.create().show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+
+        switch (requestCode) {
+            case PERMISSIONS_MULTIPLE_REQUEST:
+                if (grantResults.length > 0) {
+                    boolean storagePermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean gpsPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+
+                    if (storagePermission && gpsPermission) {
+                        startMainActivity();
+                    } else {
+                        showExplanation();
+                    }
+                }
+                break;
         }
     }
 }

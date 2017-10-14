@@ -42,6 +42,7 @@ import com.roughike.bottombar.OnTabSelectListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,7 @@ import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
+import nctu.cs.cgv.itour.service.GpsLocationService;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements
     public static Map<String, Boolean> savedPostId;
     // view objects
     private MyViewPager viewPager;
+    private BottomBar bottomBar;
     private List<Fragment> fragmentList;
     private ProgressDialog progressDialog;
     // MapFragment: communicate by calling fragment method
@@ -91,8 +94,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        checkinMap = new HashMap<>();
-        savedPostId = new HashMap<>();
+        checkinMap = new LinkedHashMap<>();
+        savedPostId = new LinkedHashMap<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void init() {
+        startService(new Intent(this, GpsLocationService.class));
         setSensors();
         setBroadcastReceiver();
         setView();
@@ -222,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements
         // set keep all three pages alive
         viewPager.setOffscreenPageLimit(5);
 
-        BottomBar bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
+        bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
@@ -237,7 +241,9 @@ public class MainActivity extends AppCompatActivity implements
                         break;
                     case R.id.tab_person:
                         viewPager.setCurrentItem(2);
-                        Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
+                        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
+                        }
                         actionLog("Current Page: personal");
                         break;
 //                    case R.id.tab_plan:
@@ -332,6 +338,12 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, GpsLocationService.class));
+    }
+
+    @Override
     public void onDistanceIndicatorSwitched(boolean flag) {
         mapFragment.switchDistanceIndicator(flag);
     }
@@ -415,6 +427,6 @@ public class MainActivity extends AppCompatActivity implements
 
     public void onLocateClick(float imgPxX, float imgPxY) {
         mapFragment.translateToImgPx(imgPxX, imgPxY, false);
-        viewPager.setCurrentItem(0);
+        bottomBar.selectTabAtPosition(0);
     }
 }

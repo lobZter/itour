@@ -35,7 +35,6 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        startService(new Intent(this, GpsLocationService.class));
         realMesh = new Mesh(new File(dirPath + "/" + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + "/" + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + "/" + mapTag + "_warpMesh.txt"));
