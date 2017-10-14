@@ -620,9 +620,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
         databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
             @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                actionLog("Post Checkin");
-
+            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
                 // upload files to app server
                 AsyncHttpClient client = new AsyncHttpClient();
                 RequestParams params = new RequestParams();
@@ -650,6 +648,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                             if(!audio.equals(""))
                                 moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
                         }
+                        actionLog("Post Checkin");
                         progressDialog.dismiss();
                         setResult(REQUEST_CODE_CHECKIN_FINISH);
                         finish();
@@ -657,6 +656,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
                         progressDialog.dismiss();
                         Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
                     }
