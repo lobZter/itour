@@ -122,10 +122,10 @@ public class GpsLocationService extends Service implements
 
     private void initLocationRequest() {
         locationRequest = new LocationRequest();
-//        locationRequest.setInterval(1000);
-//        locationRequest.setFastestInterval(500);
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(2000);
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500);
+//        locationRequest.setInterval(5000);
+//        locationRequest.setFastestInterval(2000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 

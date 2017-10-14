@@ -34,6 +34,9 @@
     <string name="toast_audio_recorder_stop_failed">Audio recording failed.</string>
     <string name="toast_upload_file_failed">File uploading failed.</string>
     <string name="toast_guest_function">Please sign in to enable this function.</string>
+    <string name="toast_gps_outside">You are not in the map area.</string>
+    <string name="toast_gps_waiting">Waiting for GPS.</string>
+    <string name="toast_cannot_checkin">Cannot post checkin.</string>
     <string name="dialog_uploading">File uploading.</string>
 
     <string name="dialog_delete_title">Delete Post</string>

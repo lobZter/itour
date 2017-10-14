@@ -21,6 +21,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +37,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -56,11 +58,13 @@ import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
+import nctu.cs.cgv.itour.service.GpsLocationService;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.edgeNode;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.dpToPx;
@@ -84,8 +88,8 @@ public class MapFragment extends Fragment {
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private float gpsDistortedX = 0;
-    private float gpsDistortedY = 0;
+    private float gpsDistortedX = -1;
+    private float gpsDistortedY = -1;
     private float lastFogClearPosX = 0;
     private float lastFogClearPosY = 0;
     private int mapCenterX = 0;
@@ -224,6 +228,14 @@ public class MapFragment extends Fragment {
         gpsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+                    Toast.makeText(context, getString(R.string.toast_gps_waiting), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                    Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if (!isGpsCurrent)
                     translateToImgPx(gpsDistortedX, gpsDistortedY, true);
                 else if (!isOrientationCurrent)
@@ -236,6 +248,18 @@ public class MapFragment extends Fragment {
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+                    Toast.makeText(context,
+                            getString(R.string.toast_gps_waiting) + "\n" + getString(R.string.toast_cannot_checkin),
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                    Toast.makeText(context,
+                            getString(R.string.toast_gps_outside) + "\n" + getString(R.string.toast_cannot_checkin),
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 startActivity(new Intent(context, CheckinActivity.class));
             }
         });
@@ -288,9 +312,14 @@ public class MapFragment extends Fragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (actionBar != null) {
-            if (getUserVisibleHint()) {
+
+        if (getUserVisibleHint()) {
+            if (actionBar != null) {
                 actionBar.setSubtitle(getString(R.string.subtitle_map));
+            }
+
+            if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -719,7 +748,28 @@ public class MapFragment extends Fragment {
 
     public void handleLocationChange(float lat, float lng) {
 
+        if (getView() == null) {
+            return;
+        }
+
+        // GPS is within tourist map.
+        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
+            if (gpsMarker.getVisibility() != View.VISIBLE) {
+                gpsMarker.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (gpsMarker.getVisibility() != View.GONE) {
+                gpsMarker.setVisibility(View.GONE);
+            }
+        }
+
         float[] imgPx = gpsToImgPx(lat, lng);
+
+        if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+            if (imgPx[0] == 0 && imgPx[1] == 0) {
+                Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
+            }
+        }
 
         gpsDistortedX = imgPx[0];
         gpsDistortedY = imgPx[1];

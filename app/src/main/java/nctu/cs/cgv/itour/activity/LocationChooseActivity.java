@@ -60,6 +60,7 @@ import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
@@ -81,8 +82,8 @@ public class LocationChooseActivity extends AppCompatActivity {
     private Matrix transformMat;
     private float scale = 1;
     private float rotation = 0;
-    private float gpsDistortedX = 0;
-    private float gpsDistortedY = 0;
+    private float gpsDistortedX = -1;
+    private float gpsDistortedY = -1;
     private int mapCenterX = 0;
     private int mapCenterY = 0;
     private int gpsMarkerPivotX = 0;
@@ -115,7 +116,6 @@ public class LocationChooseActivity extends AppCompatActivity {
     // flags
     private boolean isGpsCurrent = false;
     private boolean isOrientationCurrent = true;
-    private boolean isTranslated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -185,6 +185,15 @@ public class LocationChooseActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 hideSoftKeyboard(LocationChooseActivity.this);
+                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+                    Toast.makeText(LocationChooseActivity.this, getString(R.string.toast_gps_waiting), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                    Toast.makeText(LocationChooseActivity.this, getString(R.string.toast_gps_outside), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (!isGpsCurrent)
                     translateToImgPx(gpsDistortedX, gpsDistortedY, true);
                 else if (!isOrientationCurrent)
@@ -498,18 +507,32 @@ public class LocationChooseActivity extends AppCompatActivity {
 
     private void handleLocationChange(float lat, float lng) {
 
+        // GPS is within tourist map.
+        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
+            if (gpsMarker.getVisibility() != View.VISIBLE) {
+                gpsMarker.setVisibility(View.VISIBLE);
+            }
+        } else {
+            if (gpsMarker.getVisibility() != View.GONE) {
+                gpsMarker.setVisibility(View.GONE);
+            }
+        }
+
         float[] imgPx = gpsToImgPx(lat, lng);
+
+        if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+            if (imgPx[0] == 0 && imgPx[1] == 0) {
+                Toast.makeText(this, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
+            } else {
+                // translate to center when handleLocationChange first time
+                translateToImgPx(gpsDistortedX, gpsDistortedY, true);
+            }
+        }
 
         gpsDistortedX = imgPx[0];
         gpsDistortedY = imgPx[1];
 
         reRender();
-
-        // translate to center when handleLocationChange first time
-        if (!isTranslated) {
-            translateToImgPx(gpsDistortedX, gpsDistortedY, true);
-            isTranslated = true;
-        }
     }
 
     @Override

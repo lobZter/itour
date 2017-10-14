@@ -17,7 +17,8 @@
         android:clipToPadding="false"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="@dimen/gps_marker_padding">
+        android:padding="@dimen/gps_marker_padding"
+        android:visibility="gone">
 
         <View
             android:layout_width="@dimen/gps_direction_width"
@@ -66,7 +67,7 @@
         android:layout_alignParentEnd="true"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_gps_fixed_blue_24dp"
+        android:src="@drawable/ic_gps_fixed_black_24dp"
         app:backgroundTint="@color/md_white_1000" />
 
     <FrameLayout
