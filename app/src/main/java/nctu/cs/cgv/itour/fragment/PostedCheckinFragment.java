@@ -63,12 +63,12 @@ public class PostedCheckinFragment extends Fragment {
             String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             if (uid.equals(adminUid)) {
                 for (final Checkin checkin : busCheckinMapForAdmin.values()) {
-                    checkinItemAdapter.add(checkin);
+                    checkinItemAdapter.insert(checkin, 0);
                 }
             } else {
                 for (final Checkin checkin : checkinMap.values()) {
                     if (uid.equals(checkin.uid)) {
-                        checkinItemAdapter.add(checkin);
+                        checkinItemAdapter.insert(checkin, 0);
                     }
                 }
             }

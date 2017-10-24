@@ -69,7 +69,7 @@ public class CheckinListFragment extends Fragment {
     public void refresh() {
         checkinItemAdapter.clear();
         for (final Checkin checkin : checkinMap.values()) {
-            checkinItemAdapter.add(checkin);
+            checkinItemAdapter.insert(checkin, 0);
         }
     }
 }

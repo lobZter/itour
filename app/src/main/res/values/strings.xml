@@ -65,6 +65,8 @@
     <string name="setting_distance_indicator">距離比例</string>
     <string name="setting_checkin">Display Checkins</string>
     <string name="setting_spot">Display Spots</string>
+    <string name="setting_about">About</string>
+    <string name="setting_copyright">Create by Computer Graphics and Visualization Lab, National Chiao Tung University</string>
 
     <!--<string name="post_checkin_description_hint">在想些什麼...</string>-->
     <!--<string name="post_checkin_audio_hint">留下聲音...</string>-->

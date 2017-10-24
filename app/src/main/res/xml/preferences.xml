@@ -37,6 +37,11 @@
             android:key="register"
             android:title="@string/setting_register" />
 
+        <Preference
+            android:key="about"
+            android:title="@string/setting_about"
+            android:summary="@string/setting_copyright"/>
+
     </PreferenceCategory>
 
 </PreferenceScreen>
