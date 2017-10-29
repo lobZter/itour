@@ -21,6 +21,7 @@ import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Mesh;
 
+import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 
@@ -114,29 +115,37 @@ public class Utility {
     }
 
     public static void actionLog(String log) {
-//        AsyncHttpClient client = new AsyncHttpClient();
-//        client.get("https://food-map-lobst3rd.c9users.io/actionLog?user="+ FirebaseAuth.getInstance().getCurrentUser().getDisplayName()+"&log="+log,
-//                new AsyncHttpResponseHandler() {
-//
-//                    @Override
-//                    public void onStart() {
-//                        // called before request is started
-//                    }
-//
-//                    @Override
-//                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//                        // called when response HTTP status is "200 OK"
-//                    }
-//
-//                    @Override
-//                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-//                    }
-//
-//                    @Override
-//                    public void onRetry(int retryNo) {
-//                        // called when request is retried
-//                    }
-//                });
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        String url = APPServerURL + "/actionLog";
+        url += "?username=" + FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        url += "&uid=" + FirebaseAuth.getInstance().getCurrentUser().getUid();
+        url += "&log=" + log;
+        url += "&timestamp=" + String.valueOf(System.currentTimeMillis() / 1000);
+
+        client.get(url, new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        // called when response HTTP status is "200 OK"
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                    }
+                });
     }
 }

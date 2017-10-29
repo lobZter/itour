@@ -21,12 +21,10 @@ import nctu.cs.cgv.itour.service.GpsLocationService;
 public class MyApplication extends Application {
 
     private static final String TAG = "MyApplication";
-//    public static final String mapTag = "nctu";
-    public static final String mapTag = "NTUtaipei";
-//    public static final String mapTag = "TamsuiNewFull";
-    public static final String adminUid = "jwA6ZoRuiqQOqS4Xzix7bkZAGQ73";
+    public static final String mapTag = "TamsuiNewFull";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps";
-    public static final String APPServerURL = "http://140.113.210.17";
+//    public static final String APPServerURL = "http://140.113.210.17";
+    public static final String APPServerURL = "https://itour-lobst3rd.c9users.io";
     public static final String fileUploadURL = APPServerURL + "/upload";
     public static final String fileDownloadURL = APPServerURL + "/download";
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour";
@@ -39,10 +37,5 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        realMesh = new Mesh(new File(dirPath + "/" + mapTag + "_mesh.txt"));
-        realMesh.readBoundingBox(new File(dirPath + "/" + mapTag + "_bound_box.txt"));
-        warpMesh = new Mesh(new File(dirPath + "/" + mapTag + "_warpMesh.txt"));
-        spotList = new SpotList(new File(dirPath + "/" + mapTag + "_spot_list.txt"));
-        edgeNode = new EdgeNode(new File(dirPath + "/" + mapTag + "_edge_length.txt"));
     }
 }

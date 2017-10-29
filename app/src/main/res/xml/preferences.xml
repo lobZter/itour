@@ -3,25 +3,25 @@
 
     <PreferenceCategory android:title="@string/setting_category_map">
 
-        <!--<SwitchPreferenceCompat-->
-            <!--android:defaultValue="false"-->
-            <!--android:key="distance_indicator"-->
-            <!--android:title="路線比例" />-->
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="distance_indicator"
+            android:title="@string/setting_distance_indicator" />
 
-        <!--<SwitchPreferenceCompat-->
-            <!--android:defaultValue="false"-->
-            <!--android:key="fog"-->
-            <!--android:title="迷霧系統" />-->
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="fog"
+            android:title="@string/setting_fog" />
 
         <SwitchPreferenceCompat
             android:defaultValue="true"
             android:key="checkin"
             android:title="@string/setting_checkin" />
 
-        <!--<SwitchPreferenceCompat-->
-            <!--android:defaultValue="true"-->
-            <!--android:key="spot"-->
-            <!--android:title="@string/setting_spot" />-->
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="spot"
+            android:title="@string/setting_spot" />
 
     </PreferenceCategory>
 

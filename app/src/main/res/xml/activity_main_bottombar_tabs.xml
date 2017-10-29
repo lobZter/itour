@@ -12,10 +12,10 @@
         id="@+id/tab_person"
         icon="@drawable/ic_person_white_24dp"
         title="Personal" />
-    <!--<tab-->
-        <!--id="@+id/tab_plan"-->
-        <!--icon="@drawable/ic_event_note_white_24dp"-->
-        <!--title="Plan" />-->
+    <tab
+        id="@+id/tab_plan"
+        icon="@drawable/ic_event_note_white_24dp"
+        title="Plan" />
     <tab
         id="@+id/tab_settings"
         icon="@drawable/ic_settings_white_24dp"

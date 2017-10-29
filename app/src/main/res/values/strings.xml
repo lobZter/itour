@@ -57,31 +57,31 @@
     <string name="btn_locate_string">LOCATE</string>
     <string name="btn_delete_string">DELETE</string>
 
-    <string name="setting_category_account">Account</string>
-    <string name="setting_logout">Logout</string>
-    <string name="setting_register">Create an Account</string>
-    <string name="setting_category_map">Map</string>
+    <string name="setting_category_account">帳號</string>
+    <string name="setting_logout">登出</string>
+    <string name="setting_register">註冊帳號</string>
+    <string name="setting_category_map">地圖</string>
     <string name="setting_fog">迷霧系統</string>
     <string name="setting_distance_indicator">距離比例</string>
-    <string name="setting_checkin">Display Checkins</string>
-    <string name="setting_spot">Display Spots</string>
-    <string name="setting_about">About</string>
+    <string name="setting_checkin">顯示打卡</string>
+    <string name="setting_spot">顯示景點</string>
+    <string name="setting_about">關於</string>
     <string name="setting_copyright">Create by Computer Graphics and Visualization Lab, National Chiao Tung University</string>
 
-    <!--<string name="post_checkin_description_hint">在想些什麼...</string>-->
-    <!--<string name="post_checkin_audio_hint">留下聲音...</string>-->
-    <!--<string name="post_checkin_photo_hint">新增照片...</string>-->
-    <string name="post_checkin_description_hint">What\'s on your mind?</string>
-    <string name="post_checkin_audio_hint">Leave sound here!</string>
-    <string name="post_checkin_photo_hint">Add a photo?</string>
+    <string name="post_checkin_description_hint">在想些什麼...</string>
+    <string name="post_checkin_audio_hint">留下聲音...</string>
+    <string name="post_checkin_photo_hint">新增照片...</string>
+    <!--<string name="post_checkin_description_hint">What\'s on your mind?</string>-->
+    <!--<string name="post_checkin_audio_hint">Leave sound here!</string>-->
+    <!--<string name="post_checkin_photo_hint">Add a photo?</string>-->
 
-    <!--<string name="activity_choose_location_title">打卡地點</string>-->
-    <string name="activity_choose_location_title">Choose Checkin Location</string>
+    <string name="activity_choose_location_title">打卡地點</string>
+    <!--<string name="activity_choose_location_title">Choose Checkin Location</string>-->
 
-    <!--<string name="menu_filter_popular">人氣度</string>-->
-    <!--<string name="menu_filter_time">時間</string>-->
-    <string name="menu_filter_popular">popularity</string>
-    <string name="menu_filter_time">time</string>
+    <string name="menu_filter_popular">人氣度</string>
+    <string name="menu_filter_time">時間</string>
+    <!--<string name="menu_filter_popular">popularity</string>-->
+    <!--<string name="menu_filter_time">time</string>-->
 
     <string name="tv_checkin_remove">This post may have been removed.</string>
 

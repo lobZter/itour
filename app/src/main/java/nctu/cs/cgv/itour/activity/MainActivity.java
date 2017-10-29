@@ -2,7 +2,6 @@ package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -38,22 +37,31 @@ import com.google.firebase.database.Query;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
+import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
+import nctu.cs.cgv.itour.object.EdgeNode;
+import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 
-import static nctu.cs.cgv.itour.MyApplication.adminUid;
+import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.edgeNode;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.realMesh;
+import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 
 public class MainActivity extends AppCompatActivity implements
@@ -65,13 +73,11 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
     // Checkins
     public static Map<String, Checkin> checkinMap;
-    public static Map<String, Checkin> busCheckinMapForAdmin;
     public static Map<String, Boolean> savedPostId;
     // view objects
     private MyViewPager viewPager;
     private BottomBar bottomBar;
     private List<Fragment> fragmentList;
-    private ProgressDialog progressDialog;
     // MapFragment: communicate by calling fragment method
     private MapFragment mapFragment;
     private ListFragment listFragment;
@@ -91,9 +97,14 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        realMesh = new Mesh(new File(dirPath + "/" + mapTag + "_mesh.txt"));
+        realMesh.readBoundingBox(new File(dirPath + "/" + mapTag + "_bound_box.txt"));
+        warpMesh = new Mesh(new File(dirPath + "/" + mapTag + "_warpMesh.txt"));
+        spotList = new SpotList(new File(dirPath + "/" + mapTag + "_spot_list.txt"));
+        edgeNode = new EdgeNode(new File(dirPath + "/" + mapTag + "_edge_length.txt"));
+
         checkinMap = new LinkedHashMap<>();
         savedPostId = new LinkedHashMap<>();
-        busCheckinMapForAdmin = new LinkedHashMap<>();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkPermission();
@@ -128,13 +139,8 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
-                if (checkin.uid.equals(adminUid)) {
-                    busCheckinMapForAdmin.put(dataSnapshot.getKey(), checkin);
-                    mapFragment.addBusIcon(checkin);
-                } else {
-                    checkinMap.put(dataSnapshot.getKey(), checkin);
-                    mapFragment.addCheckin(checkin);
-                }
+                checkinMap.put(dataSnapshot.getKey(), checkin);
+                mapFragment.addCheckin(checkin);
             }
 
             @Override
@@ -208,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
         fragmentList.add(personalFragment);
-//        fragmentList.add(PlanFragment.newInstance());
+        fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
         viewPager = (MyViewPager) findViewById(R.id.view_pager);
@@ -248,12 +254,12 @@ public class MainActivity extends AppCompatActivity implements
                         }
                         actionLog("Current Page: personal");
                         break;
-//                    case R.id.tab_plan:
-//                        viewPager.setCurrentItem(3);
-//                        actionLog("Current Page: plan");
-//                        break;
-                    case R.id.tab_settings:
+                    case R.id.tab_plan:
                         viewPager.setCurrentItem(3);
+                        actionLog("Current Page: plan");
+                        break;
+                    case R.id.tab_settings:
+                        viewPager.setCurrentItem(4);
                         actionLog("Current Page: setting");
                         break;
                 }
@@ -354,7 +360,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onFogSwitched(boolean flag) {
         mapFragment.switchFog(flag);
     }
-
 
     @Override
     public void onCheckinIconSwitched(boolean flag) {

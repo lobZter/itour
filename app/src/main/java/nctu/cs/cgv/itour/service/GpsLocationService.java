@@ -17,10 +17,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.auth.FirebaseAuth;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import cz.msebera.android.httpclient.Header;
+
+import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 
 public class GpsLocationService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -84,33 +87,42 @@ public class GpsLocationService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
-//        AsyncHttpClient client = new AsyncHttpClient();
-//        client.get("https://food-map-lobst3rd.c9users.io/gpsUpdate?lat=" + location.getLatitude() + "&lng=" + location.getLongitude(),
-//                new AsyncHttpResponseHandler() {
-//
-//                    @Override
-//                    public void onStart() {
-//                        // called before request is started
-//                    }
-//
-//                    @Override
-//                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-//                        // called when response HTTP status is "200 OK"
-//                    }
-//
-//                    @Override
-//                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-//                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-//                    }
-//
-//                    @Override
-//                    public void onRetry(int retryNo) {
-//                        // called when request is retried
-//                    }
-//                });
-
 
         sendMessage(location);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        String url = APPServerURL + "/gpsUpdate";
+        url += "?lat=" + location.getLatitude();
+        url += "&lng=" + location.getLongitude();
+        url += "&username=" + FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        url += "&uid=" + FirebaseAuth.getInstance().getCurrentUser().getUid();
+        url += "&timestamp=" + String.valueOf(System.currentTimeMillis() / 1000);
+
+        client.get(url, new AsyncHttpResponseHandler() {
+
+                    @Override
+                    public void onStart() {
+                        // called before request is started
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                        // called when response HTTP status is "200 OK"
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    }
+
+                    @Override
+                    public void onRetry(int retryNo) {
+                        // called when request is retried
+                    }
+                });
     }
 
     @Nullable
