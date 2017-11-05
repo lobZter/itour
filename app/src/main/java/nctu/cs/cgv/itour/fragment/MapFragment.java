@@ -77,7 +77,6 @@ public class MapFragment extends Fragment {
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
     private final float ZOOM_THRESHOLD = 2.2f;
-    private final float FOG_UPDATE_THRESHOLD = 5.0f;
     private final int CLUSTER_THRESHOLD = 20500;
     private final int nodeIconWidth = 16;
     private final int nodeIconHeight = 16;
@@ -90,8 +89,6 @@ public class MapFragment extends Fragment {
     private float rotation = 0;
     private float gpsDistortedX = -1;
     private float gpsDistortedY = -1;
-    private float lastFogClearPosX = 0;
-    private float lastFogClearPosY = 0;
     private int mapCenterX = 0;
     private int mapCenterY = 0;
     private int gpsMarkerPivotX = 0;
@@ -227,11 +224,7 @@ public class MapFragment extends Fragment {
         gpsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
-                    Toast.makeText(context, getString(R.string.toast_gps_waiting), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                if (gpsMarker.getVisibility() == View.GONE) {
                     Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -247,13 +240,7 @@ public class MapFragment extends Fragment {
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
-                    Toast.makeText(context,
-                            getString(R.string.toast_gps_waiting) + "\n" + getString(R.string.toast_cannot_checkin),
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+                if (gpsMarker.getVisibility() == View.GONE) {
                     Toast.makeText(context,
                             getString(R.string.toast_gps_outside) + "\n" + getString(R.string.toast_cannot_checkin),
                             Toast.LENGTH_SHORT).show();
@@ -318,7 +305,7 @@ public class MapFragment extends Fragment {
                 actionBar.setSubtitle(getString(R.string.subtitle_map));
             }
 
-            if (gpsDistortedX == 0 && gpsDistortedY == 0) {
+            if (gpsMarker != null && gpsMarker.getVisibility() == View.GONE) {
                 Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_SHORT).show();
             }
         }
@@ -435,9 +422,9 @@ public class MapFragment extends Fragment {
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
         checkinIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
         float[] point = new float[]{0, 0};
-        transformMat.mapPoints(point);
 
         // transform tourist map (ImageView)
+        transformMat.mapPoints(point);
         touristMap.setScaleX(scale);
         touristMap.setScaleY(scale);
         touristMap.setRotation(rotation);
@@ -682,15 +669,15 @@ public class MapFragment extends Fragment {
                 transformMat.mapPoints(point);
                 float distanceToCenterX = mapCenterX - point[0];
                 float distanceToCenterY = mapCenterY - point[1];
-                float scaleTo22 = 2.2f - scale;
+                float scaleTo22 = ZOOM_THRESHOLD - scale;
 
-                if (Math.abs(distanceToCenterX) <= Math.abs(30) || Math.abs(distanceToCenterY) <= Math.abs(30)) {
+                if (Math.abs(distanceToCenterX) <= 30.0f || Math.abs(distanceToCenterY) <= 30.0f) {
                     transformMat.postTranslate(distanceToCenterX, distanceToCenterY);
-                    if (scale < 2.2) {
+                    if (scale < ZOOM_THRESHOLD) {
                         transformMat.postTranslate(-point[0], -point[1]);
-                        transformMat.postScale(2.2f / scale, 2.2f / scale);
+                        transformMat.postScale(ZOOM_THRESHOLD / scale, ZOOM_THRESHOLD / scale);
                         transformMat.postTranslate(point[0], point[1]);
-                        scale = 2.2f;
+                        scale = ZOOM_THRESHOLD;
                     }
                     reRender();
                     translationHandler.removeCallbacks(this);
@@ -703,7 +690,7 @@ public class MapFragment extends Fragment {
                     }
                 } else {
                     transformMat.postTranslate(distanceToCenterX / 5, distanceToCenterY / 5);
-                    if (scale < 2.2) {
+                    if (scale < ZOOM_THRESHOLD) {
                         transformMat.postTranslate(-point[0], -point[1]);
                         transformMat.postScale((scale + scaleTo22 / 5) / scale, (scale + scaleTo22 / 5) / scale);
                         transformMat.postTranslate(point[0], point[1]);
@@ -722,7 +709,7 @@ public class MapFragment extends Fragment {
         Runnable rotationInterpolation = new Runnable() {
             @Override
             public void run() {
-                if (Math.abs(rotation) <= Math.abs(6)) {
+                if (Math.abs(rotation) <= 6.0f) {
                     transformMat.postTranslate(-mapCenterX, -mapCenterY);
                     transformMat.postRotate(-rotation);
                     transformMat.postTranslate(mapCenterX, mapCenterY);
@@ -743,7 +730,7 @@ public class MapFragment extends Fragment {
         rotationHandler.postDelayed(rotationInterpolation, 5);
     }
 
-    public void handleLocationChange(float lat, float lng) {
+    public void handleGpsUpdate(float lat, float lng) {
 
         if (getView() == null) {
             return;
@@ -751,42 +738,45 @@ public class MapFragment extends Fragment {
 
         // GPS is within tourist map.
         if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
+
             if (gpsMarker.getVisibility() != View.VISIBLE) {
                 gpsMarker.setVisibility(View.VISIBLE);
             }
-        } else {
+
+            float[] imgPx = gpsToImgPx(lat, lng);
+
+            if(imgPx[0] != -1 && imgPx[1] != -1) {
+                gpsDistortedX = imgPx[0];
+                gpsDistortedY = imgPx[1];
+
+                reRender();
+            }
+
+        } else { // GPS outside.
+
             if (gpsMarker.getVisibility() != View.GONE) {
                 gpsMarker.setVisibility(View.GONE);
-            }
-        }
-
-        float[] imgPx = gpsToImgPx(lat, lng);
-
-        if (gpsDistortedX == -1 && gpsDistortedY == -1) {
-            if (imgPx[0] == 0 && imgPx[1] == 0) {
                 Toast.makeText(context, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
             }
         }
+    }
 
-        gpsDistortedX = imgPx[0];
-        gpsDistortedY = imgPx[1];
+    public void handleFogUpdate(float lat, float lng) {
 
-        reRender();
+        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
 
-        // check whether it should update fog or not
-        double distance = Math.sqrt(Math.pow(lastFogClearPosX - gpsDistortedX, 2.0) + Math.pow(lastFogClearPosY - gpsDistortedY, 2.0));
-        if (fogSwitch && distance > FOG_UPDATE_THRESHOLD) {
-            // update fog map
-            Paint paint = new Paint();
-            paint.setColor(Color.TRANSPARENT);
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-            paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
-            Canvas canvas = new Canvas(fogBitmap);
-            canvas.drawCircle(gpsDistortedX, gpsDistortedY, 25, paint);
-            fogMap.postInvalidate();
+            float[] imgPx = gpsToImgPx(lat, lng);
 
-            lastFogClearPosX = gpsDistortedX;
-            lastFogClearPosY = gpsDistortedY;
+            if (imgPx[0] != -1 && imgPx[1] != -1) {
+                // update fog map
+                Paint paint = new Paint();
+                paint.setColor(Color.TRANSPARENT);
+                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+                paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
+                Canvas canvas = new Canvas(fogBitmap);
+                canvas.drawCircle(imgPx[0], imgPx[1], 25, paint);
+                fogMap.postInvalidate();
+            }
         }
     }
 

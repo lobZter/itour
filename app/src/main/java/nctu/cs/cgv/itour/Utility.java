@@ -2,7 +2,6 @@ package nctu.cs.cgv.itour;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Matrix;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
@@ -10,6 +9,7 @@ import android.view.inputmethod.InputMethodManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,9 +19,9 @@ import java.io.OutputStream;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.object.IdxWeights;
-import nctu.cs.cgv.itour.object.Mesh;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
+import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 
@@ -50,14 +50,14 @@ public class Utility {
     }
 
     public static float[] gpsToImgPx(float lat, float lng) {
-        float[] warpMeshPos = new float[]{0, 0};
         float realMeshX = realMesh.mapWidth * (lng - realMesh.minLon) / (realMesh.maxLon - realMesh.minLon);
         float realMeshY = realMesh.mapHeight * (realMesh.maxLat - lat) / (realMesh.maxLat - realMesh.minLat);
         IdxWeights idxWeights = realMesh.getPointInTriangleIdx(realMeshX, realMeshY);
         if (idxWeights.idx >= 0) {
-            warpMeshPos = warpMesh.interpolatePosition(idxWeights);
+            return warpMesh.interpolatePosition(idxWeights);
+        } else {
+            return new float[]{-1, -1};
         }
-        return warpMeshPos;
     }
 
     public static float[] imgPxToGps(float imgX, float imgY) {
@@ -115,37 +115,38 @@ public class Utility {
     }
 
     public static void actionLog(String log) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+        if (!logFlag && FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
         AsyncHttpClient client = new AsyncHttpClient();
         String url = APPServerURL + "/actionLog";
-        url += "?username=" + FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-        url += "&uid=" + FirebaseAuth.getInstance().getCurrentUser().getUid();
-        url += "&log=" + log;
-        url += "&timestamp=" + String.valueOf(System.currentTimeMillis() / 1000);
+        RequestParams requestParams = new RequestParams();
+        requestParams.put("log", log);
+        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
 
-        client.get(url, new AsyncHttpResponseHandler() {
+        client.post(url, requestParams, new AsyncHttpResponseHandler() {
 
-                    @Override
-                    public void onStart() {
-                        // called before request is started
-                    }
+            @Override
+            public void onStart() {
+                // called before request is started
+            }
 
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        // called when response HTTP status is "200 OK"
-                    }
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+            }
 
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                    }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            }
 
-                    @Override
-                    public void onRetry(int retryNo) {
-                        // called when request is retried
-                    }
-                });
+            @Override
+            public void onRetry(int retryNo) {
+                // called when request is retried
+            }
+        });
     }
 }

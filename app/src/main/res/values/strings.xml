@@ -22,6 +22,9 @@
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>
 
+    <string name="permission_title">Permission Needed</string>
+    <string name="permission_message">We need to store map package on the device and track your GPS location to run this app!</string>
+
     <!--<string name="toast_mic_not_found">找不到麥克風</string>-->
     <!--<string name="toast_is_recording">請先完成錄音</string>-->
     <!--<string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>-->

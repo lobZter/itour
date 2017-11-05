@@ -50,6 +50,7 @@ import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
+import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
@@ -97,6 +98,14 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            checkPermission();
+        } else {
+            init();
+        }
+    }
+
+    private void init() {
         realMesh = new Mesh(new File(dirPath + "/" + mapTag + "_mesh.txt"));
         realMesh.readBoundingBox(new File(dirPath + "/" + mapTag + "_bound_box.txt"));
         warpMesh = new Mesh(new File(dirPath + "/" + mapTag + "_warpMesh.txt"));
@@ -106,19 +115,11 @@ public class MainActivity extends AppCompatActivity implements
         checkinMap = new LinkedHashMap<>();
         savedPostId = new LinkedHashMap<>();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission();
-        } else {
-            init();
-        }
-    }
-
-    private void init() {
         startService(new Intent(this, GpsLocationService.class));
         setSensors();
         setBroadcastReceiver();
-        setView();
         setCheckinPreference();
+        setView();
     }
 
     private void setCheckinPreference() {
@@ -272,8 +273,13 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onReceive(Context context, final Intent intent) {
                 switch (intent.getAction()) {
-                    case "gpsLocation":
-                        mapFragment.handleLocationChange(
+                    case "gpsUpdate":
+                        mapFragment.handleGpsUpdate(
+                                intent.getFloatExtra("lat", 0),
+                                intent.getFloatExtra("lng", 0));
+                        break;
+                    case "fogUpdate":
+                        mapFragment.handleFogUpdate(
                                 intent.getFloatExtra("lat", 0),
                                 intent.getFloatExtra("lng", 0));
                         break;
@@ -319,8 +325,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("checkinIcon");
-        intentFilter.addAction("gpsLocation");
+        intentFilter.addAction("gpsUpdate");
+        intentFilter.addAction("fogUpdate");
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         if (accelerometer != null) {
@@ -397,8 +403,8 @@ public class MainActivity extends AppCompatActivity implements
     private void showExplanation() {
         final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Permission Needed")
-                .setMessage("We need to store map package on the device and track your GPS location to run this app!")
+        builder.setTitle(R.string.permission_title)
+                .setMessage(R.string.permission_message)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.M)
                     public void onClick(DialogInterface dialog, int id) {

@@ -222,8 +222,8 @@ public class RegisterActivity extends AppCompatActivity {
     private void showExplanation() {
         final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Permission Needed")
-                .setMessage("We need to store map package on the device and track your GPS location to run this app!")
+        builder.setTitle(R.string.permission_title)
+                .setMessage(R.string.permission_message)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.M)
                     public void onClick(DialogInterface dialog, int id) {
