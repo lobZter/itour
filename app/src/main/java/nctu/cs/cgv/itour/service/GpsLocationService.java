@@ -97,7 +97,6 @@ public class GpsLocationService extends Service implements
 
         // check whether it should update fog or not
         double distance = Math.sqrt(Math.pow(lastFogClearLat - location.getLatitude(), 2.0) + Math.pow(lastFogClearLng - location.getLongitude(), 2.0));
-        Log.d(TAG, "asd: " + distance);
         if (distance > FOG_UPDATE_THRESHOLD) {
             sendFogUpdate(location);
 

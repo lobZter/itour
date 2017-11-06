@@ -11,13 +11,16 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.entity.mime.content.InputStreamBody;
 import nctu.cs.cgv.itour.object.IdxWeights;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
@@ -30,6 +33,8 @@ import static nctu.cs.cgv.itour.MyApplication.warpMesh;
  */
 
 public class Utility {
+
+    private static final String TAG = "Utility";
 
     public static int dpToPx(Context context, int dp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
@@ -125,6 +130,64 @@ public class Utility {
         requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
         requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+
+        client.post(url, requestParams, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {
+                // called before request is started
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            }
+
+            @Override
+            public void onRetry(int retryNo) {
+                // called when request is retried
+            }
+        });
+    }
+
+    public static void screenShotLog(Context context, final byte[] png) {
+        if (!logFlag && FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+
+        File output = new File(context.getExternalFilesDir(null), "screenshot.png");
+
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(output);
+            fileOutputStream.write(png);
+            fileOutputStream.flush();
+            fileOutputStream.getFD().sync();
+            fileOutputStream.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Exception writing out screenshot", e);
+        }
+
+        // upload files to app server
+        AsyncHttpClient client = new AsyncHttpClient();
+        String url = APPServerURL + "/screenShotLog";
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+        RequestParams requestParams = new RequestParams();
+        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        requestParams.put("uid", uid);
+        requestParams.put("timestamp", timeStamp);
+        requestParams.setForceMultipartEntityContentType(true);
+//        requestParams.put("image", new InputStreamBody(new ByteArrayInputStream(png), uid + "-" + timeStamp + ".png"));
+        try {
+            requestParams.put("image", output);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
         client.post(url, requestParams, new AsyncHttpResponseHandler() {
 

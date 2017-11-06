@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
@@ -50,15 +51,16 @@ import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
-import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.service.GpsLocationService;
+import nctu.cs.cgv.itour.service.ScreenShotService;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.edgeNode;
+import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
@@ -72,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnSpotIonListener {
 
     private static final String TAG = "MainActivity";
+    private static final int REQUEST_CODE = 1000;
     // Checkins
     public static Map<String, Checkin> checkinMap;
     public static Map<String, Boolean> savedPostId;
@@ -120,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
+//        if (logFlag) requestScreenCapture();
     }
 
     private void setCheckinPreference() {
@@ -318,6 +322,24 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         };
+    }
+
+    private void requestScreenCapture() {
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == REQUEST_CODE) {
+            if(resultCode == RESULT_OK) {
+                Intent service = new Intent(this, ScreenShotService.class);
+                service.putExtra("resultCode", resultCode);
+                service.putExtra("resultData", data);
+                startService(service);
+            }
+        }
     }
 
     @Override

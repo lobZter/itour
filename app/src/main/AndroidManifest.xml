@@ -41,14 +41,21 @@
             android:name=".activity.LocationChooseActivity"
             android:label="Choose Location"
             android:screenOrientation="portrait" />
-        <activity android:name=".activity.SpotInfoActivity"
+        <activity
+            android:name=".activity.SpotInfoActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Base.Theme.AppCompat" />
 
-        <service android:name=".service.GpsLocationService" android:stopWithTask="true" />
+        <service
+            android:name=".service.GpsLocationService"
+            android:stopWithTask="true" />
+        <service
+            android:name=".service.ScreenShotService"
+            android:stopWithTask="true"/>
+
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
