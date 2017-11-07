@@ -34,6 +34,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class LoginActivity extends AppCompatActivity {
@@ -92,6 +93,7 @@ public class LoginActivity extends AppCompatActivity {
         guestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                logFlag = false;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     checkPermission();
                 } else {

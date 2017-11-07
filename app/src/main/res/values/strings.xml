@@ -88,5 +88,7 @@
 
     <string name="tv_checkin_remove">This post may have been removed.</string>
 
+    <string name="recording_start">錄音開始</string>
+    <string name="recording_finish">錄音完成</string>
 
 </resources>

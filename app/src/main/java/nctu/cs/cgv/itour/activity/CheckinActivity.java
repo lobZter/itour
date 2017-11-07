@@ -41,13 +41,14 @@ import java.util.Calendar;
 
 import nctu.cs.cgv.itour.R;
 
-import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 
 public class CheckinActivity extends AppCompatActivity {
 
     private static final String TAG = "CheckinActivity";
-    private static final int REQUEST_CODE = 123;
+    public static final int REQUEST_CODE_CHECKIN_FINISH = 456;
+    public static final int RESULT_CODE_CHECKIN_FINISH = 456;
+    private static final int MIC_PERMISSION_REQUEST = 123;
     // UI references
     private EditText descriptionEdit;
     private RelativeLayout photoBtn;
@@ -313,7 +314,7 @@ public class CheckinActivity extends AppCompatActivity {
                 Exception error = result.getError();
             }
         }
-        if (requestCode == REQUEST_CODE_CHECKIN_FINISH && resultCode == REQUEST_CODE_CHECKIN_FINISH) {
+        if (requestCode == REQUEST_CODE_CHECKIN_FINISH && resultCode == RESULT_CODE_CHECKIN_FINISH) {
             finish();
         }
     }
@@ -337,6 +338,7 @@ public class CheckinActivity extends AppCompatActivity {
             return true;
         } catch (IOException e) {
             Toast.makeText(getApplicationContext(), getString(R.string.toast_audio_recorder_prepare_failed), Toast.LENGTH_SHORT).show();
+            audioFile = "";
             // stop recording
             mediaRecorder.release();
             mediaRecorder = null;
@@ -354,7 +356,7 @@ public class CheckinActivity extends AppCompatActivity {
         try {
             mediaRecorder.stop();
         } catch (RuntimeException stopException) {
-            Toast.makeText(getApplicationContext(), getString(R.string.toast_audio_recorder_stop_failed), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.toast_audio_recorder_stop_failed), Toast.LENGTH_SHORT).show();
             audioFile = "";
             return false;
         } finally {
@@ -447,7 +449,7 @@ public class CheckinActivity extends AppCompatActivity {
         int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
 
         if (micPermission != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQUEST_CODE);
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION_REQUEST);
         } else {
             micAvailable = true;
         }
@@ -456,7 +458,7 @@ public class CheckinActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case REQUEST_CODE:
+            case MIC_PERMISSION_REQUEST:
                 if (grantResults.length > 0) {
                     boolean micPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
 

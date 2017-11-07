@@ -76,7 +76,7 @@ public class MapFragment extends Fragment {
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
-    private final float ZOOM_THRESHOLD = 2.2f;
+    private final float ZOOM_THRESHOLD = 1.8f;
     private final int CLUSTER_THRESHOLD = 20500;
     private final int nodeIconWidth = 16;
     private final int nodeIconHeight = 16;
@@ -538,15 +538,15 @@ public class MapFragment extends Fragment {
     private void addSpotNode(final SpotNode spotNode) {
         View icon = inflater.inflate(R.layout.item_spot, null);
         spotNode.icon = icon;
-        spotNode.icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, SpotInfoActivity.class);
-                intent.putExtra("spotName", spotNode.name);
-                startActivity(intent);
-                actionLog("Browse Spot: " + spotNode.name);
-            }
-        });
+//        spotNode.icon.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(context, SpotInfoActivity.class);
+//                intent.putExtra("spotName", spotNode.name);
+//                startActivity(intent);
+//                actionLog("Browse Spot: " + spotNode.name);
+//            }
+//        });
         ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
         rootLayout.addView(icon, rootLayout.indexOfChild(seperator));
     }

@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.LoginActivity;
 import nctu.cs.cgv.itour.activity.RegisterActivity;
+import nctu.cs.cgv.itour.service.AudioFeedbackService;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -61,6 +62,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 public boolean onPreferenceClick(Preference arg0) {
                     FirebaseAuth.getInstance().signOut();
                     getActivity().finish();
+                    getContext().stopService(new Intent(getContext(), AudioFeedbackService.class));
                     startActivity(new Intent(getContext(), LoginActivity.class));
                     return true;
                 }

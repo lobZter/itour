@@ -57,7 +57,6 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
-import static nctu.cs.cgv.itour.MyApplication.REQUEST_CODE_CHECKIN_FINISH;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
@@ -68,10 +67,12 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 import static nctu.cs.cgv.itour.Utility.imgPxToGps;
 import static nctu.cs.cgv.itour.Utility.moveFile;
+import static nctu.cs.cgv.itour.activity.CheckinActivity.RESULT_CODE_CHECKIN_FINISH;
 
 public class LocationChooseActivity extends AppCompatActivity {
 
     private static final String TAG = "LocationChooseActivity";
+
     // constants
     private final float MIN_ZOOM = 1.0f;
     private final float MAX_ZOOM = 6.0f;
@@ -669,7 +670,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                         }
                         actionLog("Post Checkin");
                         progressDialog.dismiss();
-                        setResult(REQUEST_CODE_CHECKIN_FINISH);
+                        setResult(RESULT_CODE_CHECKIN_FINISH);
                         finish();
                     }
 

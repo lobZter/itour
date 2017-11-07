@@ -1,10 +1,8 @@
 package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -14,18 +12,20 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -55,6 +55,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
+import nctu.cs.cgv.itour.service.AudioFeedbackService;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 import nctu.cs.cgv.itour.service.ScreenShotService;
 
@@ -74,7 +75,9 @@ public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnSpotIonListener {
 
     private static final String TAG = "MainActivity";
-    private static final int REQUEST_CODE = 1000;
+    private static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
+    private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
+    private static final int SCREEN_CAPTURE_REQUEST = 789;
     // Checkins
     public static Map<String, Checkin> checkinMap;
     public static Map<String, Boolean> savedPostId;
@@ -326,19 +329,37 @@ public class MainActivity extends AppCompatActivity implements
 
     private void requestScreenCapture() {
         MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), REQUEST_CODE);
+        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
+    }
+
+    private void requestSystemOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
+        } else {
+            Intent service = new Intent(this, AudioFeedbackService.class);
+            startService(service);
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_CODE) {
-            if(resultCode == RESULT_OK) {
-                Intent service = new Intent(this, ScreenShotService.class);
-                service.putExtra("resultCode", resultCode);
-                service.putExtra("resultData", data);
-                startService(service);
-            }
+        switch (requestCode) {
+            case SCREEN_CAPTURE_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, ScreenShotService.class);
+                    service.putExtra("resultCode", resultCode);
+                    service.putExtra("resultData", data);
+                    startService(service);
+                }
+                break;
+            case SCREEN_OVERLAY_PERMISSON_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, AudioFeedbackService.class);
+                    startService(service);
+                }
+                break;
         }
     }
 
@@ -360,6 +381,8 @@ public class MainActivity extends AppCompatActivity implements
             sensorManager.registerListener(
                     sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
         }
+
+        if (logFlag) requestSystemOverlayPermission();
     }
 
     @Override
@@ -399,69 +422,50 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.switchSpotIcon(flag);
     }
 
+    public void onLocateClick(float imgPxX, float imgPxY) {
+        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
+        bottomBar.selectTabAtPosition(0);
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int gpsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
 
-        if (gpsPermission + storagePermission != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
-                    ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                showExplanation();
-            } else {
-                requestPermissions(
-                        new String[]{
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSIONS_MULTIPLE_REQUEST);
-            }
+        if (gpsPermission + storagePermission + micPermission != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(
+                    new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.RECORD_AUDIO},
+                    PERMISSIONS_MULTIPLE_REQUEST);
         } else {
             init();
         }
     }
 
-    private void showExplanation() {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.permission_title)
-                .setMessage(R.string.permission_message)
-                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.M)
-                    public void onClick(DialogInterface dialog, int id) {
-                        requestPermissions(
-                                new String[]{
-                                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                        Manifest.permission.ACCESS_FINE_LOCATION},
-                                PERMISSIONS_MULTIPLE_REQUEST);
-                    }
-                });
-        builder.create().show();
-    }
-
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
 
         switch (requestCode) {
             case PERMISSIONS_MULTIPLE_REQUEST:
                 if (grantResults.length > 0) {
-                    boolean storagePermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                    boolean gpsPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean storagePermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean gpsPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean micPermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
 
-                    if (storagePermission && gpsPermission) {
+                    // ignore mic permission
+                    if (!logFlag) micPermission = true;
+
+                    if (storagePermission && gpsPermission && micPermission) {
                         init();
                     } else {
-                        showExplanation();
+                        checkPermission();
                     }
                 }
                 break;
         }
-    }
-
-    public void onLocateClick(float imgPxX, float imgPxY) {
-        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
-        bottomBar.selectTabAtPosition(0);
     }
 }
