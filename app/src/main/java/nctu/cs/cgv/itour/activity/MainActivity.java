@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
-//        if (logFlag) requestScreenCapture();
+        if (logFlag) requestScreenCapture();
     }
 
     private void setCheckinPreference() {

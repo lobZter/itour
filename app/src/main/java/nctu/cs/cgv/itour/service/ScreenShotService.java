@@ -4,34 +4,40 @@ import android.app.Service;
 import android.content.Intent;
 import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
-import android.media.MediaScannerConnection;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.WindowManager;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 
-import nctu.cs.cgv.itour.custom.ImageTransmogrifier;
+import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.custom.MyImageReader;
 
-import static nctu.cs.cgv.itour.Utility.screenShotLog;
+import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
+import static nctu.cs.cgv.itour.MyApplication.logFlag;
 
 public class ScreenShotService extends Service {
 
     private static final String TAG = "ScreenShotService";
 
-    private Handler handler;
-    private Handler loopHandler;
+    final HandlerThread handlerThread = new HandlerThread(TAG, android.os.Process.THREAD_PRIORITY_BACKGROUND);
+    final HandlerThread loopThread = new HandlerThread(TAG + "Loop", android.os.Process.THREAD_PRIORITY_BACKGROUND);
+    private Handler handler, loopHandler;
     private MediaProjection projection;
     private VirtualDisplay virtualDisplay;
     private MediaProjectionManager mediaProjectionManager;
     private WindowManager windowManager;
-    private ImageTransmogrifier imageTransmogrifier;
+    private MyImageReader imageReader;
     private int resultCode;
     private Intent resultData;
 
@@ -42,9 +48,11 @@ public class ScreenShotService extends Service {
         mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
-        final HandlerThread handlerThread = new HandlerThread(TAG, android.os.Process.THREAD_PRIORITY_BACKGROUND);
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper());
+
+        loopThread.start();
+        loopHandler = new Handler(loopThread.getLooper());
     }
 
     @Override
@@ -53,15 +61,22 @@ public class ScreenShotService extends Service {
         resultCode = intent.getIntExtra("resultCode", -1);
         resultData = intent.getParcelableExtra("resultData");
 
-        projection = mediaProjectionManager.getMediaProjection(resultCode, resultData);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    startCapture();
+//                    Thread.sleep(5000);
+//                }
+//            }
+//        }).start();
 
-        final HandlerThread handlerThread = new HandlerThread(TAG + ".loopHandler");
-        handlerThread.start();
-        loopHandler = new Handler(handlerThread.getLooper());
-        final Runnable runnable = new Runnable() {
+
+        Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                 startCapture();
-                loopHandler.postDelayed(this, 10000);
+                loopHandler.postDelayed(this, 3000);
             }
         };
         loopHandler.post(runnable);
@@ -82,9 +97,7 @@ public class ScreenShotService extends Service {
         return null;
     }
 
-    private void stopCapture() {
-        loopHandler.removeCallbacks(null);
-
+    public void stopCapture() {
         if (projection != null) {
             projection.stop();
             virtualDisplay.release();
@@ -93,24 +106,26 @@ public class ScreenShotService extends Service {
     }
 
     private void startCapture() {
-        imageTransmogrifier = new ImageTransmogrifier(this);
 
-        virtualDisplay = projection.createVirtualDisplay(
-                "itourVirtualDisplay",
-                imageTransmogrifier.getWidth(),
-                imageTransmogrifier.getHeight(),
-                getResources().getDisplayMetrics().densityDpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,
-                imageTransmogrifier.getSurface(),
-                null,
-                handler);
-
+        projection = mediaProjectionManager.getMediaProjection(resultCode, resultData);
         projection.registerCallback(new MediaProjection.Callback() {
             @Override
             public void onStop() {
-                virtualDisplay.release();
+                if (virtualDisplay != null) virtualDisplay.release();
             }
         }, handler);
+
+        imageReader = new MyImageReader(this);
+
+        virtualDisplay = projection.createVirtualDisplay(
+                "itourVirtualDisplay",
+                imageReader.getWidth(),
+                imageReader.getHeight(),
+                getResources().getDisplayMetrics().densityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC,
+                imageReader.getSurface(),
+                null,
+                handler);
     }
 
     public WindowManager getWindowManager() {
@@ -121,26 +136,48 @@ public class ScreenShotService extends Service {
         return handler;
     }
 
-    public void processImage(final byte[] png) {
-        screenShotLog(getApplicationContext(), png);
-//        Thread thread = new Thread() {
-//            @Override
-//            public void run() {
-//                File output = new File(getExternalFilesDir(null), "screenshot.png");
-//
-//                try {
-//                    FileOutputStream fileOutputStream = new FileOutputStream(output);
-//                    fileOutputStream.write(png);
-//                    fileOutputStream.flush();
-//                    fileOutputStream.getFD().sync();
-//                    fileOutputStream.close();
-//                } catch (Exception e) {
-//                    Log.e(TAG, "Exception writing out screenshot", e);
-//                }
-//
-//                screenShotLog(output);
-//            }
-//        };
-//        thread.start();
+    public void screenShotLog(String filePath) {
+        if (!logFlag && FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        // upload files to app server
+        AsyncHttpClient client = new AsyncHttpClient();
+        String url = APPServerURL + "/screenShotLog";
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String timeStamp = String.valueOf(System.currentTimeMillis() / 1000);
+        RequestParams requestParams = new RequestParams();
+        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        requestParams.put("uid", uid);
+        requestParams.put("timestamp", timeStamp);
+        requestParams.setForceMultipartEntityContentType(true);
+        try {
+            File output = new File(filePath);
+            requestParams.put("file", output);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        client.post(url, requestParams, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {
+                // called before request is started
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            }
+
+            @Override
+            public void onRetry(int retryNo) {
+                // called when request is retried
+            }
+        });
     }
 }

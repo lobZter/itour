@@ -29,6 +29,7 @@ public class MyApplication extends Application {
     public static final String fileDownloadURL = APPServerURL + "/download";
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour";
     public static final String audioLogPath = dirPath + "/audioLog";
+    public static final String imageLogPath = dirPath + "/imageLog";
     public static SpotList spotList;
     public static Mesh realMesh;
     public static Mesh warpMesh;
@@ -47,6 +48,9 @@ public class MyApplication extends Application {
         if (!audioDir.exists()) {
             audioDir.mkdirs();
         }
-
+        File imageDir = new File(imageLogPath);
+        if (!imageDir.exists()) {
+            imageDir.mkdirs();
+        }
     }
 }

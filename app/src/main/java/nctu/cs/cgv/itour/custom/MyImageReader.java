@@ -8,23 +8,29 @@ import android.media.ImageReader;
 import android.view.Display;
 import android.view.Surface;
 
-import java.io.ByteArrayOutputStream;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import nctu.cs.cgv.itour.service.ScreenShotService;
+
+import static nctu.cs.cgv.itour.MyApplication.imageLogPath;
 
 /**
  * Created by lobst3rd on 2017/11/6.
  */
 
-public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener {
+public class MyImageReader implements ImageReader.OnImageAvailableListener {
     private final int width;
     private final int height;
     private final ImageReader imageReader;
     private final ScreenShotService screenShotService;
-    private Bitmap latestBitmap = null;
 
-    public ImageTransmogrifier(ScreenShotService screenShotService) {
+    public MyImageReader(ScreenShotService screenShotService) {
         this.screenShotService = screenShotService;
 
         Display display = screenShotService.getWindowManager().getDefaultDisplay();
@@ -43,47 +49,50 @@ public class ImageTransmogrifier implements ImageReader.OnImageAvailableListener
         this.width = width;
         this.height = height;
 
-        imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2);
+        imageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 1);
         imageReader.setOnImageAvailableListener(this, screenShotService.getHandler());
     }
 
     @Override
     public void onImageAvailable(ImageReader reader) {
         final Image image = imageReader.acquireLatestImage();
+        FileOutputStream fileOutputStream = null;
+        Bitmap bitmap = null;
 
-        if (image != null) {
+        try {
+            String filename = FirebaseAuth.getInstance().getCurrentUser().getUid() + "-";
+            filename += new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
+            filename += ".jpg";
+            String filePath = imageLogPath + "/" + filename;
+            fileOutputStream = new FileOutputStream(filePath);
             Image.Plane[] planes = image.getPlanes();
             ByteBuffer buffer = planes[0].getBuffer();
             int pixelStride = planes[0].getPixelStride();
             int rowStride = planes[0].getRowStride();
             int rowPadding = rowStride - pixelStride * width;
             int bitmapWidth = width + rowPadding / pixelStride;
+            bitmap = Bitmap.createBitmap(bitmapWidth, height, Bitmap.Config.ARGB_8888);
+            bitmap.copyPixelsFromBuffer(buffer);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+            screenShotService.screenShotLog(filePath);
+            screenShotService.stopCapture();
 
-            if (latestBitmap == null ||
-                    latestBitmap.getWidth() != bitmapWidth ||
-                    latestBitmap.getHeight() != height) {
-                if (latestBitmap != null) {
-                    latestBitmap.recycle();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
                 }
-
-                latestBitmap = Bitmap.createBitmap(bitmapWidth,
-                        height, Bitmap.Config.ARGB_8888);
             }
 
-            latestBitmap.copyPixelsFromBuffer(buffer);
+            if (bitmap != null)
+                bitmap.recycle();
 
-            if (image != null) {
+            if (image != null)
                 image.close();
-            }
-
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            Bitmap cropped = Bitmap.createBitmap(latestBitmap, 0, 0, width, height);
-
-            cropped.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-
-            byte[] newPng = byteArrayOutputStream.toByteArray();
-
-            screenShotService.processImage(newPng);
         }
     }
 
