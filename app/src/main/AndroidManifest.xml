@@ -57,7 +57,8 @@
             android:name=".service.ScreenShotService"
             android:stopWithTask="true" />
         <service
-            android:name=".service.AudioFeedbackService" />
+            android:name=".service.AudioFeedbackService"
+            android:stopWithTask="true" />
 
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>

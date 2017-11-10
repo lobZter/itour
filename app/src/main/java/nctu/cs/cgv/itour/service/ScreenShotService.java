@@ -24,6 +24,7 @@ import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.custom.MyImageReader;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
+import static nctu.cs.cgv.itour.MyApplication.imageLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 
 public class ScreenShotService extends Service {
@@ -61,16 +62,10 @@ public class ScreenShotService extends Service {
         resultCode = intent.getIntExtra("resultCode", -1);
         resultData = intent.getParcelableExtra("resultData");
 
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    startCapture();
-//                    Thread.sleep(5000);
-//                }
-//            }
-//        }).start();
-
+        File imageDir = new File(imageLogPath);
+        if (!imageDir.exists()) {
+            imageDir.mkdirs();
+        }
 
         Runnable runnable = new Runnable() {
             @Override
@@ -101,6 +96,9 @@ public class ScreenShotService extends Service {
         if (projection != null) {
             projection.stop();
             virtualDisplay.release();
+            imageReader.close();
+            imageReader = null;
+            virtualDisplay = null;
             projection = null;
         }
     }

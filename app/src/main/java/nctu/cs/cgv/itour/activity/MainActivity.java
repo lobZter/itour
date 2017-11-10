@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final Query saveQuery = databaseReference.child("user").child(uid).child("saved").child(mapTag);
+        final Query saveQuery = databaseReference.child("users").child(uid).child("saved").child(mapTag);
 
         saveQuery.addChildEventListener(new ChildEventListener() {
             @Override
@@ -351,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements
                     Intent service = new Intent(this, ScreenShotService.class);
                     service.putExtra("resultCode", resultCode);
                     service.putExtra("resultData", data);
-                    startService(service);
+//                    startService(service);
                 }
                 break;
             case SCREEN_OVERLAY_PERMISSON_REQUEST:

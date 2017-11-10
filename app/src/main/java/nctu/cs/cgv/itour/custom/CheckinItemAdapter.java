@@ -253,12 +253,12 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
                     if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
                         viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
                         viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
+                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
                         savedPostId.put(checkin.key, false);
                     } else {
                         viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
                         viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-                        databaseReference.child("user").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
+                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
                         savedPostId.put(checkin.key, true);
                     }
                 }
