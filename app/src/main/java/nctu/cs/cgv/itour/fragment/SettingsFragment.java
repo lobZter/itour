@@ -91,23 +91,23 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             }
         });
 
-        Preference distanceIndicatorSwitch = getPreferenceManager().findPreference("distance_indicator");
-        distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onDistanceIndicatorListener.onDistanceIndicatorSwitched((Boolean) newValue);
-                return true;
-            }
-        });
+//        Preference distanceIndicatorSwitch = getPreferenceManager().findPreference("distance_indicator");
+//        distanceIndicatorSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                onDistanceIndicatorListener.onDistanceIndicatorSwitched((Boolean) newValue);
+//                return true;
+//            }
+//        });
 
-        Preference fogSwitch = getPreferenceManager().findPreference("fog");
-        fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                onFogListener.onFogSwitched((Boolean) newValue);
-                return true;
-            }
-        });
+//        Preference fogSwitch = getPreferenceManager().findPreference("fog");
+//        fogSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+//            @Override
+//            public boolean onPreferenceChange(Preference preference, Object newValue) {
+//                onFogListener.onFogSwitched((Boolean) newValue);
+//                return true;
+//            }
+//        });
     }
 
     @Override

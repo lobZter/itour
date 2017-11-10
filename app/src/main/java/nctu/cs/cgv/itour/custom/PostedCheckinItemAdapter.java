@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
@@ -47,6 +49,7 @@ import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
 
+    private static final String TAG = "PostedCheckinItemAdapter";
     private Context context;
 
     public PostedCheckinItemAdapter(Context context, List<Checkin> checkinItems) {
@@ -65,6 +68,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
             view = inflater.inflate(R.layout.item_posted_checkin_card, parent, false);
             viewHolder.username = (TextView) view.findViewById(R.id.tv_username);
             viewHolder.location = (TextView) view.findViewById(R.id.tv_location);
+            viewHolder.like = (TextView) view.findViewById(R.id.tv_like);
             viewHolder.description = (TextView) view.findViewById(R.id.tv_description);
 
             viewHolder.photo = (ImageView) view.findViewById(R.id.photo);
@@ -87,6 +91,12 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         viewHolder.username.setText(checkin.username);
         viewHolder.location.setText(checkin.location);
         viewHolder.description.setText(checkin.description);
+
+        String likeStr = "";
+        if (checkin.like != null && checkin.like.size() > 0) {
+            likeStr = String.valueOf(checkin.like.size()) + context.getString(R.string.checkin_card_like_num);
+        }
+        viewHolder.like.setText(likeStr);
 
         setPhoto(viewHolder, checkin.photo);
         setAudio(viewHolder, checkin.audio);
@@ -226,15 +236,29 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                     if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
                         viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
                         viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
-                        checkin.like.put(uid, false);
-                        checkinMap.get(checkin.key).like.put(uid, false);
+                        String likeStr = "";
+                        if (checkin.like != null && checkin.like.size() > 0) {
+                            likeStr = String.valueOf(checkin.like.size() - 1) + context.getString(R.string.checkin_card_like_num);
+                        }
+                        viewHolder.like.setText(likeStr);
+                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).removeValue();
+                        checkin.like.remove(uid);
+                        checkinMap.get(checkin.key).like.remove(uid);
+                        actionLog("cancel like checkin: " + checkin.location + ", " + checkin.key);
                     } else {
                         viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
                         viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                        String likeStr;
+                        if (checkin.like != null && checkin.like.size() > 0) {
+                            likeStr = String.valueOf(checkin.like.size() + 1) + context.getString(R.string.checkin_card_like_num);
+                        } else {
+                            likeStr = "1" + getContext().getString(R.string.checkin_card_like_num);
+                        }
+                        viewHolder.like.setText(likeStr);
                         databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
                         checkin.like.put(uid, true);
                         checkinMap.get(checkin.key).like.put(uid, true);
+                        actionLog("like checkin: " + checkin.location + ", " + checkin.key);
                     }
                 }
             });
@@ -246,13 +270,15 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                     if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
                         viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
                         viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
-                        savedPostId.put(checkin.key, false);
+                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).removeValue();
+                        savedPostId.remove(checkin.key);
+                        actionLog("cancel checkin: " + checkin.location + ", " + checkin.key);
                     } else {
                         viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
                         viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
                         savedPostId.put(checkin.key, true);
+                        actionLog("save checkin: " + checkin.location + ", " + checkin.key);
                     }
                 }
             });
@@ -266,7 +292,9 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                             .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
                                     FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(checkin.key).removeValue();
+                                    actionLog("remove posted checkin: " + checkin.toMap().toString());
                                     checkinMap.remove(checkin.key);
                                     remove(checkin);
                                 }
@@ -342,6 +370,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
     private static class ViewHolder {
         TextView username;
         TextView location;
+        TextView like;
         TextView description;
 
         ImageView photo;

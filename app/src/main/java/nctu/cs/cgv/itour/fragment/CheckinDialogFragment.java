@@ -28,6 +28,7 @@ import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
@@ -35,6 +36,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
@@ -84,12 +86,20 @@ public class CheckinDialogFragment extends DialogFragment {
 
         TextView username = (TextView) view.findViewById(R.id.tv_username);
         TextView location = (TextView) view.findViewById(R.id.tv_location);
+        TextView like = (TextView) view.findViewById(R.id.tv_like);
         TextView description = (TextView) view.findViewById(R.id.tv_description);
 
         if (checkin != null) {
             username.setText(checkin.username);
             location.setText(checkin.location);
             description.setText(checkin.description);
+
+            String likeStr = "";
+            if (checkin.like != null && checkin.like.size() > 0) {
+                likeStr = String.valueOf(checkin.like.size()) + getContext().getString(R.string.checkin_card_like_num);
+            }
+            like.setText(likeStr);
+
 
             setPhoto(view, checkin.photo);
             setAudio(view, checkin.audio);
@@ -98,6 +108,7 @@ public class CheckinDialogFragment extends DialogFragment {
             username.setText("");
             location.setText("");
             description.setText(getString(R.string.tv_checkin_remove));
+            like.setText("");
 
             setPhoto(view, "");
             setAudio(view, "");
@@ -204,6 +215,7 @@ public class CheckinDialogFragment extends DialogFragment {
     private void setActionBtn(View view, final Checkin checkin) {
         final Button likeBtn = (Button) view.findViewById(R.id.btn_like);
         final Button saveBtn = (Button) view.findViewById(R.id.btn_save);
+        final TextView like = (TextView) view.findViewById(R.id.tv_like);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             likeBtn.setOnClickListener(new View.OnClickListener() {
@@ -228,15 +240,29 @@ public class CheckinDialogFragment extends DialogFragment {
                     if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
                         likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                         likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(false);
-                        checkin.like.put(uid, false);
-                        checkinMap.get(checkin.key).like.put(uid, false);
+                        String likeStr = "";
+                        if (checkin.like != null && checkin.like.size() > 0) {
+                            likeStr = String.valueOf(checkin.like.size() - 1) + getContext().getString(R.string.checkin_card_like_num);
+                        }
+                        like.setText(likeStr);
+                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).removeValue();
+                        checkin.like.remove(uid);
+                        checkinMap.get(checkin.key).like.remove(uid);
+                        actionLog("cancel like checkin: " + checkin.location + ", " + checkin.key);
                     } else {
                         likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
                         likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                        String likeStr;
+                        if (checkin.like != null && checkin.like.size() > 0) {
+                            likeStr = String.valueOf(checkin.like.size() + 1) + getContext().getString(R.string.checkin_card_like_num);
+                        } else {
+                            likeStr = "1" + getContext().getString(R.string.checkin_card_like_num);
+                        }
+                        like.setText(likeStr);
                         databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
                         checkin.like.put(uid, true);
                         checkinMap.get(checkin.key).like.put(uid, true);
+                        actionLog("like checkin: " + checkin.location + ", " + checkin.key);
                     }
                 }
             });
@@ -248,13 +274,15 @@ public class CheckinDialogFragment extends DialogFragment {
                     if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
                         saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
                         saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(false);
-                        savedPostId.put(checkin.key, false);
+                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).removeValue();
+                        savedPostId.remove(checkin.key);
+                        actionLog("cancel save checkin: " + checkin.location + ", " + checkin.key);
                     } else {
                         saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
                         saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
                         savedPostId.put(checkin.key, true);
+                        actionLog("save checkin: " + checkin.location + ", " + checkin.key);
                     }
                 }
             });

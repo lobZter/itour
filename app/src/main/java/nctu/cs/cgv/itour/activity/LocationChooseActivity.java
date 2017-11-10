@@ -74,9 +74,9 @@ public class LocationChooseActivity extends AppCompatActivity {
     private static final String TAG = "LocationChooseActivity";
 
     // constants
-    private final float MIN_ZOOM = 1.0f;
+    private final float MIN_ZOOM = 0.5f;
     private final float MAX_ZOOM = 6.0f;
-    private final float ZOOM_THRESHOLD = 2.2f;
+    private final float ZOOM_THRESHOLD = 1.4f;
     // intent info
     private String description;
     private String photo;
@@ -103,7 +103,6 @@ public class LocationChooseActivity extends AppCompatActivity {
     private View checkinIcon;
     private View gpsMarker;
     // containers
-    private Map<String, SpotNode> spotNodeMap;
     private List<SpotNode> spotNodeList;
     // Gesture detectors
     private GestureDetector gestureDetector;
@@ -205,8 +204,11 @@ public class LocationChooseActivity extends AppCompatActivity {
         // draw spots
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
-        spotNodeMap = new LinkedHashMap<>(spotList.nodeMap);
-        spotNodeList = new ArrayList<>(spotNodeMap.values());
+
+        spotNodeList = new ArrayList<>();
+        for (SpotNode spotNode: spotList.nodeMap.values()) {
+            spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name));
+        }
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         for (SpotNode spotNode : spotNodeList) {
             addSpotNode(spotNode, inflater);
@@ -560,7 +562,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         super.onResume();
 
         IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("gpsLocation");
+        intentFilter.addAction("gpsUpdate");
         LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
 
         if (accelerometer != null) {
@@ -668,7 +670,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                             if(!audio.equals(""))
                                 moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
                         }
-                        actionLog("Post Checkin");
+                        actionLog("post checkin");
                         progressDialog.dismiss();
                         setResult(RESULT_CODE_CHECKIN_FINISH);
                         finish();

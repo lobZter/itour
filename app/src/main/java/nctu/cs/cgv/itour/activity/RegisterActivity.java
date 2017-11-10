@@ -28,14 +28,19 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Random;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.maplist.DownloadFileAsyncTask;
 
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
+import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -142,6 +147,29 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
+                            if (logFlag) {
+                                String[] color = {
+                                        "ff4444",
+                                        "f47d43",
+                                        "ffbb33",
+                                        "00c851",
+                                        "2bbbad",
+                                        "33b5e5",
+                                        "4285f4",
+                                        "aa66cc",
+                                        "795548",
+                                        "607d8b"
+                                };
+
+                                HashMap<String, Object> subjectUser = new HashMap<>();
+                                subjectUser.put("color", color[new Random().nextInt(10)]);
+                                subjectUser.put("subject", true);
+                                subjectUser.put("username", name);
+
+                                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+                                databaseReference.child("users").child(user.getUid()).setValue(subjectUser);
+                            }
+
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                     .setDisplayName(name)
                                     .build();
@@ -181,12 +209,12 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void startMainActivity() {
-        File mapFile = new File(dirPath+ "/"  + mapTag + "_distorted_map.png");
-        File meshFile = new File(dirPath+ "/"  + mapTag + "_mesh.txt");
-        File warpMeshFile = new File(dirPath+ "/"  + mapTag + "_warpMesh.txt");
-        File boundBoxFile = new File(dirPath+ "/"  + mapTag + "_bound_box.txt");
-        File edgeLengthFile = new File(dirPath+ "/"  + mapTag + "_edge_length.txt");
-        File spotListFile = new File(dirPath+ "/"  + mapTag + "_spot_list.txt");
+        File mapFile = new File(dirPath + "/" + mapTag + "_distorted_map.png");
+        File meshFile = new File(dirPath + "/" + mapTag + "_mesh.txt");
+        File warpMeshFile = new File(dirPath + "/" + mapTag + "_warpMesh.txt");
+        File boundBoxFile = new File(dirPath + "/" + mapTag + "_bound_box.txt");
+        File edgeLengthFile = new File(dirPath + "/" + mapTag + "_edge_length.txt");
+        File spotListFile = new File(dirPath + "/" + mapTag + "_spot_list.txt");
         if (mapFile.exists() && meshFile.exists() && warpMeshFile.exists() && boundBoxFile.exists() && edgeLengthFile.exists() && spotListFile.exists()) {
             Intent intent = new Intent(this, MainActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

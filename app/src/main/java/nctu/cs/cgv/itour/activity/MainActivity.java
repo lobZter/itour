@@ -25,7 +25,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,13 +48,13 @@ import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
-import nctu.cs.cgv.itour.fragment.PlanFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.service.AudioFeedbackService;
+import nctu.cs.cgv.itour.service.CheckinNotificationService;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 import nctu.cs.cgv.itour.service.ScreenShotService;
 
@@ -67,6 +66,7 @@ import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnFogListener,
@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnCheckinIconListener,
         SettingsFragment.OnSpotIonListener {
 
+    public static final int CHECKIN_NOTIFICATION_REQUEST = 321;
     private static final String TAG = "MainActivity";
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
     private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
@@ -126,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
+        if (logFlag) startService(new Intent(this, CheckinNotificationService.class));
         if (logFlag) requestScreenCapture();
     }
 
@@ -222,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
         fragmentList.add(personalFragment);
-        fragmentList.add(PlanFragment.newInstance());
+//        fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
         viewPager = (MyViewPager) findViewById(R.id.view_pager);
@@ -240,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements
         // disable swipe
         viewPager.setPagingEnabled(false);
         // set keep all three pages alive
-        viewPager.setOffscreenPageLimit(5);
+        viewPager.setOffscreenPageLimit(4);
 
         bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
@@ -249,26 +251,26 @@ public class MainActivity extends AppCompatActivity implements
                 switch (tabId) {
                     case R.id.tab_map:
                         viewPager.setCurrentItem(0);
-                        actionLog("Current Page: map");
+                        actionLog("current page: map");
                         break;
                     case R.id.tab_list:
                         viewPager.setCurrentItem(1);
-                        actionLog("Current Page: list");
+                        actionLog("current page: list");
                         break;
                     case R.id.tab_person:
                         viewPager.setCurrentItem(2);
                         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                         }
-                        actionLog("Current Page: personal");
+                        actionLog("current page: personal");
                         break;
-                    case R.id.tab_plan:
-                        viewPager.setCurrentItem(3);
-                        actionLog("Current Page: plan");
-                        break;
+//                    case R.id.tab_plan:
+//                        viewPager.setCurrentItem(3);
+//                        actionLog("Current Page: plan");
+//                        break;
                     case R.id.tab_settings:
-                        viewPager.setCurrentItem(4);
-                        actionLog("Current Page: setting");
+                        viewPager.setCurrentItem(3);
+                        actionLog("current page: setting");
                         break;
                 }
             }
@@ -351,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements
                     Intent service = new Intent(this, ScreenShotService.class);
                     service.putExtra("resultCode", resultCode);
                     service.putExtra("resultData", data);
-//                    startService(service);
+                    startService(service);
                 }
                 break;
             case SCREEN_OVERLAY_PERMISSON_REQUEST:
@@ -360,6 +362,14 @@ public class MainActivity extends AppCompatActivity implements
                     startService(service);
                 }
                 break;
+        }
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
+            float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
+            onLocateClick(imgPx[0], imgPx[1]);
         }
     }
 

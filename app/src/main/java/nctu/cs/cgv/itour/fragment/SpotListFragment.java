@@ -16,6 +16,7 @@ import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static nctu.cs.cgv.itour.MyApplication.spotList;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class SpotListFragment extends Fragment {
@@ -48,6 +49,7 @@ public class SpotListFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView adapterView, View view, int position, long id) {
                 SpotNode spotNode = spotList.nodeMap.get(spotArrayAdapter.getItem(position));
+                actionLog("spotlist: " + spotNode.name);
                 ((MainActivity) getActivity()).onLocateClick(spotNode.x, spotNode.y);
             }
         });

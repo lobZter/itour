@@ -54,9 +54,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/at_sign"
-                    android:text="淡水福佑宮"
+                    android:text="淡水文化園區-殼牌倉庫"
                     android:textColor="@color/gps_marker_color"
                     android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tv_like"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/tv_location"
+                    android:layout_above="@id/tv_description"
+                    android:text="8人說讚" />
 
                 <TextView
                     android:id="@+id/tv_description"

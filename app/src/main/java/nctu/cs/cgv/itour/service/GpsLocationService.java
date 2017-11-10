@@ -99,45 +99,48 @@ public class GpsLocationService extends Service implements
         double distance = Math.sqrt(Math.pow(lastFogClearLat - location.getLatitude(), 2.0) + Math.pow(lastFogClearLng - location.getLongitude(), 2.0));
         if (distance > FOG_UPDATE_THRESHOLD) {
             sendFogUpdate(location);
-
-            if (!logFlag && FirebaseAuth.getInstance().getCurrentUser() == null)
-                return;
-
-            AsyncHttpClient client = new AsyncHttpClient();
-            String url = APPServerURL + "/gpsUpdate";
-            RequestParams requestParams = new RequestParams();
-            requestParams.put("lat", String.valueOf(location.getLatitude()));
-            requestParams.put("lng", String.valueOf(location.getLongitude()));
-            requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
-            requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
-            requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
-
-            client.post(url, requestParams, new AsyncHttpResponseHandler() {
-
-                @Override
-                public void onStart() {
-                    // called before request is started
-                }
-
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                    // called when response HTTP status is "200 OK"
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                    // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                }
-
-                @Override
-                public void onRetry(int retryNo) {
-                    // called when request is retried
-                }
-            });
-
             lastFogClearLat = (float) location.getLatitude();
             lastFogClearLng = (float) location.getLongitude();
+
+            gpsLog(location);
         }
+    }
+
+    private void gpsLog(Location location) {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        AsyncHttpClient client = new AsyncHttpClient();
+        String url = APPServerURL + "/gpsUpdate";
+        RequestParams requestParams = new RequestParams();
+        requestParams.put("lat", String.valueOf(location.getLatitude()));
+        requestParams.put("lng", String.valueOf(location.getLongitude()));
+        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+
+        client.post(url, requestParams, new AsyncHttpResponseHandler() {
+
+            @Override
+            public void onStart() {
+                // called before request is started
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                // called when response HTTP status is "200 OK"
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+            }
+
+            @Override
+            public void onRetry(int retryNo) {
+                // called when request is retried
+            }
+        });
     }
 
     @Nullable

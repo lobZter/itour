@@ -205,7 +205,7 @@ public class AudioFeedbackService extends Service {
     }
 
     private void audioFeedbackLog() {
-        if (!logFlag && FirebaseAuth.getInstance().getCurrentUser() == null)
+        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
         // upload files to app server

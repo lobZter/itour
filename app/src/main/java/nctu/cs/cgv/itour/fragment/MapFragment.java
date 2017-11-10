@@ -21,7 +21,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,7 +48,6 @@ import java.util.Map;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.activity.SpotInfoActivity;
 import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -58,7 +56,6 @@ import nctu.cs.cgv.itour.object.ImageNode;
 import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
-import nctu.cs.cgv.itour.service.GpsLocationService;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
@@ -67,21 +64,22 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.Utility.dpToPx;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
     // constants
-    private final float MIN_ZOOM = 1.0f;
+    private final float MIN_ZOOM = 0.5f;
     private final float MAX_ZOOM = 6.0f;
-    private final float ZOOM_THRESHOLD = 1.8f;
-    private final int CLUSTER_THRESHOLD = 20500;
+    private final float ZOOM_THRESHOLD = 1.4f;
+    private final int CLUSTER_THRESHOLD = 50000;
     private final int nodeIconWidth = 16;
     private final int nodeIconHeight = 16;
-    private final int checkinIconWidth = 64;
-    private final int checkinIconHeight = 64;
+    private final int checkinIconWidth = 72;
+    private final int checkinIconHeight = 72;
+    private final int mergedCheckinIconWidth = 108;
+    private final int mergedCheckinIconHeight = 108;
     private Context context;
     // variables
     private Matrix transformMat;
@@ -246,6 +244,7 @@ public class MapFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
+                actionLog("new checkin");
                 startActivity(new Intent(context, CheckinActivity.class));
             }
         });
@@ -291,7 +290,7 @@ public class MapFragment extends Fragment {
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
                 // send action log to server
-                actionLog("Search for " + autocompleteStr);
+                actionLog("search: " + autocompleteStr);
             }
         });
     }
@@ -417,10 +416,12 @@ public class MapFragment extends Fragment {
         Matrix spotIconTransform = new Matrix();
         Matrix nodeIconTransform = new Matrix();
         Matrix checkinIconTransform = new Matrix();
+        Matrix mergedCheckinIconTransform = new Matrix();
         gpsMarkTransform.postTranslate(-gpsMarkerPivotX, -gpsMarkerPivotY);
         spotIconTransform.postTranslate(-spotIconPivotX, -spotIconPivotY);
         nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
-        checkinIconTransform.postTranslate(-checkinIconWidth / 2, -checkinIconHeight);
+        checkinIconTransform.postTranslate(-checkinIconWidth / 3, -checkinIconHeight);
+        mergedCheckinIconTransform.postTranslate(-mergedCheckinIconWidth / 3, -mergedCheckinIconHeight / 2);
         float[] point = new float[]{0, 0};
 
         // transform tourist map (ImageView)
@@ -526,8 +527,6 @@ public class MapFragment extends Fragment {
                 point[0] = mergedCheckinNode.x;
                 point[1] = mergedCheckinNode.y;
                 transformMat.mapPoints(point);
-                Matrix mergedCheckinIconTransform = new Matrix();
-                mergedCheckinIconTransform.postTranslate(-dpToPx(context, 32 / 2), -dpToPx(context, 32));
                 mergedCheckinIconTransform.mapPoints(point);
                 mergedCheckinNode.icon.setTranslationX(point[0]);
                 mergedCheckinNode.icon.setTranslationY(point[1]);
@@ -580,7 +579,7 @@ public class MapFragment extends Fragment {
         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
         checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
         // send action log to server
-        actionLog("Browse Checkin: " + checkin.location);
+        actionLog("browse checkin: " + checkin.location + ", " + checkin.key);
     }
 
     public void addCheckin(final Checkin checkin) {
@@ -597,7 +596,7 @@ public class MapFragment extends Fragment {
             }
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.ic_location_on_red_600_24dp));
+        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
@@ -647,7 +646,7 @@ public class MapFragment extends Fragment {
 
     private MergedCheckinNode newMergedCheckin(float x, float y, boolean onSpot) {
         final MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(x, y);
-        mergedCheckinNode.icon = inflater.inflate(R.layout.item_bigcheckin, null);
+        mergedCheckinNode.icon = inflater.inflate(R.layout.item_merged_checkin, null);
         mergedCheckinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -745,7 +744,7 @@ public class MapFragment extends Fragment {
 
             float[] imgPx = gpsToImgPx(lat, lng);
 
-            if(imgPx[0] != -1 && imgPx[1] != -1) {
+            if (imgPx[0] != -1 && imgPx[1] != -1) {
                 gpsDistortedX = imgPx[0];
                 gpsDistortedY = imgPx[1];
 

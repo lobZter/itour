@@ -59,6 +59,15 @@
                     android:textSize="16sp" />
 
                 <TextView
+                    android:id="@+id/tv_like"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/tv_location"
+                    android:layout_above="@id/tv_description"
+                    android:text="8人說讚" />
+
+                <TextView
                     android:id="@+id/tv_description"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
