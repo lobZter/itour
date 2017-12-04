@@ -74,12 +74,6 @@ public class MapFragment extends Fragment {
     private final float MAX_ZOOM = 6.0f;
     private final float ZOOM_THRESHOLD = 1.4f;
     private final int CLUSTER_THRESHOLD = 50000;
-    private final int nodeIconWidth = 16;
-    private final int nodeIconHeight = 16;
-    private final int checkinIconWidth = 72;
-    private final int checkinIconHeight = 72;
-    private final int mergedCheckinIconWidth = 108;
-    private final int mergedCheckinIconHeight = 108;
     private Context context;
     // variables
     private Matrix transformMat;
@@ -89,12 +83,18 @@ public class MapFragment extends Fragment {
     private float gpsDistortedY = -1;
     private int mapCenterX = 0;
     private int mapCenterY = 0;
-    private int gpsMarkerPivotX = 0;
-    private int gpsMarkerPivotY = 0;
-    private int checkinIconPivotX = 0;
-    private int checkinIconPivotY = 0;
-    private int spotIconPivotX = 0;
-    private int spotIconPivotY = 0;
+    private int checkinIconWidth;
+    private int checkinIconHeight;
+    private int gpsMarkerPivotX;
+    private int gpsMarkerPivotY;
+    private int checkinIconPivotX;
+    private int checkinIconPivotY;
+    private int mergedCheckinIconPivotX;
+    private int mergedCheckinIconPivotY;
+    private int spotIconPivotX;
+    private int spotIconPivotY;
+//    private int edgeNodeIconPivotX;
+//    private int edgeNodeIconPivotY;
     // UI references
     private RelativeLayout rootLayout;
     private ImageView touristMap;
@@ -106,12 +106,12 @@ public class MapFragment extends Fragment {
     private ActionBar actionBar;
     private View seperator;
     // objects
-    private List<ImageNode> edgeNodeList;
-    private List<ImageNode> pathEdgeNodeList;
-    private Map<String, SpotNode> spotNodeMap;
-    private List<SpotNode> spotNodeList;
+//    private List<ImageNode> edgeNodeList;
+//    private List<ImageNode> pathEdgeNodeList;
     private List<ImageNode> checkinNodeList;
     private List<MergedCheckinNode> mergedCheckinNodeList;
+    private Map<String, SpotNode> spotNodeMap;
+    private List<SpotNode> spotNodeList;
     private LayoutInflater inflater;
     private Handler translationHandler;
     // gestures
@@ -125,8 +125,8 @@ public class MapFragment extends Fragment {
     private boolean isOrientationCurrent = true;
     private boolean checkinSwitch = true;
     private boolean spotSwitch = true;
-    private boolean fogSwitch = false;
-    private boolean edgeLengthSwitch = false;
+//    private boolean fogSwitch = false;
+//    private boolean edgeLengthSwitch = false;
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -141,13 +141,39 @@ public class MapFragment extends Fragment {
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
         // init objects
-        edgeNodeList = new ArrayList<>();
-        pathEdgeNodeList = new ArrayList<>();
+//        edgeNodeList = new ArrayList<>();
+//        pathEdgeNodeList = new ArrayList<>();
         checkinNodeList = new ArrayList<>();
         mergedCheckinNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         translationHandler = new Handler();
+
+        // init size variables
+        checkinIconWidth = (int) getResources().getDimension(R.dimen.checkin_icon_width);
+        checkinIconHeight = (int) getResources().getDimension(R.dimen.checkin_icon_height);
+        int mergedCheckinIconWidth = (int) getResources().getDimension(R.dimen.merged_checkin_icon_width);
+        int mergedCheckinIconHeight = (int) getResources().getDimension(R.dimen.merged_checkin_icon_height);
+        int spotIconWidth = (int) getResources().getDimension(R.dimen.spot_icon_width);
+        int spotIconHeight = (int) getResources().getDimension(R.dimen.spot_icon_height);
+//        int edgeNodeIconWidth = (int) getResources().getDimension(R.dimen.edge_node_width);
+//        int edgeNodeIconHeight = (int) getResources().getDimension(R.dimen.edge_node_height);
+        int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
+        int gpsMarkerHeight = (int) getResources().getDimension(R.dimen.gps_marker_height);
+        int gpsDirectionHeight = (int) getResources().getDimension(R.dimen.gps_direction_height);
+        int gpsMarkerPadding = (int) getResources().getDimension(R.dimen.gps_marker_padding);
+
+        // init pivot variables
+        gpsMarkerPivotX = gpsMarkerWidth / 2 + gpsMarkerPadding;
+        gpsMarkerPivotY = gpsDirectionHeight + gpsMarkerHeight / 2 + gpsMarkerPadding;
+        checkinIconPivotX = checkinIconWidth / 3;
+        checkinIconPivotY = checkinIconHeight;
+        mergedCheckinIconPivotX = mergedCheckinIconWidth / 3;
+        mergedCheckinIconPivotY = mergedCheckinIconHeight;
+        spotIconPivotX = spotIconWidth / 2;
+        spotIconPivotY = spotIconHeight / 2;
+//        edgeNodeIconPivotX = edgeNodeIconWidth / 2;
+//        edgeNodeIconPivotY = edgeNodeIconHeight / 2;
     }
 
     @Override
@@ -182,39 +208,31 @@ public class MapFragment extends Fragment {
         frameLayout.addView(touristMap);
 
         // draw fog
-        fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(fogBitmap);
-        canvas.drawARGB(120, 0, 0, 0);
-        fogMap = new ImageView(context);
-        fogMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
-        fogMap.setScaleType(ImageView.ScaleType.MATRIX);
-        fogMap.setImageBitmap(fogBitmap);
-        fogMap.setPivotX(0);
-        fogMap.setPivotY(0);
-        frameLayout.addView(fogMap);
+//        fogBitmap = Bitmap.createBitmap(touristMapWidth, touristMapHeight, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(fogBitmap);
+//        canvas.drawARGB(120, 0, 0, 0);
+//        fogMap = new ImageView(context);
+//        fogMap.setLayoutParams(new RelativeLayout.LayoutParams(touristMapWidth, touristMapHeight));
+//        fogMap.setScaleType(ImageView.ScaleType.MATRIX);
+//        fogMap.setImageBitmap(fogBitmap);
+//        fogMap.setPivotX(0);
+//        fogMap.setPivotY(0);
+//        frameLayout.addView(fogMap);
 
         // draw edge distance indicator
-        edgeNodeList = edgeNode.getNodeList();
-        for (ImageNode imageNode : edgeNodeList) {
-            addEdgeNode(imageNode, "black");
-        }
+//        edgeNodeList = edgeNode.getNodeList();
+//        for (ImageNode imageNode : edgeNodeList) {
+//            addEdgeNode(imageNode, "black");
+//        }
 
         // draw spots
-        spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
-        spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
-        spotNodeMap = new LinkedHashMap<>(spotList.nodeMap);
-        spotNodeList = new ArrayList<>(spotNodeMap.values());
+        spotNodeMap = new LinkedHashMap<>(spotList.nodeMap);    // for search query
+        spotNodeList = new ArrayList<>(spotNodeMap.values());   // for transformation
         for (SpotNode spotNode : spotNodeList) {
             addSpotNode(spotNode);
         }
 
         // set gpsMarker
-        int gpsMarkerWidth = (int) getResources().getDimension(R.dimen.gps_marker_width);
-        int gpsMarkerHeight = (int) getResources().getDimension(R.dimen.gps_marker_height);
-        int gpsDirectionHeight = (int) getResources().getDimension(R.dimen.gps_direction_height);
-        int gpsMarkerPadding = (int) getResources().getDimension(R.dimen.gps_marker_padding);
-        gpsMarkerPivotX = gpsMarkerWidth / 2 + gpsMarkerPadding;
-        gpsMarkerPivotY = gpsDirectionHeight + gpsMarkerHeight / 2 + gpsMarkerPadding;
         gpsMarker.setPivotX(gpsMarkerPivotX);
         gpsMarker.setPivotY(gpsMarkerPivotY);
 
@@ -244,7 +262,7 @@ public class MapFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-                actionLog("new checkin");
+                actionLog("edit checkin");
                 startActivity(new Intent(context, CheckinActivity.class));
             }
         });
@@ -253,8 +271,8 @@ public class MapFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        switchFog(preferences.getBoolean("fog", false));
-        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
+//        switchFog(preferences.getBoolean("fog", false));
+//        switchDistanceIndicator(preferences.getBoolean("distance_indicator", false));
         switchSpotIcon(preferences.getBoolean("spot", true));
 
         // load checkin after map view set.
@@ -414,14 +432,14 @@ public class MapFragment extends Fragment {
 
         Matrix gpsMarkTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();
-        Matrix nodeIconTransform = new Matrix();
+//        Matrix nodeIconTransform = new Matrix();
         Matrix checkinIconTransform = new Matrix();
         Matrix mergedCheckinIconTransform = new Matrix();
         gpsMarkTransform.postTranslate(-gpsMarkerPivotX, -gpsMarkerPivotY);
         spotIconTransform.postTranslate(-spotIconPivotX, -spotIconPivotY);
-        nodeIconTransform.postTranslate(-nodeIconWidth / 2, -nodeIconHeight / 2);
-        checkinIconTransform.postTranslate(-checkinIconWidth / 3, -checkinIconHeight);
-        mergedCheckinIconTransform.postTranslate(-mergedCheckinIconWidth / 3, -mergedCheckinIconHeight / 2);
+//        nodeIconTransform.postTranslate(-edgeNodeIconPivotX, -edgeNodeIconPivotY);
+        checkinIconTransform.postTranslate(-checkinIconPivotX, -checkinIconPivotY);
+        mergedCheckinIconTransform.postTranslate(-mergedCheckinIconPivotX, -mergedCheckinIconPivotY);
         float[] point = new float[]{0, 0};
 
         // transform tourist map (ImageView)
@@ -432,14 +450,14 @@ public class MapFragment extends Fragment {
         touristMap.setTranslationX(point[0]);
         touristMap.setTranslationY(point[1]);
 
-        // transform fog map
-        if (fogSwitch) {
-            fogMap.setScaleX(scale);
-            fogMap.setScaleY(scale);
-            fogMap.setRotation(rotation);
-            fogMap.setTranslationX(point[0]);
-            fogMap.setTranslationY(point[1]);
-        }
+//        // transform fog map
+//        if (fogSwitch) {
+//            fogMap.setScaleX(scale);
+//            fogMap.setScaleY(scale);
+//            fogMap.setRotation(rotation);
+//            fogMap.setTranslationX(point[0]);
+//            fogMap.setTranslationY(point[1]);
+//        }
 
         // transform gpsMarker
         point[0] = gpsDistortedX;
@@ -450,24 +468,24 @@ public class MapFragment extends Fragment {
         gpsMarker.setTranslationY(point[1]);
 
         // transform nodeImage
-        if (edgeLengthSwitch) {
-            for (ImageNode imageNode : edgeNodeList) {
-                point[0] = imageNode.x;
-                point[1] = imageNode.y;
-                transformMat.mapPoints(point);
-                nodeIconTransform.mapPoints(point);
-                imageNode.icon.setTranslationX(point[0]);
-                imageNode.icon.setTranslationY(point[1]);
-            }
-            for (ImageNode imageNode : pathEdgeNodeList) {
-                point[0] = imageNode.x;
-                point[1] = imageNode.y;
-                transformMat.mapPoints(point);
-                nodeIconTransform.mapPoints(point);
-                imageNode.icon.setTranslationX(point[0]);
-                imageNode.icon.setTranslationY(point[1]);
-            }
-        }
+//        if (edgeLengthSwitch) {
+//            for (ImageNode imageNode : edgeNodeList) {
+//                point[0] = imageNode.x;
+//                point[1] = imageNode.y;
+//                transformMat.mapPoints(point);
+//                nodeIconTransform.mapPoints(point);
+//                imageNode.icon.setTranslationX(point[0]);
+//                imageNode.icon.setTranslationY(point[1]);
+//            }
+//            for (ImageNode imageNode : pathEdgeNodeList) {
+//                point[0] = imageNode.x;
+//                point[1] = imageNode.y;
+//                transformMat.mapPoints(point);
+//                nodeIconTransform.mapPoints(point);
+//                imageNode.icon.setTranslationX(point[0]);
+//                imageNode.icon.setTranslationY(point[1]);
+//            }
+//        }
 
         // transform spot
         if (spotSwitch) {
@@ -537,48 +555,38 @@ public class MapFragment extends Fragment {
     private void addSpotNode(final SpotNode spotNode) {
         View icon = inflater.inflate(R.layout.item_spot, null);
         spotNode.icon = icon;
-//        spotNode.icon.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(context, SpotInfoActivity.class);
-//                intent.putExtra("spotName", spotNode.name);
-//                startActivity(intent);
-//                actionLog("Browse Spot: " + spotNode.name);
-//            }
-//        });
         ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
         rootLayout.addView(icon, rootLayout.indexOfChild(seperator));
     }
 
-    private void addEdgeNode(ImageNode imageNode, String iconColor) {
-        imageNode.icon = new ImageView(context);
-        if (iconColor.equals("blue"))
-            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_trans);
-        if (iconColor.equals("black"))
-            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_black_trans);
-        imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
-        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(seperator));
-    }
-
-    public void showPathIdicator(SpotNode spotNode) {
-        for (ImageNode imageNode : pathEdgeNodeList) {
-            rootLayout.removeView(imageNode.icon);
-        }
-
-        EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
-        EdgeNode.Vertex to = edgeNode.findVertex(spotNode.x, spotNode.y);
-        edgeNode.shortestPath(from, to);
-        pathEdgeNodeList = edgeNode.getPathNodeList();
-        for (ImageNode imageNode : pathEdgeNodeList) {
-            addEdgeNode(imageNode, "blue");
-        }
-    }
+//    private void addEdgeNode(ImageNode imageNode, String iconColor) {
+//        imageNode.icon = new ImageView(context);
+//        if (iconColor.equals("blue"))
+//            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_trans);
+//        if (iconColor.equals("black"))
+//            ((ImageView) imageNode.icon).setImageResource(R.drawable.ftprint_black_trans);
+//        imageNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(nodeIconWidth, nodeIconHeight));
+//        rootLayout.addView(imageNode.icon, rootLayout.indexOfChild(seperator));
+//    }
+//
+//    public void showPathIdicator(SpotNode spotNode) {
+//        for (ImageNode imageNode : pathEdgeNodeList) {
+//            rootLayout.removeView(imageNode.icon);
+//        }
+//
+//        EdgeNode.Vertex from = edgeNode.findVertex(gpsDistortedX, gpsDistortedY);
+//        EdgeNode.Vertex to = edgeNode.findVertex(spotNode.x, spotNode.y);
+//        edgeNode.shortestPath(from, to);
+//        pathEdgeNodeList = edgeNode.getPathNodeList();
+//        for (ImageNode imageNode : pathEdgeNodeList) {
+//            addEdgeNode(imageNode, "blue");
+//        }
+//    }
 
     private void showDialog(Checkin checkin) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
         checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-        // send action log to server
         actionLog("browse checkin: " + checkin.location + ", " + checkin.key);
     }
 
@@ -614,7 +622,8 @@ public class MapFragment extends Fragment {
             } else {
                 spotNode.mergedCheckinNode.checkinNum++;
                 TextView checkinsNumCircle = (TextView) spotNode.mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                checkinsNumCircle.setText(String.valueOf(spotNode.mergedCheckinNode.checkinNum));
+                checkinsNumCircle.setText(spotNode.mergedCheckinNode.checkinNum < 10 ?
+                        " " + String.valueOf(spotNode.mergedCheckinNode.checkinNum) : String.valueOf(spotNode.mergedCheckinNode.checkinNum));
             }
         } else {
             // add into cluster
@@ -630,8 +639,8 @@ public class MapFragment extends Fragment {
 
                     mergedCheckinNode.checkinNum++;
                     TextView checkinsNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                    checkinsNumCircle.setText(String.valueOf(mergedCheckinNode.checkinNum));
-
+                    checkinsNumCircle.setText(mergedCheckinNode.checkinNum < 10 ?
+                            " " + String.valueOf(mergedCheckinNode.checkinNum) : String.valueOf(mergedCheckinNode.checkinNum));
                     newCluster = false;
                     break;
                 }
@@ -762,21 +771,21 @@ public class MapFragment extends Fragment {
 
     public void handleFogUpdate(float lat, float lng) {
 
-        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
-
-            float[] imgPx = gpsToImgPx(lat, lng);
-
-            if (imgPx[0] != -1 && imgPx[1] != -1) {
-                // update fog map
-                Paint paint = new Paint();
-                paint.setColor(Color.TRANSPARENT);
-                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-                paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
-                Canvas canvas = new Canvas(fogBitmap);
-                canvas.drawCircle(imgPx[0], imgPx[1], 25, paint);
-                fogMap.postInvalidate();
-            }
-        }
+//        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
+//
+//            float[] imgPx = gpsToImgPx(lat, lng);
+//
+//            if (imgPx[0] != -1 && imgPx[1] != -1) {
+//                // update fog map
+//                Paint paint = new Paint();
+//                paint.setColor(Color.TRANSPARENT);
+//                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+//                paint.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.NORMAL));
+//                Canvas canvas = new Canvas(fogBitmap);
+//                canvas.drawCircle(imgPx[0], imgPx[1], 25, paint);
+//                fogMap.postInvalidate();
+//            }
+//        }
     }
 
     public void handleSensorChange(float rotation) {
@@ -786,29 +795,29 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public void switchFog(boolean flag) {
-        fogSwitch = flag;
-        if (flag) {
-            fogMap.setVisibility(View.VISIBLE);
-        } else {
-            fogMap.setVisibility(View.GONE);
-        }
-        reRender();
-    }
+//    public void switchFog(boolean flag) {
+//        fogSwitch = flag;
+//        if (flag) {
+//            fogMap.setVisibility(View.VISIBLE);
+//        } else {
+//            fogMap.setVisibility(View.GONE);
+//        }
+//        reRender();
+//    }
 
-    public void switchDistanceIndicator(boolean flag) {
-        edgeLengthSwitch = flag;
-        if (flag) {
-            for (ImageNode imageNode : edgeNodeList) {
-                imageNode.icon.setVisibility(View.VISIBLE);
-            }
-        } else {
-            for (ImageNode imageNode : edgeNodeList) {
-                imageNode.icon.setVisibility(View.GONE);
-            }
-        }
-        reRender();
-    }
+//    public void switchDistanceIndicator(boolean flag) {
+//        edgeLengthSwitch = flag;
+//        if (flag) {
+//            for (ImageNode imageNode : edgeNodeList) {
+//                imageNode.icon.setVisibility(View.VISIBLE);
+//            }
+//        } else {
+//            for (ImageNode imageNode : edgeNodeList) {
+//                imageNode.icon.setVisibility(View.GONE);
+//            }
+//        }
+//        reRender();
+//    }
 
     public void switchCheckinIcon(boolean flag) {
         checkinSwitch = flag;

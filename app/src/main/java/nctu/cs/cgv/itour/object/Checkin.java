@@ -21,6 +21,7 @@ public class Checkin {
     public String uid;
     public String username;
     public String timestamp;
+    public String targetUid;
 
     public String key;
     public Map<String, Boolean> like = new HashMap<>();

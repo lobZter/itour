@@ -69,16 +69,16 @@ import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
-        SettingsFragment.OnFogListener,
-        SettingsFragment.OnDistanceIndicatorListener,
+//        SettingsFragment.OnFogListener,
+//        SettingsFragment.OnDistanceIndicatorListener,
         SettingsFragment.OnCheckinIconListener,
         SettingsFragment.OnSpotIonListener {
 
-    public static final int CHECKIN_NOTIFICATION_REQUEST = 321;
     private static final String TAG = "MainActivity";
+    public static final int CHECKIN_NOTIFICATION_REQUEST = 321;
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
-    private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
-    private static final int SCREEN_CAPTURE_REQUEST = 789;
+//    private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
+//    private static final int SCREEN_CAPTURE_REQUEST = 789;
     // Checkins
     public static Map<String, Checkin> checkinMap;
     public static Map<String, Boolean> savedPostId;
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements
     private MapFragment mapFragment;
     private ListFragment listFragment;
     private PersonalFragment personalFragment;
-    // use broadcast to send received checkinIcon data(fbc topic message) to activity
+    // use broadcast to receive gpsUpdate and fogUpdate
     private BroadcastReceiver messageReceiver;
     // device sensor manager
     private SensorManager sensorManager;
@@ -127,8 +127,8 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
-        if (logFlag) startService(new Intent(this, CheckinNotificationService.class));
-        if (logFlag) requestScreenCapture();
+//        if (logFlag) startService(new Intent(this, CheckinNotificationService.class));
+//        if (logFlag) requestScreenCapture();
     }
 
     private void setCheckinPreference() {
@@ -191,7 +191,6 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
-
             }
 
             @Override
@@ -251,26 +250,21 @@ public class MainActivity extends AppCompatActivity implements
                 switch (tabId) {
                     case R.id.tab_map:
                         viewPager.setCurrentItem(0);
-                        actionLog("current page: map");
                         break;
                     case R.id.tab_list:
                         viewPager.setCurrentItem(1);
-                        actionLog("current page: list");
                         break;
                     case R.id.tab_person:
                         viewPager.setCurrentItem(2);
                         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                         }
-                        actionLog("current page: personal");
                         break;
 //                    case R.id.tab_plan:
 //                        viewPager.setCurrentItem(3);
-//                        actionLog("Current Page: plan");
 //                        break;
                     case R.id.tab_settings:
                         viewPager.setCurrentItem(3);
-                        actionLog("current page: setting");
                         break;
                 }
             }
@@ -329,41 +323,41 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-    private void requestScreenCapture() {
-        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
-    }
-
-    private void requestSystemOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-            startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
-        } else {
-            Intent service = new Intent(this, AudioFeedbackService.class);
-            startService(service);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case SCREEN_CAPTURE_REQUEST:
-                if (resultCode == RESULT_OK) {
-                    Intent service = new Intent(this, ScreenShotService.class);
-                    service.putExtra("resultCode", resultCode);
-                    service.putExtra("resultData", data);
-                    startService(service);
-                }
-                break;
-            case SCREEN_OVERLAY_PERMISSON_REQUEST:
-                if (resultCode == RESULT_OK) {
-                    Intent service = new Intent(this, AudioFeedbackService.class);
-                    startService(service);
-                }
-                break;
-        }
-    }
+//    private void requestScreenCapture() {
+//        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+//        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
+//    }
+//
+//    private void requestSystemOverlayPermission() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+//            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+//            startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
+//        } else {
+//            Intent service = new Intent(this, AudioFeedbackService.class);
+//            startService(service);
+//        }
+//    }
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        switch (requestCode) {
+//            case SCREEN_CAPTURE_REQUEST:
+//                if (resultCode == RESULT_OK) {
+//                    Intent service = new Intent(this, ScreenShotService.class);
+//                    service.putExtra("resultCode", resultCode);
+//                    service.putExtra("resultData", data);
+//                    startService(service);
+//                }
+//                break;
+//            case SCREEN_OVERLAY_PERMISSON_REQUEST:
+//                if (resultCode == RESULT_OK) {
+//                    Intent service = new Intent(this, AudioFeedbackService.class);
+//                    startService(service);
+//                }
+//                break;
+//        }
+//    }
 
     @Override
     public void onNewIntent(Intent intent) {
@@ -392,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements
                     sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
         }
 
-        if (logFlag) requestSystemOverlayPermission();
+//        if (logFlag) requestSystemOverlayPermission();
     }
 
     @Override
@@ -412,15 +406,15 @@ public class MainActivity extends AppCompatActivity implements
         stopService(new Intent(this, GpsLocationService.class));
     }
 
-    @Override
-    public void onDistanceIndicatorSwitched(boolean flag) {
-        mapFragment.switchDistanceIndicator(flag);
-    }
+//    @Override
+//    public void onDistanceIndicatorSwitched(boolean flag) {
+//        mapFragment.switchDistanceIndicator(flag);
+//    }
 
-    @Override
-    public void onFogSwitched(boolean flag) {
-        mapFragment.switchFog(flag);
-    }
+//    @Override
+//    public void onFogSwitched(boolean flag) {
+//        mapFragment.switchFog(flag);
+//    }
 
     @Override
     public void onCheckinIconSwitched(boolean flag) {

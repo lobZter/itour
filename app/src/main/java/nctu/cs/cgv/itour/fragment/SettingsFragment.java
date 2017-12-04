@@ -114,8 +114,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onAttach(Context context) {
         super.onAttach(context);
         try {
-            onFogListener = (OnFogListener) context;
-            onDistanceIndicatorListener = (OnDistanceIndicatorListener) context;
+//            onFogListener = (OnFogListener) context;
+//            onDistanceIndicatorListener = (OnDistanceIndicatorListener) context;
             onCheckinIconListener = (OnCheckinIconListener) context;
             onSpotIonListener = (OnSpotIonListener) context;
         } catch (ClassCastException e) {

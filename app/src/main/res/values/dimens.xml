@@ -12,8 +12,13 @@
     <dimen name="elevation_double">16px</dimen>
     <dimen name="checkin_icon_width">96px</dimen>
     <dimen name="checkin_icon_height">96px</dimen>
-    <dimen name="spot_icon_width">36px</dimen>
-    <dimen name="spot_icon_height">36px</dimen>
-
+    <dimen name="merged_checkin_icon_width">144px</dimen>
+    <dimen name="merged_checkin_icon_height">144px</dimen>
+    <dimen name="merged_checkin_icon_margin_start">60px</dimen>
+    <dimen name="merged_checkin_icon_margin_top">30px</dimen>
+    <dimen name="spot_icon_width">24px</dimen>
+    <dimen name="spot_icon_height">24px</dimen>
+    <dimen name="edge_node_width">16px</dimen>
+    <dimen name="edge_node_height">16px</dimen>
 
 </resources>

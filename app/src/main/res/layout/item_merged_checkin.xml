@@ -4,17 +4,17 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="108px"
-        android:layout_height="108px"
+        android:layout_width="@dimen/merged_checkin_icon_width"
+        android:layout_height="@dimen/merged_checkin_icon_height"
         android:src="@drawable/checkin_icon_108px" />
 
     <TextView
         android:id="@+id/checkin_num"
-        android:layout_marginStart="48px"
-        android:layout_marginTop="21px"
+        android:layout_marginStart="@dimen/merged_checkin_icon_margin_start"
+        android:layout_marginTop="@dimen/merged_checkin_icon_margin_top"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="32px"
+        android:textSize="36px"
         android:gravity="center"
         android:text="1"
         android:textColor="@color/md_white_1000" />
