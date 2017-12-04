@@ -148,6 +148,13 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    if (!checkin.targetUid.equals("") && !checkin.targetUid.equals(uid))
+                        return;
+                }
+
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);
                 mapFragment.addCheckin(checkin);
@@ -157,8 +164,16 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 // like change
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    if (!checkin.targetUid.equals("") && !checkin.targetUid.equals(uid))
+                        return;
+                }
+
                 checkin.key = dataSnapshot.getKey();
                 checkinMap.put(dataSnapshot.getKey(), checkin);
+                mapFragment.changeCheckin(checkin);
             }
 
             @Override

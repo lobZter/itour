@@ -21,9 +21,9 @@ import nctu.cs.cgv.itour.service.GpsLocationService;
 public class MyApplication extends Application {
 
     private static final String TAG = "MyApplication";
-//    public static final String mapTag = "tamsui_1111";
+    public static final String mapTag = "tamsui_1111";
 //    public static final String mapTag = "TamsuiNewFull";
-    public static final String mapTag = "tamsui";
+//    public static final String mapTag = "tamsui";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps";
     public static final String APPServerURL = "http://140.113.210.17:55555";
 //    public static final String APPServerURL = "http://140.113.210.17";

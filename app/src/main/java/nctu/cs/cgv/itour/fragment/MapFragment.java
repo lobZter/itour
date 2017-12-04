@@ -41,6 +41,7 @@ import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ public class MapFragment extends Fragment {
     // objects
 //    private List<ImageNode> edgeNodeList;
 //    private List<ImageNode> pathEdgeNodeList;
-    private List<ImageNode> checkinNodeList;
+    private Map<String, ImageNode> checkinNodeMap;
     private List<MergedCheckinNode> mergedCheckinNodeList;
     private Map<String, SpotNode> spotNodeMap;
     private List<SpotNode> spotNodeList;
@@ -143,7 +144,7 @@ public class MapFragment extends Fragment {
         // init objects
 //        edgeNodeList = new ArrayList<>();
 //        pathEdgeNodeList = new ArrayList<>();
-        checkinNodeList = new ArrayList<>();
+        checkinNodeMap = new HashMap<>();
         mergedCheckinNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -514,7 +515,7 @@ public class MapFragment extends Fragment {
         // transform mergedCheckinNode
         if (checkinSwitch) {
             if (isMerged) {
-                for (ImageNode imageNode : checkinNodeList) {
+                for (ImageNode imageNode : checkinNodeMap.values()) {
                     imageNode.icon.setVisibility(View.GONE);
                 }
 
@@ -523,7 +524,7 @@ public class MapFragment extends Fragment {
                 }
 
             } else {
-                for (ImageNode imageNode : checkinNodeList) {
+                for (ImageNode imageNode : checkinNodeMap.values()) {
                     imageNode.icon.setVisibility(View.VISIBLE);
                 }
 
@@ -532,7 +533,7 @@ public class MapFragment extends Fragment {
                 }
             }
 
-            for (ImageNode imageNode : checkinNodeList) {
+            for (ImageNode imageNode : checkinNodeMap.values()) {
                 point[0] = imageNode.x;
                 point[1] = imageNode.y;
                 transformMat.mapPoints(point);
@@ -593,7 +594,6 @@ public class MapFragment extends Fragment {
     public void addCheckin(final Checkin checkin) {
         float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
         ImageNode checkinNode = new ImageNode(imgPx[0], imgPx[1]);
-        checkinNodeList.add(checkinNode);
 
         // create icon ImageView
         checkinNode.icon = new ImageView(context);
@@ -604,10 +604,23 @@ public class MapFragment extends Fragment {
             }
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
+        if (checkin.popularFlag)
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
+        else
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
+        checkinNodeMap.put(checkin.key, checkinNode);
 
         addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
+        reRender();
+    }
+
+    public void changeCheckin(final Checkin checkin) {
+        ImageNode checkinNode = checkinNodeMap.get(checkin.key);
+        if (checkin.popularFlag)
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
+        else
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
         reRender();
     }
 
@@ -822,14 +835,14 @@ public class MapFragment extends Fragment {
     public void switchCheckinIcon(boolean flag) {
         checkinSwitch = flag;
         if (flag) {
-            for (ImageNode imageNode : checkinNodeList) {
+            for (ImageNode imageNode : checkinNodeMap.values()) {
                 imageNode.icon.setVisibility(View.VISIBLE);
             }
             for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
                 mergedCheckinNode.icon.setVisibility(View.VISIBLE);
             }
         } else {
-            for (ImageNode imageNode : checkinNodeList) {
+            for (ImageNode imageNode : checkinNodeMap.values()) {
                 imageNode.icon.setVisibility(View.GONE);
             }
             for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {

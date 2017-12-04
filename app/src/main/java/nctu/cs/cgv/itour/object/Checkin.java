@@ -22,6 +22,7 @@ public class Checkin {
     public String username;
     public String timestamp;
     public String targetUid;
+    public Boolean popularFlag;
 
     public String key;
     public Map<String, Boolean> like = new HashMap<>();
@@ -50,6 +51,8 @@ public class Checkin {
         this.uid = uid;
         this.username = username;
         this.timestamp = timestamp;
+        this.targetUid = "";
+        this.popularFlag = false;
     }
 
     @Exclude
@@ -65,6 +68,8 @@ public class Checkin {
         result.put("uid", uid);
         result.put("username", username);
         result.put("timestamp", timestamp);
+        result.put("targetUid", targetUid);
+        result.put("popularFlag", popularFlag);
 
         return result;
     }
