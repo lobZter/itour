@@ -584,11 +584,11 @@ public class MapFragment extends Fragment {
 //        }
 //    }
 
-    private void showDialog(Checkin checkin) {
+    public void showDialog(String key) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
+        CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(key);
         checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-        actionLog("browse checkin: " + checkin.location + ", " + checkin.key);
+        actionLog("browse checkin: " + key);
     }
 
     public void addCheckin(final Checkin checkin) {
@@ -600,7 +600,7 @@ public class MapFragment extends Fragment {
         checkinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog(checkin);
+                showDialog(checkin.key);
             }
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));

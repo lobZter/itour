@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onNewIntent(Intent intent) {
         if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
             float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
-            onLocateClick(imgPx[0], imgPx[1]);
+            onLocateClick(imgPx[0], imgPx[1], intent.getStringExtra("key"));
         }
     }
 
@@ -441,9 +441,10 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.switchSpotIcon(flag);
     }
 
-    public void onLocateClick(float imgPxX, float imgPxY) {
-        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
+    public void onLocateClick(float imgPxX, float imgPxY, String key) {
         bottomBar.selectTabAtPosition(0);
+        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
+        mapFragment.showDialog(key);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

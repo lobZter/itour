@@ -23,6 +23,7 @@ public class Checkin {
     public String timestamp;
     public String targetUid;
     public Boolean popularFlag;
+    public Boolean fakeFlag;
 
     public String key;
     public Map<String, Boolean> like = new HashMap<>();
@@ -53,6 +54,7 @@ public class Checkin {
         this.timestamp = timestamp;
         this.targetUid = "";
         this.popularFlag = false;
+        this.fakeFlag = false;
     }
 
     @Exclude
@@ -70,6 +72,7 @@ public class Checkin {
         result.put("timestamp", timestamp);
         result.put("targetUid", targetUid);
         result.put("popularFlag", popularFlag);
+        result.put("fakeFlag", fakeFlag);
 
         return result;
     }

@@ -57,7 +57,7 @@ public class CheckinNotificationService extends Service {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
-                notifyCheckin(checkin);
+                if (checkin.fakeFlag) notifyCheckin(checkin);
             }
 
             @Override
@@ -92,14 +92,15 @@ public class CheckinNotificationService extends Service {
         notificationIntent.putExtra("checkinNotificationIntent", true);
         notificationIntent.putExtra("lat", checkin.lat);
         notificationIntent.putExtra("lng", checkin.lng);
+        notificationIntent.putExtra("key", checkin.key);
         PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setLargeIcon(icon)
                 .setVibrate(new long[] {0, 300, 300, 300, 300})
-                .setContentTitle(getApplicationContext().getString(R.string.checkin_notification_title))
-                .setContentText(checkin.location)
+                .setContentTitle(checkin.location)
+                .setContentText(checkin.description.substring(0, Math.min(10, checkin.description.length() - 1)) + "...")
                 .setContentIntent(intent);
 
         Notification notification = notificationBuilder.build();
