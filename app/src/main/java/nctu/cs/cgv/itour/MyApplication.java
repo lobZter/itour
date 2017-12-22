@@ -1,18 +1,13 @@
 package nctu.cs.cgv.itour;
 
 import android.app.Application;
-import android.content.Intent;
 import android.os.Environment;
 
 import java.io.File;
-import java.io.StreamCorruptedException;
-import java.io.StringReader;
 
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
-import nctu.cs.cgv.itour.object.SpotNode;
-import nctu.cs.cgv.itour.service.GpsLocationService;
 
 /**
  * Created by lobZter on 2017/6/21.
@@ -20,10 +15,8 @@ import nctu.cs.cgv.itour.service.GpsLocationService;
 
 public class MyApplication extends Application {
 
-    private static final String TAG = "MyApplication";
-    public static final String mapTag = "tamsui_1111";
-//    public static final String mapTag = "TamsuiNewFull";
-//    public static final String mapTag = "tamsui";
+//    public static final String mapTag = "tamsui_1111";
+    public static final String mapTag = "tamsui";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps";
     public static final String APPServerURL = "http://140.113.210.17:55555";
 //    public static final String APPServerURL = "http://140.113.210.17";
@@ -33,6 +26,7 @@ public class MyApplication extends Application {
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour";
     public static final String audioLogPath = dirPath + "/audioLog";
     public static final String imageLogPath = dirPath + "/imageLog";
+    private static final String TAG = "MyApplication";
     public static SpotList spotList;
     public static Mesh realMesh;
     public static Mesh warpMesh;

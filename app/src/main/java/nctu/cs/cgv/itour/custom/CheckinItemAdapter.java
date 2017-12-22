@@ -287,7 +287,7 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
                 @Override
                 public void onClick(View v) {
                     float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-                    ((MainActivity) context).onLocateClick(imgPx[0], imgPx[1]);
+                    ((MainActivity) context).onLocateClick(imgPx[0], imgPx[1], checkin.key);
                     actionLog("show checkin location: " + checkin.location + ", " + checkin.key);
                 }
             });

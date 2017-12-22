@@ -72,7 +72,6 @@ public class Checkin {
         result.put("timestamp", timestamp);
         result.put("targetUid", targetUid);
         result.put("popularFlag", popularFlag);
-        result.put("fakeFlag", fakeFlag);
 
         return result;
     }

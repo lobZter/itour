@@ -50,7 +50,7 @@ public class SpotListFragment extends Fragment {
             public void onItemClick(AdapterView adapterView, View view, int position, long id) {
                 SpotNode spotNode = spotList.nodeMap.get(spotArrayAdapter.getItem(position));
                 actionLog("spotlist: " + spotNode.name);
-                ((MainActivity) getActivity()).onLocateClick(spotNode.x, spotNode.y);
+                ((MainActivity) getActivity()).onLocateClick(spotNode.x, spotNode.y, "");
             }
         });
     }

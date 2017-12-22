@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
-//        if (logFlag) startService(new Intent(this, CheckinNotificationService.class));
+//        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null) startService(new Intent(this, CheckinNotificationService.class));
 //        if (logFlag) requestScreenCapture();
     }
 
@@ -444,7 +444,8 @@ public class MainActivity extends AppCompatActivity implements
     public void onLocateClick(float imgPxX, float imgPxY, String key) {
         bottomBar.selectTabAtPosition(0);
         mapFragment.translateToImgPx(imgPxX, imgPxY, false);
-        mapFragment.showDialog(key);
+        if (!key.equals(""))
+            mapFragment.showDialog(key);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)

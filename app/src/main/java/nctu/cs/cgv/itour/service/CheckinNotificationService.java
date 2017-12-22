@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -57,7 +58,7 @@ public class CheckinNotificationService extends Service {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
-                if (checkin.fakeFlag) notifyCheckin(checkin);
+                if (checkin.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) notifyCheckin(checkin);
             }
 
             @Override
