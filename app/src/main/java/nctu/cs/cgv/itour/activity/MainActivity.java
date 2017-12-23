@@ -233,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements
     private void setView() {
         mapFragment = MapFragment.newInstance();
         listFragment = ListFragment.newInstance();
+
         personalFragment = PersonalFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
@@ -338,11 +339,6 @@ public class MainActivity extends AppCompatActivity implements
         };
     }
 
-//    private void requestScreenCapture() {
-//        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-//        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
-//    }
-
     private void requestSystemOverlayPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
@@ -352,6 +348,12 @@ public class MainActivity extends AppCompatActivity implements
             startService(service);
         }
     }
+
+//    private void requestScreenCapture() {
+//        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+//        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
+//    }
+
 
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {

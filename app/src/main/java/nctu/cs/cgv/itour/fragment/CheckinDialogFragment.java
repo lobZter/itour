@@ -28,7 +28,6 @@ import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
@@ -359,6 +358,7 @@ public class CheckinDialogFragment extends DialogFragment {
     @Override
     public void onStart() {
         super.onStart();
+        // set dialog layout
         getDialog().getWindow()
                 .setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
     }
