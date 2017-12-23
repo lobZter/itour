@@ -77,8 +77,8 @@ public class MainActivity extends AppCompatActivity implements
     private static final String TAG = "MainActivity";
     public static final int CHECKIN_NOTIFICATION_REQUEST = 321;
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
-//    private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
-//    private static final int SCREEN_CAPTURE_REQUEST = 789;
+    private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
+    private static final int SCREEN_CAPTURE_REQUEST = 789;
     // Checkins
     public static Map<String, Checkin> checkinMap;
     public static Map<String, Boolean> savedPostId;
@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
-//        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null) startService(new Intent(this, CheckinNotificationService.class));
+        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null) startService(new Intent(this, CheckinNotificationService.class));
 //        if (logFlag) requestScreenCapture();
     }
 
@@ -342,17 +342,17 @@ public class MainActivity extends AppCompatActivity implements
 //        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 //        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
 //    }
-//
-//    private void requestSystemOverlayPermission() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-//            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-//            startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
-//        } else {
-//            Intent service = new Intent(this, AudioFeedbackService.class);
-//            startService(service);
-//        }
-//    }
-//
+
+    private void requestSystemOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
+        } else {
+            Intent service = new Intent(this, AudioFeedbackService.class);
+            startService(service);
+        }
+    }
+
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        super.onActivityResult(requestCode, resultCode, data);
@@ -401,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements
                     sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
         }
 
-//        if (logFlag) requestSystemOverlayPermission();
+        if (logFlag) requestSystemOverlayPermission();
     }
 
     @Override

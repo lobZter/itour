@@ -48,6 +48,9 @@
     <string name="dialog_negative_btn">Cancel</string>
     <string name="dialog_download_file">Downloading map package...Please wait...</string>
 
+    <string name="dialog_recording_title">Record feedback</string>
+    <string name="dialog_recording_message">Press OK to start recording.</string>
+    <string name="dialog_stop_recording_message">Press OK to stop recording.</string>
 
     <string name="subtitle_map">Map</string>
     <string name="subtitle_list">List</string>

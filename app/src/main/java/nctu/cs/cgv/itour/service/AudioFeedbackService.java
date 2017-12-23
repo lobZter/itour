@@ -1,7 +1,9 @@
 package nctu.cs.cgv.itour.service;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Service;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
@@ -21,6 +23,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -37,6 +40,9 @@ import nctu.cs.cgv.itour.R;
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.audioLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
 public class AudioFeedbackService extends Service {
 
@@ -132,14 +138,9 @@ public class AudioFeedbackService extends Service {
             @Override
             public void onClick(View v) {
                 if (isRecording) {
-                    if (stopRecording()) {
-                        fab.setImageResource(R.drawable.ic_mic_white_24dp);
-                        audioFeedbackLog();
-                    }
+                    areYouSureYouWantToStopRecord();
                 } else {
-                    if (startRecording()) {
-                        fab.setImageResource(R.drawable.ic_stop_white_24dp);
-                    }
+                    areYouSureYouWantToRecord();
                 }
             }
         });
@@ -155,6 +156,51 @@ public class AudioFeedbackService extends Service {
         super.onDestroy();
         if (overlayView != null)
             windowManager.removeView(overlayView);
+    }
+
+    private void areYouSureYouWantToRecord() {
+        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_recording_title)
+                .setMessage(R.string.dialog_recording_message)
+                .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(startRecording()) {
+                            fab.setImageResource(R.drawable.ic_stop_white_24dp);
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.dialog_negative_btn, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create();
+        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        alertDialog.show();
+    }
+
+    private void areYouSureYouWantToStopRecord() {
+        android.support.v7.app.AlertDialog alertDialog = new android.support.v7.app.AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_recording_title)
+                .setMessage(R.string.dialog_stop_recording_message)
+                .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (stopRecording()) {
+                            fab.setImageResource(R.drawable.ic_mic_white_24dp);
+                            audioFeedbackLog();
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.dialog_negative_btn, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create();
+        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        alertDialog.show();
     }
 
     private boolean startRecording() {
