@@ -214,6 +214,7 @@ public class CheckinDialogFragment extends DialogFragment {
     private void setActionBtn(View view, final Checkin checkin) {
         final Button likeBtn = (Button) view.findViewById(R.id.btn_like);
         final Button saveBtn = (Button) view.findViewById(R.id.btn_save);
+        final Button goBtn = (Button) view.findViewById(R.id.btn_go);
         final TextView like = (TextView) view.findViewById(R.id.tv_like);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -295,6 +296,14 @@ public class CheckinDialogFragment extends DialogFragment {
                 saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
                 saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
             }
+
+            goBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getContext(), R.string.feedback_go, Toast.LENGTH_SHORT).show();
+                    actionLog("want to go: " + checkin.location + ", " + checkin.key);
+                }
+            });
         }
     }
 

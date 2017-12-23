@@ -59,6 +59,7 @@
     <string name="subtitle_setting">Settings</string>
 
     <string name="btn_like_string">LIKE</string>
+    <string name="btn_go_string">GO</string>
     <string name="btn_save_string">SAVE</string>
     <string name="btn_locate_string">LOCATE</string>
     <string name="btn_delete_string">DELETE</string>
@@ -98,4 +99,5 @@
 
     <string name="checkin_notification_title">新打卡</string>
 
+    <string name="feedback_go">回報成功</string>
 </resources>
