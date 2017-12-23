@@ -94,7 +94,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
 
         String likeStr = "";
         if (checkin.like != null && checkin.like.size() > 0) {
-            likeStr = String.valueOf(checkin.like.size()) + context.getString(R.string.checkin_card_like_num);
+            likeStr = String.valueOf(checkin.likeNum + checkin.like.size()) + context.getString(R.string.checkin_card_like_num);
         }
         viewHolder.like.setText(likeStr);
 
@@ -238,7 +238,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                         viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                         String likeStr = "";
                         if (checkin.like != null && checkin.like.size() > 0) {
-                            likeStr = String.valueOf(checkin.like.size() - 1) + context.getString(R.string.checkin_card_like_num);
+                            likeStr = String.valueOf(checkin.likeNum + checkin.like.size() - 1) + context.getString(R.string.checkin_card_like_num);
                         }
                         viewHolder.like.setText(likeStr);
                         databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).removeValue();
@@ -250,7 +250,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
                         viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                         String likeStr;
                         if (checkin.like != null && checkin.like.size() > 0) {
-                            likeStr = String.valueOf(checkin.like.size() + 1) + context.getString(R.string.checkin_card_like_num);
+                            likeStr = String.valueOf(checkin.likeNum + checkin.like.size() + 1) + context.getString(R.string.checkin_card_like_num);
                         } else {
                             likeStr = "1" + getContext().getString(R.string.checkin_card_like_num);
                         }

@@ -129,6 +129,8 @@ public class MapFragment extends Fragment {
 //    private boolean fogSwitch = false;
 //    private boolean edgeLengthSwitch = false;
 
+    private String uid = "";
+
     public static MapFragment newInstance() {
         return new MapFragment();
     }
@@ -175,6 +177,9 @@ public class MapFragment extends Fragment {
         spotIconPivotY = spotIconHeight / 2;
 //        edgeNodeIconPivotX = edgeNodeIconWidth / 2;
 //        edgeNodeIconPivotY = edgeNodeIconHeight / 2;
+
+        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+            uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
     @Override
@@ -251,7 +256,7 @@ public class MapFragment extends Fragment {
                     rotateToNorth();
             }
         });
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+        if (uid.equals("")) {
             addBtn.setVisibility(View.GONE);
         }
         addBtn.setOnClickListener(new View.OnClickListener() {
@@ -278,7 +283,7 @@ public class MapFragment extends Fragment {
 
         // load checkin after map view set.
         ((MainActivity) getActivity()).queryCheckin();
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+        if (!uid.equals("")) {
             ((MainActivity) getActivity()).querySavedPostId();
         }
 
@@ -604,8 +609,8 @@ public class MapFragment extends Fragment {
             }
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
-        if (checkin.popularTargetUid.equals("") ||
-                (FirebaseAuth.getInstance().getCurrentUser() != null && checkin.popularTargetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())))
+
+        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)))
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
         else
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
@@ -618,8 +623,8 @@ public class MapFragment extends Fragment {
 
     public void changeCheckin(final Checkin checkin) {
         ImageNode checkinNode = checkinNodeMap.get(checkin.key);
-        if (checkin.popularTargetUid.equals("") ||
-                (FirebaseAuth.getInstance().getCurrentUser() != null && checkin.popularTargetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())))
+
+        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)))
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
         else
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));

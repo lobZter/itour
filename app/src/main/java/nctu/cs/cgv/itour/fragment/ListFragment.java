@@ -17,7 +17,12 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import nctu.cs.cgv.itour.R;
@@ -39,6 +44,9 @@ public class ListFragment extends Fragment {
     private CheckinItemAdapter checkinItemAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ActionBar actionBar;
+    private final int ORDER_TIME = 0;
+    private final int ORDER_POPULAR = 1;
+    private int orderFlag = ORDER_TIME;
 
     public static ListFragment newInstance() {
         return new ListFragment();
@@ -59,6 +67,8 @@ public class ListFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+
         swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -87,9 +97,51 @@ public class ListFragment extends Fragment {
 
     public void refresh() {
         checkinItemAdapter.clear();
-        for (final Checkin checkin : checkinMap.values()) {
-            checkinItemAdapter.insert(checkin, 0);
+
+        switch (orderFlag) {
+            case ORDER_TIME:
+                for (final Checkin checkin : checkinMap.values()) {
+                    checkinItemAdapter.insert(checkin, 0);
+                }
+                break;
+            case ORDER_POPULAR:
+                ArrayList<Checkin> checkinValues = new ArrayList<>(checkinMap.values());
+
+                final String uid;
+                if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                    uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                else
+                    uid = "";
+
+                Collections.sort(checkinValues, new Comparator<Checkin>() {
+                    @Override
+                    public int compare(Checkin checkin1, Checkin checkin2) {
+                        boolean checkin1Popular = false;
+                        boolean checkin2Popular = false;
+                        if (checkin1.popularTargetUid.get("all") || (!uid.equals("") && checkin1.popularTargetUid.containsKey(uid) && checkin1.popularTargetUid.get(uid)))
+                            checkin1Popular = true;
+                        if (checkin2.popularTargetUid.get("all") || (!uid.equals("") && checkin2.popularTargetUid.containsKey(uid) && checkin2.popularTargetUid.get(uid)))
+                            checkin2Popular = true;
+
+                        if (checkin1Popular == checkin2Popular) {
+                            return (checkin1.likeNum + checkin1.like.size()) - (checkin2.likeNum + checkin2.like.size());
+                        }
+                        if (checkin1Popular) {
+                            return 1;
+                        }
+                        if (checkin2Popular) {
+                            return -1;
+                        }
+                        return (checkin1.likeNum + checkin1.like.size()) - (checkin2.likeNum + checkin2.like.size());
+                    }
+                });
+
+                for (final Checkin checkin : checkinValues) {
+                    checkinItemAdapter.insert(checkin, 0);
+                }
+                break;
         }
+
     }
 
     @Override
@@ -108,23 +160,25 @@ public class ListFragment extends Fragment {
         }
     }
 
-//    @Override
-//    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-//        inflater.inflate(R.menu.checkin_filter_menu, menu);
-//        super.onCreateOptionsMenu(menu, inflater);
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.popular:
-//                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
-//                return true;
-//            case R.id.time:
-//                Toast.makeText(getContext(), "not available", Toast.LENGTH_SHORT).show();
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.checkin_filter_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.popular:
+                orderFlag = ORDER_POPULAR;
+                refresh();
+                return true;
+            case R.id.time:
+                orderFlag = ORDER_TIME;
+                refresh();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }
