@@ -184,6 +184,13 @@ public class MapFragment extends Fragment {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        ((MainActivity) getActivity()).detachChecinListener();
+        ((MainActivity) getActivity()).detachSavePostIdListener();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_map, parent, false);
     }

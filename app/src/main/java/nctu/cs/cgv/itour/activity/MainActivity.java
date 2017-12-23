@@ -102,6 +102,11 @@ public class MainActivity extends AppCompatActivity implements
     private float[] gravity;
     private float[] geomagnetic;
 
+    private Query checkinQuery;
+    private ChildEventListener checkinListener;
+    private Query savePostIdQuery;
+    private ChildEventListener savePostIdListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -144,9 +149,9 @@ public class MainActivity extends AppCompatActivity implements
         checkinMap.clear();
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        Query query = databaseReference.child("checkin").child(mapTag);
+        checkinQuery = databaseReference.child("checkin").child(mapTag);
 
-        query.addChildEventListener(new ChildEventListener() {
+        checkinListener = checkinQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
@@ -197,14 +202,18 @@ public class MainActivity extends AppCompatActivity implements
         });
     }
 
+    public void detachChecinListener() {
+        checkinQuery.removeEventListener(checkinListener);
+    }
+
     public void querySavedPostId() {
         savedPostId.clear();
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final Query saveQuery = databaseReference.child("users").child(uid).child("saved").child(mapTag);
+        savePostIdQuery = databaseReference.child("users").child(uid).child("saved").child(mapTag);
 
-        saveQuery.addChildEventListener(new ChildEventListener() {
+        savePostIdListener = savePostIdQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
@@ -230,6 +239,10 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
+    }
+
+    public void detachSavePostIdListener() {
+        savePostIdQuery.removeEventListener(savePostIdListener);
     }
 
     private void setView() {
