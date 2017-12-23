@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -22,9 +23,16 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 import cz.msebera.android.httpclient.Header;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
+import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 
 public class GpsLocationService extends Service implements
@@ -107,7 +115,7 @@ public class GpsLocationService extends Service implements
     }
 
     private void gpsLog(Location location) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
         AsyncHttpClient client = new AsyncHttpClient();
@@ -141,6 +149,25 @@ public class GpsLocationService extends Service implements
                 // called when request is retried
             }
         });
+
+        File file = new File(gpsLogPath + "/" + "gpsLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
+        if(!file.exists())
+        {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file,true));
+            BufferedWriter buffered_writer = new BufferedWriter(file_writer);
+            buffered_writer.write("{" + requestParams.toString() + "},\n");
+            buffered_writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Nullable

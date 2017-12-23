@@ -68,6 +68,8 @@ public class SavedCheckinFragment extends Fragment {
                     Checkin checkin = checkinMap.get(postId);
                     if (checkin != null) {
                         checkinItemAdapter.insert(checkin, 0);
+                    } else {
+                        // TODO delete this postId
                     }
                 }
             }

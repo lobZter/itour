@@ -46,7 +46,7 @@ public class ListFragment extends Fragment {
     private ActionBar actionBar;
     private final int ORDER_TIME = 0;
     private final int ORDER_POPULAR = 1;
-    private int orderFlag = ORDER_TIME;
+    private int orderFlag = ORDER_POPULAR;
 
     public static ListFragment newInstance() {
         return new ListFragment();

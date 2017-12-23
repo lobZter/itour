@@ -23,6 +23,8 @@ public class MyApplication extends Application {
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour";
     public static final String audioLogPath = dirPath + "/audioLog";
     public static final String imageLogPath = dirPath + "/imageLog";
+    public static final String gpsLogPath = dirPath + "/gpsLog";
+    public static final String actionLogPath = dirPath + "/actionLog";
     private static final String TAG = "MyApplication";
     public static SpotList spotList;
     public static Mesh realMesh;
@@ -46,6 +48,14 @@ public class MyApplication extends Application {
         File imageDir = new File(imageLogPath);
         if (!imageDir.exists()) {
             imageDir.mkdirs();
+        }
+        File gpsLogDir = new File(gpsLogPath);
+        if (!gpsLogDir.exists()) {
+            gpsLogDir.mkdirs();
+        }
+        File actionLogDir = new File(actionLogPath);
+        if (!actionLogDir.exists()) {
+            actionLogDir.mkdirs();
         }
     }
 }
