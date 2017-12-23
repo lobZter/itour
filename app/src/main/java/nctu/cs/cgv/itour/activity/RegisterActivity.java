@@ -67,8 +67,8 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordView = (EditText) findViewById(R.id.confirm_password);
         confirmPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.register || id == EditorInfo.IME_NULL) {
+            public boolean onEditorAction(TextView textView, int actionId , KeyEvent keyEvent) {
+                if (actionId  == EditorInfo.IME_ACTION_GO) {
                     register();
                     return true;
                 }
@@ -201,6 +201,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private boolean isPasswordValid(String password) {
+        if (password.length() < 6) return false;
         return true;
     }
 

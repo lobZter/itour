@@ -21,8 +21,9 @@ public class Checkin {
     public String uid;
     public String username;
     public String timestamp;
+
     public String targetUid;
-    public Boolean popularFlag;
+    public String popularTargetUid;
     public Boolean fakeFlag;
 
     public String key;
@@ -53,7 +54,7 @@ public class Checkin {
         this.username = username;
         this.timestamp = timestamp;
         this.targetUid = "";
-        this.popularFlag = false;
+        this.popularTargetUid = "";
         this.fakeFlag = false;
     }
 
@@ -71,7 +72,8 @@ public class Checkin {
         result.put("username", username);
         result.put("timestamp", timestamp);
         result.put("targetUid", targetUid);
-        result.put("popularFlag", popularFlag);
+        result.put("popularTargetUid", popularTargetUid);
+        result.put("fakeFlag", fakeFlag);
 
         return result;
     }

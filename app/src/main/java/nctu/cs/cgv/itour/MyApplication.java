@@ -15,12 +15,9 @@ import nctu.cs.cgv.itour.object.SpotList;
 
 public class MyApplication extends Application {
 
-//    public static final String mapTag = "tamsui_1111";
     public static final String mapTag = "tamsui";
     public static final String fileServerURL = "http://140.113.210.14/map/json_maps";
     public static final String APPServerURL = "http://140.113.210.17:55555";
-//    public static final String APPServerURL = "http://140.113.210.17";
-//    public static final String APPServerURL = "https://itour-lobst3rd.c9users.io";
     public static final String fileUploadURL = APPServerURL + "/upload";
     public static final String fileDownloadURL = APPServerURL + "/download";
     public static final String dirPath = Environment.getExternalStorageDirectory().toString() + "/iTour";

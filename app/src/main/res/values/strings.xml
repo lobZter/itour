@@ -10,7 +10,7 @@
     <string name="action_register">Register</string>
     <string name="action_guest">guest</string>
     <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_password">Password should be longer than 6</string>
     <string name="error_confirm_password">Password does not match</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
