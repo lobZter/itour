@@ -65,6 +65,7 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MapFragment extends Fragment {
@@ -269,6 +270,7 @@ public class MapFragment extends Fragment {
                     return;
                 }
                 actionLog("edit checkin");
+                appLog("go CheckinActivity");
                 startActivity(new Intent(context, CheckinActivity.class));
             }
         });

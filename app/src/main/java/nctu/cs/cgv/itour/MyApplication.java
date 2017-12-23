@@ -25,12 +25,13 @@ public class MyApplication extends Application {
     public static final String imageLogPath = dirPath + "/imageLog";
     public static final String gpsLogPath = dirPath + "/gpsLog";
     public static final String actionLogPath = dirPath + "/actionLog";
+    public static final String appLogPath = dirPath + "/appLog";
     private static final String TAG = "MyApplication";
     public static SpotList spotList;
     public static Mesh realMesh;
     public static Mesh warpMesh;
     public static EdgeNode edgeNode;
-    public static boolean logFlag = true;
+    public static boolean logFlag = false;
 
     @Override
     public void onCreate() {
@@ -56,6 +57,10 @@ public class MyApplication extends Application {
         File actionLogDir = new File(actionLogPath);
         if (!actionLogDir.exists()) {
             actionLogDir.mkdirs();
+        }
+        File appLogDir = new File(appLogPath);
+        if (!appLogDir.exists()) {
+            appLogDir.mkdirs();
         }
     }
 }

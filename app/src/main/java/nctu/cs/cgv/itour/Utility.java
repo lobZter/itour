@@ -28,6 +28,7 @@ import nctu.cs.cgv.itour.object.IdxWeights;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.actionLogPath;
+import static nctu.cs.cgv.itour.MyApplication.appLogPath;
 import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
@@ -160,6 +161,36 @@ public class Utility {
         });
 
         File file = new File(actionLogPath + "/" + "actionLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
+        if(!file.exists())
+        {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file,true));
+            BufferedWriter buffered_writer = new BufferedWriter(file_writer);
+            buffered_writer.write("{" + requestParams.toString() + "},\n");
+            buffered_writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void appLog(String log) {
+        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
+        RequestParams requestParams = new RequestParams();
+        requestParams.put("log", log);
+        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+
+        File file = new File(appLogPath + "/" + "appLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
         if(!file.exists())
         {
             try {
