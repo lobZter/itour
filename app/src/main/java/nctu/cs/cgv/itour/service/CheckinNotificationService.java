@@ -58,7 +58,8 @@ public class CheckinNotificationService extends Service {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
                 checkin.key = dataSnapshot.getKey();
-                if (checkin.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) notifyCheckin(checkin);
+                if (checkin.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                    notifyCheckin(checkin);
             }
 
             @Override
@@ -96,13 +97,16 @@ public class CheckinNotificationService extends Service {
         notificationIntent.putExtra("key", checkin.key);
         PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setLargeIcon(icon)
-                .setVibrate(new long[] {0, 300, 300, 300, 300})
-                .setContentTitle(checkin.location)
-                .setContentText(checkin.description.substring(0, Math.min(10, checkin.description.length() - 1)) + "...")
-                .setContentIntent(intent);
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
+        notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
+        notificationBuilder.setLargeIcon(icon);
+        notificationBuilder.setVibrate(new long[] {0, 300, 300, 300, 300});
+        notificationBuilder.setContentTitle(checkin.location);
+        if (checkin.notification.equals(""))
+            notificationBuilder.setContentText(checkin.description.substring(0, Math.min(10, checkin.description.length() - 1)) + "...");
+        else
+            notificationBuilder.setContentText(checkin.notification);
+        notificationBuilder.setContentIntent(intent);
 
         Notification notification = notificationBuilder.build();
         notification.flags |= Notification.FLAG_AUTO_CANCEL;
