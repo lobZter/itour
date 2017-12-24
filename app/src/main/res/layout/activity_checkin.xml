@@ -41,38 +41,38 @@
 
             </RelativeLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider" />
+            <!--<View-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="1dp"-->
+                <!--android:background="@color/divider" />-->
 
-            <RelativeLayout
-                android:id="@+id/btn_audio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:background="@drawable/checkin_activity_btn"
-                android:paddingBottom="12dp"
-                android:paddingEnd="8dp"
-                android:paddingStart="8dp"
-                android:paddingTop="12dp">
+            <!--<RelativeLayout-->
+                <!--android:id="@+id/btn_audio"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center_vertical"-->
+                <!--android:background="@drawable/checkin_activity_btn"-->
+                <!--android:paddingBottom="12dp"-->
+                <!--android:paddingEnd="8dp"-->
+                <!--android:paddingStart="8dp"-->
+                <!--android:paddingTop="12dp">-->
 
-                <ImageView
-                    android:id="@+id/mic_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingEnd="8dp"
-                    android:paddingStart="8dp"
-                    android:src="@drawable/ic_mic_black_24dp" />
+                <!--<ImageView-->
+                    <!--android:id="@+id/mic_icon"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:paddingEnd="8dp"-->
+                    <!--android:paddingStart="8dp"-->
+                    <!--android:src="@drawable/ic_mic_black_24dp" />-->
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toEndOf="@id/mic_icon"
-                    android:text="@string/post_checkin_audio_hint"
-                    android:textSize="18sp" />
+                <!--<TextView-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_toEndOf="@id/mic_icon"-->
+                    <!--android:text="@string/post_checkin_audio_hint"-->
+                    <!--android:textSize="18sp" />-->
 
-            </RelativeLayout>
+            <!--</RelativeLayout>-->
 
             <LinearLayout
                 android:id="@+id/recode_audio_layout"
@@ -271,8 +271,9 @@
                 <nctu.cs.cgv.itour.custom.SquareImageView
                     android:id="@+id/picked_photo"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentStart="true" />
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"/>
 
                 <ImageView
                     android:id="@+id/btn_cancel_photo"

@@ -4,21 +4,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,7 +23,6 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
@@ -73,12 +66,12 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
 
             viewHolder.photo = (ImageView) view.findViewById(R.id.photo);
 
-            viewHolder.audioLayout = view.findViewById(R.id.audio);
-            viewHolder.audioDivider = view.findViewById(R.id.audio_divider);
-            viewHolder.playBtn = (ImageView) view.findViewById(R.id.btn_play);
-            viewHolder.progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-            viewHolder.progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
-            viewHolder.progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
+//            viewHolder.audioLayout = view.findViewById(R.id.audio);
+//            viewHolder.audioDivider = view.findViewById(R.id.audio_divider);
+//            viewHolder.playBtn = (ImageView) view.findViewById(R.id.btn_play);
+//            viewHolder.progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
+//            viewHolder.progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
+//            viewHolder.progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
 
             viewHolder.likeBtn = (Button) view.findViewById(R.id.btn_like);
             viewHolder.saveBtn = (Button) view.findViewById(R.id.btn_save);
@@ -99,7 +92,7 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         viewHolder.like.setText(likeStr);
 
         setPhoto(viewHolder, checkin.photo);
-        setAudio(viewHolder, checkin.audio);
+//        setAudio(viewHolder, checkin.audio);
         setActionBtn(viewHolder, checkin);
 
         return view;
@@ -146,70 +139,70 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         }
     }
 
-    private void setAudio(final ViewHolder viewHolder, final String filename) {
-
-        if (filename.equals("")) {
-            viewHolder.audioLayout.setVisibility(View.GONE);
-            viewHolder.audioDivider.setVisibility(View.GONE);
-            return;
-        } else {
-            viewHolder.audioLayout.setVisibility(View.VISIBLE);
-            viewHolder.audioDivider.setVisibility(View.VISIBLE);
-        }
-
-        final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
-        final Handler progressBarHandler = new Handler();
-        final Runnable progressBarRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (mediaPlayer[0] != null && mediaPlayer[0].isPlaying()) {
-                    viewHolder.progressBar.setProgress(mediaPlayer[0].getCurrentPosition() * 100 / mediaPlayer[0].getDuration());
-                    String str = String.format("%d:%02d", mediaPlayer[0].getCurrentPosition() / 1000, (mediaPlayer[0].getCurrentPosition() % 1000) * 60 / 1000);
-                    viewHolder.progressTextCurrent.setText(str);
-                }
-                progressBarHandler.postDelayed(this, 100);
-            }
-        };
-
-        viewHolder.playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mediaPlayer[0] != null) {
-                    if (mediaPlayer[0].isPlaying())
-                        pauseAudio(viewHolder, mediaPlayer[0]);
-                    else
-                        playAudio(viewHolder, mediaPlayer[0]);
-                }
-            }
-        });
-
-        final File externalCacheDir = context.getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            mediaPlayer[0] = initAudio(viewHolder, externalCacheDir.toString() + "/" + filename, progressBarHandler, progressBarRunnable);
-        } else {
-            // download audio
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    mediaPlayer[0] = initAudio(viewHolder, response.toString(), progressBarHandler, progressBarRunnable);
-
-                    if (externalCacheDir != null) {
-                        String path = response.toString();
-                        String dirPath = path.substring(0, path.lastIndexOf("/"));
-                        File rename = new File(dirPath + "/" + filename);
-                        response.renameTo(rename);
-                        moveFile(dirPath, filename, externalCacheDir.toString());
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-
-                }
-            });
-        }
-    }
+//    private void setAudio(final ViewHolder viewHolder, final String filename) {
+//
+//        if (filename.equals("")) {
+//            viewHolder.audioLayout.setVisibility(View.GONE);
+//            viewHolder.audioDivider.setVisibility(View.GONE);
+//            return;
+//        } else {
+//            viewHolder.audioLayout.setVisibility(View.VISIBLE);
+//            viewHolder.audioDivider.setVisibility(View.VISIBLE);
+//        }
+//
+//        final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
+//        final Handler progressBarHandler = new Handler();
+//        final Runnable progressBarRunnable = new Runnable() {
+//            @Override
+//            public void run() {
+//                if (mediaPlayer[0] != null && mediaPlayer[0].isPlaying()) {
+//                    viewHolder.progressBar.setProgress(mediaPlayer[0].getCurrentPosition() * 100 / mediaPlayer[0].getDuration());
+//                    String str = String.format("%d:%02d", mediaPlayer[0].getCurrentPosition() / 1000, (mediaPlayer[0].getCurrentPosition() % 1000) * 60 / 1000);
+//                    viewHolder.progressTextCurrent.setText(str);
+//                }
+//                progressBarHandler.postDelayed(this, 100);
+//            }
+//        };
+//
+//        viewHolder.playBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (mediaPlayer[0] != null) {
+//                    if (mediaPlayer[0].isPlaying())
+//                        pauseAudio(viewHolder, mediaPlayer[0]);
+//                    else
+//                        playAudio(viewHolder, mediaPlayer[0]);
+//                }
+//            }
+//        });
+//
+//        final File externalCacheDir = context.getExternalCacheDir();
+//        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
+//            mediaPlayer[0] = initAudio(viewHolder, externalCacheDir.toString() + "/" + filename, progressBarHandler, progressBarRunnable);
+//        } else {
+//            // download audio
+//            AsyncHttpClient client = new AsyncHttpClient();
+//            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
+//                @Override
+//                public void onSuccess(int statusCode, Header[] headers, File response) {
+//                    mediaPlayer[0] = initAudio(viewHolder, response.toString(), progressBarHandler, progressBarRunnable);
+//
+//                    if (externalCacheDir != null) {
+//                        String path = response.toString();
+//                        String dirPath = path.substring(0, path.lastIndexOf("/"));
+//                        File rename = new File(dirPath + "/" + filename);
+//                        response.renameTo(rename);
+//                        moveFile(dirPath, filename, externalCacheDir.toString());
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
+//
+//                }
+//            });
+//        }
+//    }
 
     private void setActionBtn(final ViewHolder viewHolder, final Checkin checkin) {
 
@@ -327,45 +320,45 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
         }
     }
 
-    private MediaPlayer initAudio(final ViewHolder viewHolder, final String filePath, final Handler progressBarHandler, final Runnable progressBarRunnable) {
-        viewHolder.progressBar.setProgress(0);
-        viewHolder.progressTextCurrent.setText(context.getString(R.string.default_start_time));
-        viewHolder.progressTextDuration.setText(context.getString(R.string.default_start_time));
-
-        final MediaPlayer mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                progressBarHandler.removeCallbacksAndMessages(null);
-                initAudio(viewHolder, filePath, progressBarHandler, progressBarRunnable);
-            }
-        });
-        try {
-            mediaPlayer.setDataSource(filePath);
-            mediaPlayer.prepare();
-
-            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
-            viewHolder.progressTextDuration.setText(str);
-
-            progressBarHandler.postDelayed(progressBarRunnable, 0);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
-        return mediaPlayer;
-    }
-
-    private void playAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
-        mediaPlayer.start();
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_pause_black_48dp, null));
-    }
-
-    private void pauseAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
-        mediaPlayer.pause();
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
-    }
+//    private MediaPlayer initAudio(final ViewHolder viewHolder, final String filePath, final Handler progressBarHandler, final Runnable progressBarRunnable) {
+//        viewHolder.progressBar.setProgress(0);
+//        viewHolder.progressTextCurrent.setText(context.getString(R.string.default_start_time));
+//        viewHolder.progressTextDuration.setText(context.getString(R.string.default_start_time));
+//
+//        final MediaPlayer mediaPlayer = new MediaPlayer();
+//        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+//            @Override
+//            public void onCompletion(MediaPlayer mp) {
+//                progressBarHandler.removeCallbacksAndMessages(null);
+//                initAudio(viewHolder, filePath, progressBarHandler, progressBarRunnable);
+//            }
+//        });
+//        try {
+//            mediaPlayer.setDataSource(filePath);
+//            mediaPlayer.prepare();
+//
+//            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
+//            viewHolder.progressTextDuration.setText(str);
+//
+//            progressBarHandler.postDelayed(progressBarRunnable, 0);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
+//        return mediaPlayer;
+//    }
+//
+//    private void playAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
+//        mediaPlayer.start();
+//        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_pause_black_48dp, null));
+//    }
+//
+//    private void pauseAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
+//        mediaPlayer.pause();
+//        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
+//    }
 
     private static class ViewHolder {
         TextView username;
@@ -375,12 +368,12 @@ public class PostedCheckinItemAdapter extends ArrayAdapter<Checkin> {
 
         ImageView photo;
 
-        View audioLayout;
-        View audioDivider;
-        ImageView playBtn;
-        ProgressBar progressBar;
-        TextView progressTextCurrent;
-        TextView progressTextDuration;
+//        View audioLayout;
+//        View audioDivider;
+//        ImageView playBtn;
+//        ProgressBar progressBar;
+//        TextView progressTextCurrent;
+//        TextView progressTextDuration;
 
         Button likeBtn;
         Button saveBtn;

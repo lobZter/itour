@@ -46,7 +46,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +80,7 @@ public class LocationChooseActivity extends AppCompatActivity {
     // intent info
     private String description;
     private String photo;
-    private String audio;
+    //    private String audio;
     // variables
     private Matrix transformMat;
     private float scale = 1;
@@ -90,10 +89,10 @@ public class LocationChooseActivity extends AppCompatActivity {
     private float gpsDistortedY = -1;
     private int mapCenterX = 0;
     private int mapCenterY = 0;
-    private int gpsMarkerPivotX = 0;
-    private int gpsMarkerPivotY = 0;
-    private int checkinIconPivotX = 0;
-    private int checkinIconPivotY = 0;
+    private int gpsMarkerPivotX;
+    private int gpsMarkerPivotY;
+    private int checkinIconPivotX;
+    private int checkinIconPivotY;
     private int spotIconPivotX = 0;
     private int spotIconPivotY = 0;
     // UI references
@@ -135,7 +134,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         Intent intent = getIntent();
         description = intent.getStringExtra("description");
         photo = intent.getStringExtra("photo");
-        audio = intent.getStringExtra("audio");
+//        audio = intent.getStringExtra("audio");
 
         // set actionBar title, top-left icon
         ActionBar actionBar = getSupportActionBar();
@@ -207,7 +206,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
 
         spotNodeList = new ArrayList<>();
-        for (SpotNode spotNode: spotList.nodeMap.values()) {
+        for (SpotNode spotNode : spotList.nodeMap.values()) {
             spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name));
         }
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -537,7 +536,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
             float[] imgPx = gpsToImgPx(lat, lng);
 
-            if(imgPx[0] != -1 && imgPx[1] != -1) {
+            if (imgPx[0] != -1 && imgPx[1] != -1) {
 
                 // translate to center when handleGpsUpdate first time
                 if (gpsDistortedX == -1 && gpsDistortedY == -1) {
@@ -609,36 +608,36 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
-        final Map<String, Boolean> type = new HashMap<>();
-        final List<File> fileList = new ArrayList<>();
+//        final Map<String, Boolean> type = new HashMap<>();
+//        final List<File> fileList = new ArrayList<>();
         // rename file with postId
-        if (photo.equals("")) {
-            type.put("photo", false);
-        } else {
-            File from = new File(getCacheDir().toString() + "/" + photo);
-            File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
-            photo = key + ".jpg";
-            from.renameTo(to);
-            fileList.add(to);
-            type.put("photo", true);
-        }
-        if (audio.equals("")) {
-            type.put("audio", false);
-        } else {
-            File from = new File(getCacheDir().toString() + "/" + audio);
-            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
-            from.renameTo(to);
-            audio = key + ".mp4";
-            fileList.add(to);
-            type.put("audio", true);
-        }
+//        if (photo.equals("")) {
+//            type.put("photo", false);
+//        } else {
+        File from = new File(getCacheDir().toString() + "/" + photo);
+        final File file = new File(getCacheDir().toString() + "/" + key + ".jpg");
+        photo = key + ".jpg";
+        from.renameTo(file);
+//        fileList.add(to);
+//            type.put("photo", true);
+//        }
+//        if (audio.equals("")) {
+//            type.put("audio", false);
+//        } else {
+//            File from = new File(getCacheDir().toString() + "/" + audio);
+//            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
+//            from.renameTo(to);
+//            audio = key + ".mp4";
+//            fileList.add(to);
+//            type.put("audio", true);
+//        }
 
         // save checkin data to firebase database
         String location = locationEdit.getText().toString().trim();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-        Checkin checkin = new Checkin(String.valueOf(gps[0]), String.valueOf(gps[1]), location, description, photo, audio, type, uid, username, timestamp);
+        Checkin checkin = new Checkin(String.valueOf(gps[0]), String.valueOf(gps[1]), location, description, photo, uid, username, timestamp);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
@@ -650,9 +649,10 @@ public class LocationChooseActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    File[] fileArray = new File[fileList.size()];
-                    fileList.toArray(fileArray);
-                    params.put("files", fileArray);
+//                    File[] fileArray = new File[fileList.size()];
+//                    fileList.toArray(fileArray);
+//                    params.put("files", fileArray);
+                    params.put("file", file);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -667,10 +667,10 @@ public class LocationChooseActivity extends AppCompatActivity {
                     public void onSuccess(int statusCode, Header[] headers, byte[] response) {
                         // move files
                         if (getExternalCacheDir() != null) {
-                            if(!photo.equals(""))
+                            if (!photo.equals(""))
                                 moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
-                            if(!audio.equals(""))
-                                moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
+//                            if(!audio.equals(""))
+//                                moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
                         }
                         actionLog("post checkin");
                         progressDialog.dismiss();

@@ -31,7 +31,7 @@ public class MyApplication extends Application {
     public static Mesh realMesh;
     public static Mesh warpMesh;
     public static EdgeNode edgeNode;
-    public static boolean logFlag = false;
+    public static boolean logFlag = true;
 
     @Override
     public void onCreate() {

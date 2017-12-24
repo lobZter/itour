@@ -313,9 +313,9 @@ public class MainActivity extends AppCompatActivity implements
                                 intent.getFloatExtra("lng", 0));
                         break;
                     case "fogUpdate":
-                        mapFragment.handleFogUpdate(
-                                intent.getFloatExtra("lat", 0),
-                                intent.getFloatExtra("lng", 0));
+//                        mapFragment.handleFogUpdate(
+//                                intent.getFloatExtra("lat", 0),
+//                                intent.getFloatExtra("lng", 0));
                         break;
                 }
             }
@@ -369,27 +369,26 @@ public class MainActivity extends AppCompatActivity implements
 //        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
 //    }
 
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        switch (requestCode) {
-//            case SCREEN_CAPTURE_REQUEST:
-//                if (resultCode == RESULT_OK) {
-//                    Intent service = new Intent(this, ScreenShotService.class);
-//                    service.putExtra("resultCode", resultCode);
-//                    service.putExtra("resultData", data);
-//                    startService(service);
-//                }
-//                break;
-//            case SCREEN_OVERLAY_PERMISSON_REQUEST:
-//                if (resultCode == RESULT_OK) {
-//                    Intent service = new Intent(this, AudioFeedbackService.class);
-//                    startService(service);
-//                }
-//                break;
-//        }
-//    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case SCREEN_CAPTURE_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, ScreenShotService.class);
+                    service.putExtra("resultCode", resultCode);
+                    service.putExtra("resultData", data);
+                    startService(service);
+                }
+                break;
+            case SCREEN_OVERLAY_PERMISSON_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, AudioFeedbackService.class);
+                    startService(service);
+                }
+                break;
+        }
+    }
 
     @Override
     public void onNewIntent(Intent intent) {

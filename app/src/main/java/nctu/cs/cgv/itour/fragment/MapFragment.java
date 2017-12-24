@@ -798,8 +798,8 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public void handleFogUpdate(float lat, float lng) {
-
+//    public void handleFogUpdate(float lat, float lng) {
+//
 //        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
 //
 //            float[] imgPx = gpsToImgPx(lat, lng);
@@ -815,7 +815,7 @@ public class MapFragment extends Fragment {
 //                fogMap.postInvalidate();
 //            }
 //        }
-    }
+//    }
 
     public void handleSensorChange(float rotation) {
         final float RADIAN = 57.296f;
