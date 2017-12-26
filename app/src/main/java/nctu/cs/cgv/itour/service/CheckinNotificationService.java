@@ -51,15 +51,15 @@ public class CheckinNotificationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        Query query = databaseReference.child("checkin").child(mapTag);
+//        Query query = databaseReference.child("checkin").child(mapTag);
+        Query query = databaseReference.child("notification").child(mapTag);
 
         query.limitToLast(1).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                checkin.key = dataSnapshot.getKey();
-                if (checkin.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
-                    notifyCheckin(checkin);
+                nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
+                if (notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                    notifyCheckin(notification);
             }
 
             @Override
@@ -86,32 +86,29 @@ public class CheckinNotificationService extends Service {
         return START_NOT_STICKY;
     }
 
-    private void notifyCheckin(Checkin checkin) {
+    private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
 
         Bitmap icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         notificationIntent.putExtra("checkinNotificationIntent", true);
-        notificationIntent.putExtra("lat", checkin.lat);
-        notificationIntent.putExtra("lng", checkin.lng);
-        notificationIntent.putExtra("key", checkin.key);
+        notificationIntent.putExtra("lat", notification.lat);
+        notificationIntent.putExtra("lng", notification.lng);
+        notificationIntent.putExtra("key", notification.postId);
         PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
         notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
         notificationBuilder.setLargeIcon(icon);
         notificationBuilder.setVibrate(new long[] {0, 300, 300, 300, 300});
-        notificationBuilder.setContentTitle(checkin.location);
-        if (checkin.notification.equals(""))
-            notificationBuilder.setContentText(checkin.description.substring(0, Math.min(10, checkin.description.length() - 1)) + "...");
-        else
-            notificationBuilder.setContentText(checkin.notification);
+        notificationBuilder.setContentTitle(notification.title);
+        notificationBuilder.setContentText(notification.msg);
         notificationBuilder.setContentIntent(intent);
 
-        Notification notification = notificationBuilder.build();
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
+//        Notification notification = notificationBuilder.build();
+//        notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-        notificationManager.cancelAll();
-        notificationManager.notify(CUSTOM_ID, notification);
+//        notificationManager.cancelAll();
+        notificationManager.notify(CUSTOM_ID, notificationBuilder.build());
     }
 }

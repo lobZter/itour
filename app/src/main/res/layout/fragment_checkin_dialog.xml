@@ -173,21 +173,6 @@
                 android:background="@color/divider" />
 
             <Button
-                android:id="@+id/btn_go"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableLeft="@drawable/ic_done_black_24dp"
-                android:text="@string/btn_go_string"
-                android:textColor="@color/md_black_1000" />
-
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="@color/divider" />
-
-            <Button
                 android:id="@+id/btn_save"
                 style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
                 android:layout_width="0dp"
