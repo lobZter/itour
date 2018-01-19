@@ -15,9 +15,11 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="hint_new_account">Don\'t have an account?</string>
-
-    <string name="error_registration_failed">Registration failed.</string>
-    <string name="error_store_profile_failed">Storing profile failed.</string>
+    <string name="dialog_sign_in">登入中</string>
+    <string name="dialog_register">註冊中</string>
+    <string name="error_sign_in_failed">登入失敗</string>
+    <string name="error_registration_failed">註冊失敗</string>
+    <string name="error_store_profile_failed">個人資料寫入失敗</string>
 
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>

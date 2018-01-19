@@ -45,6 +45,7 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    private final int PERMISSIONS_MULTIPLE_REQUEST = 123;
     // UI references
     private EditText emailView;
     private EditText nameView;
@@ -61,21 +62,21 @@ public class RegisterActivity extends AppCompatActivity {
         firebaseAuth = FirebaseAuth.getInstance();
 
         progressDialog = new ProgressDialog(this);
-        emailView = (EditText) findViewById(R.id.email);
-        nameView = (EditText) findViewById(R.id.name);
-        passwordView = (EditText) findViewById(R.id.password);
-        confirmPasswordView = (EditText) findViewById(R.id.confirm_password);
+        emailView = findViewById(R.id.email);
+        nameView = findViewById(R.id.name);
+        passwordView = findViewById(R.id.password);
+        confirmPasswordView = findViewById(R.id.confirm_password);
         confirmPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView textView, int actionId , KeyEvent keyEvent) {
-                if (actionId  == EditorInfo.IME_ACTION_GO) {
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
                     register();
                     return true;
                 }
                 return false;
             }
         });
-        Button emailSignInButton = (Button) findViewById(R.id.btn_email_sign_in);
+        Button emailSignInButton = findViewById(R.id.btn_email_sign_in);
         emailSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -137,7 +138,7 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        progressDialog.setMessage("Registering User...");
+        progressDialog.setMessage(getString(R.string.dialog_register));
         progressDialog.show();
 
         firebaseAuth.createUserWithEmailAndPassword(email, password)
@@ -181,11 +182,8 @@ public class RegisterActivity extends AppCompatActivity {
                                             if (!task.isSuccessful()) {
                                                 Toast.makeText(RegisterActivity.this, getString(R.string.error_store_profile_failed), Toast.LENGTH_LONG).show();
                                             }
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                                checkPermission();
-                                            } else {
-                                                startMainActivity();
-                                            }
+                                            checkPermission();
+
                                         }
                                     });
                         } else {
@@ -201,8 +199,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private boolean isPasswordValid(String password) {
-        if (password.length() < 6) return false;
-        return true;
+        return password.length() >= 6;
     }
 
     private boolean confirmPassword(String password, String passwordConfirmed) {
@@ -228,11 +225,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int gpsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
 
-        if (gpsPermission + storagePermission != PackageManager.PERMISSION_GRANTED) {
+        if (gpsPermission + storagePermission + micPermission != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
                     ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 showExplanation();
@@ -240,7 +237,8 @@ public class RegisterActivity extends AppCompatActivity {
                 requestPermissions(
                         new String[]{
                                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                Manifest.permission.ACCESS_FINE_LOCATION},
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.RECORD_AUDIO},
                         PERMISSIONS_MULTIPLE_REQUEST);
             }
         } else {
@@ -249,7 +247,6 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void showExplanation() {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.permission_title)
                 .setMessage(R.string.permission_message)
@@ -259,7 +256,8 @@ public class RegisterActivity extends AppCompatActivity {
                         requestPermissions(
                                 new String[]{
                                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                        Manifest.permission.ACCESS_FINE_LOCATION},
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.RECORD_AUDIO},
                                 PERMISSIONS_MULTIPLE_REQUEST);
                     }
                 });
@@ -268,13 +266,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        final int PERMISSIONS_MULTIPLE_REQUEST = 123;
 
         switch (requestCode) {
             case PERMISSIONS_MULTIPLE_REQUEST:
                 if (grantResults.length > 0) {
                     boolean storagePermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
                     boolean gpsPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean micPermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
 
                     if (storagePermission && gpsPermission) {
                         startMainActivity();
