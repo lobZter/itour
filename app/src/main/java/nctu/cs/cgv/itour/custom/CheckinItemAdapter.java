@@ -92,10 +92,11 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             viewHolder.location.setText(checkin.location);
             viewHolder.description.setText(checkin.description);
 
-            String likeStr = "";
+            int likeNum = checkin.likeNum;
             if (checkin.like != null && checkin.like.size() > 0) {
-                likeStr = String.valueOf(checkin.likeNum + checkin.like.size()) + context.getString(R.string.checkin_card_like_num);
+                likeNum += checkin.like.size();
             }
+            String likeStr = likeNum > 0 ? String.valueOf(likeNum) + context.getString(R.string.checkin_card_like_num) : "";
             viewHolder.like.setText(likeStr);
 
             setPhoto(viewHolder, checkin.photo);
@@ -252,7 +253,7 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
                         if (checkin.like != null && checkin.like.size() > 0) {
                             likeStr = String.valueOf(checkin.likeNum + checkin.like.size() + 1) + context.getString(R.string.checkin_card_like_num);
                         } else {
-                            likeStr = "1" + getContext().getString(R.string.checkin_card_like_num);
+                            likeStr = String.valueOf(checkin.likeNum + 1) + getContext().getString(R.string.checkin_card_like_num);
                         }
                         viewHolder.like.setText(likeStr);
                         databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
