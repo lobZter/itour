@@ -13,19 +13,16 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -66,7 +63,6 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
-import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
@@ -76,8 +72,8 @@ public class MainActivity extends AppCompatActivity implements
         SettingsFragment.OnCheckinIconListener,
         SettingsFragment.OnSpotIonListener {
 
-    private static final String TAG = "MainActivity";
     public static final int CHECKIN_NOTIFICATION_REQUEST = 321;
+    private static final String TAG = "MainActivity";
     private static final int PERMISSIONS_MULTIPLE_REQUEST = 123;
     private static final int SCREEN_OVERLAY_PERMISSON_REQUEST = 456;
     private static final int SCREEN_CAPTURE_REQUEST = 789;
@@ -112,11 +108,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission();
-        } else {
-            init();
-        }
+        checkPermission();
     }
 
     private void init() {
@@ -134,11 +126,15 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
-        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null) startService(new Intent(this, CheckinNotificationService.class));
-//        if (logFlag) requestScreenCapture();
+
+        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
+            startService(new Intent(this, CheckinNotificationService.class));
+//        if (logFlag)
+//            requestScreenCapture();
     }
 
     private void setCheckinPreference() {
+        // show checkin icon as default
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean("checkin", true);
@@ -248,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements
     private void setView() {
         mapFragment = MapFragment.newInstance();
         listFragment = ListFragment.newInstance();
-
         personalFragment = PersonalFragment.newInstance();
         fragmentList = new ArrayList<>();
         fragmentList.add(mapFragment);
@@ -257,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements
 //        fragmentList.add(PlanFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
-        viewPager = (MyViewPager) findViewById(R.id.view_pager);
+        viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
@@ -274,7 +269,7 @@ public class MainActivity extends AppCompatActivity implements
         // set keep all three pages alive
         viewPager.setOffscreenPageLimit(4);
 
-        bottomBar = (BottomBar) findViewById(R.id.bottom_bar);
+        bottomBar = findViewById(R.id.bottom_bar);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
             @Override
             public void onTabSelected(@IdRes int tabId) {
@@ -320,6 +315,11 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         };
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("gpsUpdate");
+        intentFilter.addAction("fogUpdate");
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
     }
 
     private void setSensors() {
@@ -352,10 +352,21 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         };
+
+
+        if (accelerometer != null) {
+            sensorManager.registerListener(
+                    sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        }
+
+        if (magnetometer != null) {
+            sensorManager.registerListener(
+                    sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
+        }
     }
 
     private void requestSystemOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+        if (!Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
             startActivityForResult(intent, SCREEN_OVERLAY_PERMISSON_REQUEST);
         } else {
@@ -364,32 +375,32 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-//    private void requestScreenCapture() {
-//        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-//        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
-//    }
+    private void requestScreenCapture() {
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE_REQUEST);
+    }
 
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        switch (requestCode) {
-//            case SCREEN_CAPTURE_REQUEST:
-//                if (resultCode == RESULT_OK) {
-//                    Intent service = new Intent(this, ScreenShotService.class);
-//                    service.putExtra("resultCode", resultCode);
-//                    service.putExtra("resultData", data);
-//                    startService(service);
-//                }
-//                break;
-//            case SCREEN_OVERLAY_PERMISSON_REQUEST:
-//                if (resultCode == RESULT_OK) {
-//                    Intent service = new Intent(this, AudioFeedbackService.class);
-//                    startService(service);
-//                }
-//                break;
-//        }
-//    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case SCREEN_CAPTURE_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, ScreenShotService.class);
+                    service.putExtra("resultCode", resultCode);
+                    service.putExtra("resultData", data);
+                    startService(service);
+                }
+                break;
+            case SCREEN_OVERLAY_PERMISSON_REQUEST:
+                if (resultCode == RESULT_OK) {
+                    Intent service = new Intent(this, AudioFeedbackService.class);
+                    startService(service);
+                }
+                break;
+        }
+    }
 
     @Override
     public void onNewIntent(Intent intent) {
@@ -404,21 +415,6 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         appLog("MainActivity onResume");
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("gpsUpdate");
-        intentFilter.addAction("fogUpdate");
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
-
-        if (accelerometer != null) {
-            sensorManager.registerListener(
-                    sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI);
-        }
-
-        if (magnetometer != null) {
-            sensorManager.registerListener(
-                    sensorEventListener, magnetometer, SensorManager.SENSOR_DELAY_UI);
-        }
-
         if (logFlag) requestSystemOverlayPermission();
     }
 
@@ -426,18 +422,20 @@ public class MainActivity extends AppCompatActivity implements
     protected void onPause() {
         super.onPause();
         appLog("MainActivity onPause");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
 
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
         stopService(new Intent(this, GpsLocationService.class));
+        stopService(new Intent(this, CheckinNotificationService.class));
     }
 
 //    @Override
@@ -467,7 +465,6 @@ public class MainActivity extends AppCompatActivity implements
             mapFragment.showDialog(key);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
         int storagePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int gpsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -485,7 +482,6 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
