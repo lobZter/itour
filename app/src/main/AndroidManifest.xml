@@ -36,15 +36,8 @@
             android:name=".activity.CheckinActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".activity.MapListActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNoActionBar" />
-        <activity
             android:name=".activity.LocationChooseActivity"
             android:label="Choose Location"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".activity.SpotInfoActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
