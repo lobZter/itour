@@ -59,6 +59,10 @@ import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
+import static nctu.cs.cgv.itour.MyApplication.CLUSTER_THRESHOLD;
+import static nctu.cs.cgv.itour.MyApplication.MAX_ZOOM;
+import static nctu.cs.cgv.itour.MyApplication.MIN_ZOOM;
+import static nctu.cs.cgv.itour.MyApplication.ZOOM_THRESHOLD;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.edgeNode;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
@@ -71,11 +75,6 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 public class MapFragment extends Fragment {
 
     private static final String TAG = "MapFragment";
-    // constants
-    private final float MIN_ZOOM = 0.5f;
-    private final float MAX_ZOOM = 6.0f;
-    private final float ZOOM_THRESHOLD = 1.4f;
-    private final int CLUSTER_THRESHOLD = 50000;
     private Context context;
     // variables
     private Matrix transformMat;
@@ -198,11 +197,11 @@ public class MapFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        rootLayout = (RelativeLayout) view.findViewById(R.id.parent_layout);
-        gpsMarker = (LinearLayout) view.findViewById(R.id.gps_marker);
-        gpsBtn = (FloatingActionButton) view.findViewById(R.id.btn_gps);
-        addBtn = (FloatingActionButton) view.findViewById(R.id.btn_add);
-        FrameLayout frameLayout = (FrameLayout) view.findViewById(R.id.touristmap);
+        rootLayout = view.findViewById(R.id.parent_layout);
+        gpsMarker = view.findViewById(R.id.gps_marker);
+        gpsBtn = view.findViewById(R.id.btn_gps);
+        addBtn = view.findViewById(R.id.btn_add);
+        FrameLayout frameLayout = view.findViewById(R.id.touristmap);
         seperator = view.findViewById(R.id.seperator);
 
         // set subtitle

@@ -18,6 +18,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -46,7 +47,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +57,9 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
+import static nctu.cs.cgv.itour.MyApplication.MAX_ZOOM;
+import static nctu.cs.cgv.itour.MyApplication.MIN_ZOOM;
+import static nctu.cs.cgv.itour.MyApplication.ZOOM_THRESHOLD;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
@@ -68,16 +71,12 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
 import static nctu.cs.cgv.itour.Utility.imgPxToGps;
 import static nctu.cs.cgv.itour.Utility.moveFile;
+import static nctu.cs.cgv.itour.Utility.spToPx;
 import static nctu.cs.cgv.itour.activity.CheckinActivity.RESULT_CODE_CHECKIN_FINISH;
 
 public class LocationChooseActivity extends AppCompatActivity {
 
     private static final String TAG = "LocationChooseActivity";
-
-    // constants
-    private final float MIN_ZOOM = 0.5f;
-    private final float MAX_ZOOM = 6.0f;
-    private final float ZOOM_THRESHOLD = 1.4f;
     // intent info
     private String description;
     private String photo;
@@ -145,23 +144,11 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // initialize objects
         transformMat = new Matrix();
-        messageReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                switch (intent.getAction()) {
-                    case "gpsUpdate":
-                        handleLocationChange(
-                                intent.getFloatExtra("lat", 0),
-                                intent.getFloatExtra("lng", 0));
-                        break;
-                }
-            }
-        };
 
         // get view references
-        rootLayout = (RelativeLayout) findViewById(R.id.parent_layout);
-        locationEdit = (AutoCompleteTextView) findViewById(R.id.et_location);
-        gpsBtn = (FloatingActionButton) findViewById(R.id.btn_gps);
+        rootLayout = findViewById(R.id.parent_layout);
+        locationEdit = findViewById(R.id.et_location);
+        gpsBtn = findViewById(R.id.btn_gps);
         checkinIcon = findViewById(R.id.checkin_icon);
         gpsMarker = findViewById(R.id.gps_marker);
 
@@ -204,16 +191,17 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // draw spots
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
-        spotIconPivotY = (int) getResources().getDimension(R.dimen.spot_icon_height) / 2;
-
+        spotIconPivotY = spToPx(this, 14) / 2;
         spotNodeList = new ArrayList<>();
         for (SpotNode spotNode: spotList.nodeMap.values()) {
+            // allocate new spotNode instead using spotNode in nodeMap
             spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name));
         }
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         for (SpotNode spotNode : spotNodeList) {
-            addSpotNode(spotNode, inflater);
+            addSpotNodeIcon(spotNode, inflater);
         }
+
 
         // set location autocomplete
         ArrayList<String> array = new ArrayList<>();
@@ -232,6 +220,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         setTouchListener();
         setSensors();
+        setBroadcastReceiver();
 
         rootLayout.post(new Runnable() {
             @Override
@@ -244,7 +233,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                 // translate to center
                 checkinIcon.setTranslationX(mapCenterX - checkinIconPivotX);
-                checkinIcon.setTranslationY(mapCenterY - checkinIconPivotY);
+                checkinIcon.setTranslationY(mapCenterY - 96);
             }
         });
     }
@@ -400,6 +389,54 @@ public class LocationChooseActivity extends AppCompatActivity {
         };
     }
 
+    private void setBroadcastReceiver() {
+        messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (intent.getAction()) {
+                    case "gpsUpdate":
+                        handleGpsUpdate(
+                                intent.getFloatExtra("lat", 0),
+                                intent.getFloatExtra("lng", 0));
+                        break;
+                }
+            }
+        };
+    }
+
+    private void handleGpsUpdate(float lat, float lng) {
+
+        // GPS is within tourist map.
+        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
+
+            if (gpsMarker.getVisibility() != View.VISIBLE) {
+                gpsMarker.setVisibility(View.VISIBLE);
+            }
+
+            float[] imgPx = gpsToImgPx(lat, lng);
+
+            if(imgPx[0] != -1 && imgPx[1] != -1) {
+
+                // translate to center when handleGpsUpdate first time
+                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
+                    translateToImgPx(imgPx[0], imgPx[1], true);
+                }
+
+                gpsDistortedX = imgPx[0];
+                gpsDistortedY = imgPx[1];
+
+                reRender();
+            }
+
+        } else { // GPS outside.
+
+            if (gpsMarker.getVisibility() != View.GONE) {
+                gpsMarker.setVisibility(View.GONE);
+                Toast.makeText(this, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
     private void reRender() {
 
         boolean isMerged = scale < ZOOM_THRESHOLD;
@@ -447,13 +484,6 @@ public class LocationChooseActivity extends AppCompatActivity {
             spotNode.icon.setTranslationX(point[0]);
             spotNode.icon.setTranslationY(point[1]);
         }
-    }
-
-    private void addSpotNode(final SpotNode spotNode, LayoutInflater inflater) {
-        View icon = inflater.inflate(R.layout.item_spot, null);
-        spotNode.icon = icon;
-        ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
-        rootLayout.addView(icon, 1); // after tourist map, and before every other views.
     }
 
     private void translateToImgPx(final float x, final float y, final boolean toCurrent) {
@@ -527,37 +557,6 @@ public class LocationChooseActivity extends AppCompatActivity {
         rotationHandler.postDelayed(rotationInterpolation, 5);
     }
 
-    private void handleLocationChange(float lat, float lng) {
-
-        // GPS is within tourist map.
-        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
-            if (gpsMarker.getVisibility() != View.VISIBLE) {
-                gpsMarker.setVisibility(View.VISIBLE);
-            }
-
-            float[] imgPx = gpsToImgPx(lat, lng);
-
-            if(imgPx[0] != -1 && imgPx[1] != -1) {
-
-                // translate to center when handleGpsUpdate first time
-                if (gpsDistortedX == -1 && gpsDistortedY == -1) {
-                    translateToImgPx(imgPx[0], imgPx[1], true);
-                }
-
-                gpsDistortedX = imgPx[0];
-                gpsDistortedY = imgPx[1];
-
-                reRender();
-            }
-
-        } else {
-            if (gpsMarker.getVisibility() != View.GONE) {
-                gpsMarker.setVisibility(View.GONE);
-                Toast.makeText(this, getString(R.string.toast_gps_outside), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -587,6 +586,13 @@ public class LocationChooseActivity extends AppCompatActivity {
             sensorManager.unregisterListener(sensorEventListener);
         }
 
+    }
+
+    private void addSpotNodeIcon(final SpotNode spotNode, LayoutInflater inflater) {
+        View icon = inflater.inflate(R.layout.item_spot, null);
+        spotNode.icon = icon;
+        ((TextView) spotNode.icon.findViewById(R.id.spot_name)).setText(spotNode.name);
+        rootLayout.addView(icon, 1); // after tourist map, and before every other views.
     }
 
     private void checkin() {

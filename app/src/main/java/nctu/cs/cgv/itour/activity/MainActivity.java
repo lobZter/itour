@@ -316,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         };
 
+        // Register onCreate; Un-register onDestroy
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("gpsUpdate");
         intentFilter.addAction("fogUpdate");
@@ -353,7 +354,7 @@ public class MainActivity extends AppCompatActivity implements
             }
         };
 
-
+        // Register onCreate; Un-register onDestroy
         if (accelerometer != null) {
             sensorManager.registerListener(
                     sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI);

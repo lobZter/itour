@@ -46,6 +46,10 @@ public class Utility {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics()));
     }
 
+    public static int spToPx(Context context, float sp) {
+        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics()));
+    }
+
     public static float lerp(float from, float to, float alpha) {
         return from + alpha * (to - from);
     }

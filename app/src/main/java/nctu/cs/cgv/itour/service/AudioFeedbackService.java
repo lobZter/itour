@@ -84,7 +84,7 @@ public class AudioFeedbackService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         windowManager.addView(overlayView, params);
 
-        fab = (FloatingActionButton) overlayView.findViewById(R.id.fab);
+        fab = overlayView.findViewById(R.id.fab);
 
         fab.setOnTouchListener(new View.OnTouchListener() {
             private int initialX;
