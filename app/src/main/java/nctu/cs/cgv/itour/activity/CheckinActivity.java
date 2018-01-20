@@ -97,9 +97,7 @@ public class CheckinActivity extends AppCompatActivity {
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            checkPermission();
-        }
+//        checkPermission();
 
         setView();
     }
@@ -113,20 +111,20 @@ public class CheckinActivity extends AppCompatActivity {
         }
 
         // set view
-        descriptionEdit = (EditText) findViewById(R.id.et_description);
-        photoBtn = (RelativeLayout) findViewById(R.id.btn_photo);
-        audioBtn = (RelativeLayout) findViewById(R.id.btn_audio);
-        pickedPhotoLayout = (RelativeLayout) findViewById(R.id.picked_photo_layout);
-        recordAudioLayout = (LinearLayout) findViewById(R.id.recode_audio_layout);
-        cancelPhotoBtn = (ImageView) findViewById(R.id.btn_cancel_photo);
-        cancelAudioBtn = (ImageView) findViewById(R.id.btn_cancel_audio);
+        descriptionEdit = findViewById(R.id.et_description);
+        photoBtn = findViewById(R.id.btn_photo);
+        audioBtn = findViewById(R.id.btn_audio);
+        pickedPhotoLayout = findViewById(R.id.picked_photo_layout);
+        recordAudioLayout = findViewById(R.id.recode_audio_layout);
+        cancelPhotoBtn = findViewById(R.id.btn_cancel_photo);
+        cancelAudioBtn = findViewById(R.id.btn_cancel_audio);
 
-        pickedPhoto = (ImageView) findViewById(R.id.picked_photo);
+        pickedPhoto = findViewById(R.id.picked_photo);
 
         // set progress bar
-        progressBar = (ProgressBar) findViewById(R.id.progressbar);
-        progressTextCurrent = (TextView) findViewById(R.id.tv_progress_current);
-        progressTextDuration = (TextView) findViewById(R.id.tv_progress_duration);
+        progressBar = findViewById(R.id.progressbar);
+        progressTextCurrent = findViewById(R.id.tv_progress_current);
+        progressTextDuration = findViewById(R.id.tv_progress_duration);
         final int timeTotal = 10000;
         final int timeInterval = 100;
         countDownTimer = new CountDownTimer(timeTotal, timeInterval) {
@@ -149,11 +147,11 @@ public class CheckinActivity extends AppCompatActivity {
         };
 
 
-        recordBtn = (Button) findViewById(R.id.btn_record);
-        stopBtn = (Button) findViewById(R.id.btn_stop);
-        playBtn = (Button) findViewById(R.id.btn_play);
-        pauseBtn = (Button) findViewById(R.id.btn_pause);
-        redoBtn = (Button) findViewById(R.id.btn_redo);
+        recordBtn = findViewById(R.id.btn_record);
+        stopBtn = findViewById(R.id.btn_stop);
+        playBtn = findViewById(R.id.btn_play);
+        pauseBtn = findViewById(R.id.btn_pause);
+        redoBtn = findViewById(R.id.btn_redo);
 
         photoBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -444,7 +442,6 @@ public class CheckinActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void checkPermission() {
         int micPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO);
 
