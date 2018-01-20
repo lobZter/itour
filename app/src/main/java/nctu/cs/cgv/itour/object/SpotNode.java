@@ -7,11 +7,11 @@ package nctu.cs.cgv.itour.object;
 public class SpotNode extends ImageNode {
 
     public String name;
-    public MergedCheckinNode mergedCheckinNode;
+    public CheckinNode checkinNode;
 
     public SpotNode(float x, float y, String name) {
         super(x, y);
         this.name = name;
-        this.mergedCheckinNode = null;
+        this.checkinNode = null;
     }
 }

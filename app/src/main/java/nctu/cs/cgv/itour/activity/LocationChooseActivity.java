@@ -213,7 +213,8 @@ public class LocationChooseActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 hideSoftKeyboard(LocationChooseActivity.this);
-                Node node = spotList.nodeMap.get(adapter.getItem(position));
+                String autocompleteStr = adapter.getItem(position);
+                Node node = spotList.nodeMap.get(autocompleteStr);
                 translateToImgPx(node.x, node.y, false);
             }
         });

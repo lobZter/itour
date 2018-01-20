@@ -5,13 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BlurMaskFilter;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
@@ -52,9 +46,8 @@ import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
-import nctu.cs.cgv.itour.object.EdgeNode;
+import nctu.cs.cgv.itour.object.CheckinNode;
 import nctu.cs.cgv.itour.object.ImageNode;
-import nctu.cs.cgv.itour.object.MergedCheckinNode;
 import nctu.cs.cgv.itour.object.Node;
 import nctu.cs.cgv.itour.object.SpotNode;
 
@@ -62,15 +55,16 @@ import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static nctu.cs.cgv.itour.MyApplication.CLUSTER_THRESHOLD;
 import static nctu.cs.cgv.itour.MyApplication.MAX_ZOOM;
 import static nctu.cs.cgv.itour.MyApplication.MIN_ZOOM;
+import static nctu.cs.cgv.itour.MyApplication.OVERLAP_THRESHOLD;
 import static nctu.cs.cgv.itour.MyApplication.ZOOM_THRESHOLD;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
-import static nctu.cs.cgv.itour.MyApplication.edgeNode;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
+import static nctu.cs.cgv.itour.Utility.spToPx;
 
 public class MapFragment extends Fragment {
 
@@ -94,7 +88,7 @@ public class MapFragment extends Fragment {
     private int mergedCheckinIconPivotY;
     private int spotIconPivotX;
     private int spotIconPivotY;
-//    private int edgeNodeIconPivotX;
+    //    private int edgeNodeIconPivotX;
 //    private int edgeNodeIconPivotY;
     // UI references
     private RelativeLayout rootLayout;
@@ -109,8 +103,13 @@ public class MapFragment extends Fragment {
     // objects
 //    private List<ImageNode> edgeNodeList;
 //    private List<ImageNode> pathEdgeNodeList;
-    private Map<String, ImageNode> checkinNodeMap;
-    private List<MergedCheckinNode> mergedCheckinNodeList;
+
+
+    private Map<String, CheckinNode> checkinNodeMap;
+    private List<CheckinNode> checkinNodeList;
+    private List<CheckinNode> checkinClusterNodeList;
+
+
     private Map<String, SpotNode> spotNodeMap;
     private List<SpotNode> spotNodeList;
     private LayoutInflater inflater;
@@ -147,7 +146,8 @@ public class MapFragment extends Fragment {
 //        edgeNodeList = new ArrayList<>();
 //        pathEdgeNodeList = new ArrayList<>();
         checkinNodeMap = new HashMap<>();
-        mergedCheckinNodeList = new ArrayList<>();
+        checkinNodeList = new ArrayList<>();
+        checkinClusterNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
         translationHandler = new Handler();
@@ -174,7 +174,7 @@ public class MapFragment extends Fragment {
         mergedCheckinIconPivotX = mergedCheckinIconWidth / 3;
         mergedCheckinIconPivotY = mergedCheckinIconHeight;
         spotIconPivotX = spotIconWidth / 2;
-        spotIconPivotY = spotIconHeight / 2;
+        spotIconPivotY = spToPx(context, 14) / 2;
 //        edgeNodeIconPivotX = edgeNodeIconWidth / 2;
 //        edgeNodeIconPivotY = edgeNodeIconHeight / 2;
 
@@ -525,43 +525,43 @@ public class MapFragment extends Fragment {
             }
         }
 
-        // transform mergedCheckinNode
+        // transform checkinClusterNode
         if (checkinSwitch) {
             if (isMerged) {
-                for (ImageNode imageNode : checkinNodeMap.values()) {
-                    imageNode.icon.setVisibility(View.GONE);
+                for (CheckinNode checkinNode : checkinNodeList) {
+                    checkinNode.icon.setVisibility(View.GONE);
                 }
 
-                for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                    mergedCheckinNode.icon.setVisibility(View.VISIBLE);
+                for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                    checkinClusterNode.icon.setVisibility(View.VISIBLE);
                 }
 
             } else {
-                for (ImageNode imageNode : checkinNodeMap.values()) {
-                    imageNode.icon.setVisibility(View.VISIBLE);
+                for (CheckinNode checkinNode : checkinNodeList) {
+                    checkinNode.icon.setVisibility(View.VISIBLE);
                 }
 
-                for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                    mergedCheckinNode.icon.setVisibility(View.GONE);
+                for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                    checkinClusterNode.icon.setVisibility(View.GONE);
                 }
             }
 
-            for (ImageNode imageNode : checkinNodeMap.values()) {
-                point[0] = imageNode.x;
-                point[1] = imageNode.y;
+            for (CheckinNode checkinNode : checkinNodeList) {
+                point[0] = checkinNode.x;
+                point[1] = checkinNode.y;
                 transformMat.mapPoints(point);
                 checkinIconTransform.mapPoints(point);
-                imageNode.icon.setTranslationX(point[0]);
-                imageNode.icon.setTranslationY(point[1]);
+                checkinNode.icon.setTranslationX(point[0]);
+                checkinNode.icon.setTranslationY(point[1]);
             }
 
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                point[0] = mergedCheckinNode.x;
-                point[1] = mergedCheckinNode.y;
+            for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                point[0] = checkinClusterNode.x;
+                point[1] = checkinClusterNode.y;
                 transformMat.mapPoints(point);
                 mergedCheckinIconTransform.mapPoints(point);
-                mergedCheckinNode.icon.setTranslationX(point[0]);
-                mergedCheckinNode.icon.setTranslationY(point[1]);
+                checkinClusterNode.icon.setTranslationX(point[0]);
+                checkinClusterNode.icon.setTranslationY(point[1]);
             }
         }
     }
@@ -606,9 +606,36 @@ public class MapFragment extends Fragment {
 
     public void addCheckin(final Checkin checkin) {
         float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-        ImageNode checkinNode = new ImageNode(imgPx[0], imgPx[1]);
 
-        // create icon ImageView
+        addCheckinIcon(checkin, imgPx[0], imgPx[1]);
+        addCheckinClusterIcon(checkin, imgPx[0], imgPx[1]);
+        reRender();
+    }
+
+    public void changeCheckin(final Checkin checkin) {
+        ImageNode checkinNode = checkinNodeMap.get(checkin.key);
+
+        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)))
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
+        else
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
+        reRender();
+    }
+
+    // checkins that their icon overlay
+    private void addCheckinIcon(final Checkin checkin, float x, float y) {
+
+        // search for exist node
+        for (CheckinNode checkinNode : checkinNodeList) {
+            double distance = Math.pow(x - checkinNode.x, 2) + Math.pow(y - checkinNode.y, 2);
+            if (distance < OVERLAP_THRESHOLD) {
+                checkinNode.checkinList.add(checkin);
+                return;
+            }
+        }
+
+        // create new node
+        CheckinNode checkinNode = new CheckinNode(x, y);
         checkinNode.icon = new ImageView(context);
         checkinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -623,77 +650,74 @@ public class MapFragment extends Fragment {
         else
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
+        checkinNode.checkinList.add(checkin);
+        checkinNodeList.add(checkinNode);
         checkinNodeMap.put(checkin.key, checkinNode);
-
-        addMergedCheckin(checkin.location, imgPx[0], imgPx[1]);
-        reRender();
     }
 
-    public void changeCheckin(final Checkin checkin) {
-        ImageNode checkinNode = checkinNodeMap.get(checkin.key);
+    // nearby checkins, checkins with same location
+    private void addCheckinClusterIcon(final Checkin checkin, final float x, final float y) {
 
-        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)))
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
-        else
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
-        reRender();
-    }
-
-    private void addMergedCheckin(String spotName, float x, float y) {
-
-        SpotNode spotNode = spotNodeMap.get(spotName);
+        final SpotNode spotNode = spotNodeMap.get(checkin.location);
         if (spotNode != null) {
             // add into spot
-            if (spotNode.mergedCheckinNode == null) {
-                // no checkin on spot yet
-                spotNode.mergedCheckinNode = newMergedCheckin(spotNode.x, spotNode.y, true);
+            if (spotNode.checkinNode == null) { // no checkin on spot yet
+                spotNode.checkinNode = new CheckinNode(spotNode.x, spotNode.y,
+                        inflater.inflate(R.layout.item_merged_checkin, null));
+                spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        translateToImgPx(spotNode.x, spotNode.y, false);
+                    }
+                });
+                spotNode.checkinNode.onSpot = true;
+                spotNode.checkinNode.checkinList.add(checkin);
+                TextView checkinsNumCircle = spotNode.checkinNode.icon.findViewById(R.id.checkin_num);
+                checkinsNumCircle.setText(" 1");
+                rootLayout.addView(spotNode.checkinNode.icon, rootLayout.indexOfChild(seperator));
+                checkinClusterNodeList.add(spotNode.checkinNode);
             } else {
-                spotNode.mergedCheckinNode.checkinNum++;
-                TextView checkinsNumCircle = (TextView) spotNode.mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                checkinsNumCircle.setText(spotNode.mergedCheckinNode.checkinNum < 10 ?
-                        " " + String.valueOf(spotNode.mergedCheckinNode.checkinNum) : String.valueOf(spotNode.mergedCheckinNode.checkinNum));
+                spotNode.checkinNode.checkinList.add(checkin);
+                TextView checkinsNumCircle = spotNode.checkinNode.icon.findViewById(R.id.checkin_num);
+                int checkinsNum = spotNode.checkinNode.checkinList.size();
+                checkinsNumCircle.setText(checkinsNum < 10 ?
+                        " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
             }
         } else {
-            // add into cluster
-            boolean newCluster = true;
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                if (mergedCheckinNode.onSpot) continue;
+            // search for exist cluster node
+            for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                if (checkinClusterNode.onSpot) continue;
 
-                double distance = Math.pow(x - mergedCheckinNode.x, 2) + Math.pow(y - mergedCheckinNode.y, 2);
+                double distance = Math.pow(x - checkinClusterNode.x, 2) + Math.pow(y - checkinClusterNode.y, 2);
                 if (distance < CLUSTER_THRESHOLD) {
-                    int clusterSize = mergedCheckinNode.checkinNum;
-                    mergedCheckinNode.x = (mergedCheckinNode.x * clusterSize + x) / (clusterSize + 1);
-                    mergedCheckinNode.y = (mergedCheckinNode.y * clusterSize + y) / (clusterSize + 1);
+                    int clusterSize = checkinClusterNode.checkinList.size();
+                    checkinClusterNode.x = (checkinClusterNode.x * clusterSize + x) / (clusterSize + 1);
+                    checkinClusterNode.y = (checkinClusterNode.y * clusterSize + y) / (clusterSize + 1);
 
-                    mergedCheckinNode.checkinNum++;
-                    TextView checkinsNumCircle = (TextView) mergedCheckinNode.icon.findViewById(R.id.checkin_num);
-                    checkinsNumCircle.setText(mergedCheckinNode.checkinNum < 10 ?
-                            " " + String.valueOf(mergedCheckinNode.checkinNum) : String.valueOf(mergedCheckinNode.checkinNum));
-                    newCluster = false;
-                    break;
+                    checkinClusterNode.checkinList.add(checkin);
+                    TextView checkinsNumCircle = checkinClusterNode.icon.findViewById(R.id.checkin_num);
+                    int checkinsNum = checkinClusterNode.checkinList.size();
+                    checkinsNumCircle.setText(checkinsNum < 10 ?
+                            " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
+                    return;
                 }
             }
 
             // cluster not found, create a new one
-            if (newCluster) {
-                newMergedCheckin(x, y, false);
-            }
+            CheckinNode checkinNode = new CheckinNode(x, y,
+                    inflater.inflate(R.layout.item_merged_checkin, null));
+            checkinNode.icon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    translateToImgPx(x, y, false);
+                }
+            });
+            checkinNode.checkinList.add(checkin);
+            TextView checkinsNumCircle = checkinNode.icon.findViewById(R.id.checkin_num);
+            checkinsNumCircle.setText(" 1");
+            rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
+            checkinClusterNodeList.add(checkinNode);
         }
-    }
-
-    private MergedCheckinNode newMergedCheckin(float x, float y, boolean onSpot) {
-        final MergedCheckinNode mergedCheckinNode = new MergedCheckinNode(x, y);
-        mergedCheckinNode.icon = inflater.inflate(R.layout.item_merged_checkin, null);
-        mergedCheckinNode.icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                translateToImgPx(mergedCheckinNode.x, mergedCheckinNode.y, false);
-            }
-        });
-        mergedCheckinNode.onSpot = onSpot;
-        rootLayout.addView(mergedCheckinNode.icon, rootLayout.indexOfChild(seperator));
-        mergedCheckinNodeList.add(mergedCheckinNode);
-        return mergedCheckinNode;
     }
 
     public void translateToImgPx(final float x, final float y, final boolean toCurrent) {
@@ -850,18 +874,18 @@ public class MapFragment extends Fragment {
     public void switchCheckinIcon(boolean flag) {
         checkinSwitch = flag;
         if (flag) {
-            for (ImageNode imageNode : checkinNodeMap.values()) {
-                imageNode.icon.setVisibility(View.VISIBLE);
+            for (CheckinNode checkinNode : checkinNodeList) {
+                checkinNode.icon.setVisibility(View.VISIBLE);
             }
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                mergedCheckinNode.icon.setVisibility(View.VISIBLE);
+            for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                checkinClusterNode.icon.setVisibility(View.VISIBLE);
             }
         } else {
-            for (ImageNode imageNode : checkinNodeMap.values()) {
-                imageNode.icon.setVisibility(View.GONE);
+            for (CheckinNode checkinNode : checkinNodeList) {
+                checkinNode.icon.setVisibility(View.GONE);
             }
-            for (MergedCheckinNode mergedCheckinNode : mergedCheckinNodeList) {
-                mergedCheckinNode.icon.setVisibility(View.GONE);
+            for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                checkinClusterNode.icon.setVisibility(View.GONE);
             }
         }
         reRender();

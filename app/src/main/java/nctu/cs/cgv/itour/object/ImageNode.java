@@ -14,4 +14,9 @@ public class ImageNode extends Node {
         super(x, y);
         this.icon = null;
     }
+
+    public ImageNode(float x, float y, View icon) {
+        super(x, y);
+        this.icon = icon;
+    }
 }

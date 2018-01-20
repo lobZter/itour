@@ -38,6 +38,7 @@ public class MyApplication extends Application {
     public static final float MAX_ZOOM = 6.0f;
     public static final float ZOOM_THRESHOLD = 1.4f;
     public static final int CLUSTER_THRESHOLD = 50000;
+    public static final int OVERLAP_THRESHOLD = 500;
 
     @Override
     public void onCreate() {
