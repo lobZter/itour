@@ -102,4 +102,7 @@
     <string name="checkin_notification_title">新打卡</string>
 
     <string name="feedback_go">回報成功</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

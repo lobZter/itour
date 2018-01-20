@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements
         bottomBar.selectTabAtPosition(0);
         mapFragment.translateToImgPx(imgPxX, imgPxY, false);
         if (!key.equals(""))
-            mapFragment.showDialog(key);
+            mapFragment.showCheckinDialog(key);
     }
 
     private void checkPermission() {

@@ -597,11 +597,17 @@ public class MapFragment extends Fragment {
 //        }
 //    }
 
-    public void showDialog(String key) {
+    public void showCheckinDialog(String key) {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(key);
         checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
         actionLog("browse checkin: " + key);
+    }
+
+    public void showCheckinListDialog(CheckinNode checkinNode) {
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        CheckinListDialogFragment checkinListDialogFragment = CheckinListDialogFragment.newInstance(checkinNode);
+        checkinListDialogFragment.show(fragmentManager, "fragment_checkin_list_dialog");
     }
 
     public void addCheckin(final Checkin checkin) {
@@ -626,10 +632,18 @@ public class MapFragment extends Fragment {
     private void addCheckinIcon(final Checkin checkin, float x, float y) {
 
         // search for exist node
-        for (CheckinNode checkinNode : checkinNodeList) {
+        for (final CheckinNode checkinNode : checkinNodeList) {
             double distance = Math.pow(x - checkinNode.x, 2) + Math.pow(y - checkinNode.y, 2);
             if (distance < OVERLAP_THRESHOLD) {
                 checkinNode.checkinList.add(checkin);
+                if (checkinNode.checkinList.size() > 1) {
+                    checkinNode.icon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showCheckinListDialog(checkinNode);
+                        }
+                    });
+                }
                 return;
             }
         }
@@ -640,7 +654,7 @@ public class MapFragment extends Fragment {
         checkinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog(checkin.key);
+                showCheckinDialog(checkin.key);
             }
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
@@ -667,7 +681,8 @@ public class MapFragment extends Fragment {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        translateToImgPx(spotNode.x, spotNode.y, false);
+//                        translateToImgPx(spotNode.x, spotNode.y, false);
+                        showCheckinDialog(checkin.key);
                     }
                 });
                 spotNode.checkinNode.onSpot = true;
@@ -677,6 +692,13 @@ public class MapFragment extends Fragment {
                 rootLayout.addView(spotNode.checkinNode.icon, rootLayout.indexOfChild(seperator));
                 checkinClusterNodeList.add(spotNode.checkinNode);
             } else {
+                spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+//                        translateToImgPx(spotNode.x, spotNode.y, false);
+                        showCheckinListDialog(spotNode.checkinNode);
+                    }
+                });
                 spotNode.checkinNode.checkinList.add(checkin);
                 TextView checkinsNumCircle = spotNode.checkinNode.icon.findViewById(R.id.checkin_num);
                 int checkinsNum = spotNode.checkinNode.checkinList.size();
@@ -685,7 +707,7 @@ public class MapFragment extends Fragment {
             }
         } else {
             // search for exist cluster node
-            for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+            for (final CheckinNode checkinClusterNode : checkinClusterNodeList) {
                 if (checkinClusterNode.onSpot) continue;
 
                 double distance = Math.pow(x - checkinClusterNode.x, 2) + Math.pow(y - checkinClusterNode.y, 2);
@@ -693,7 +715,12 @@ public class MapFragment extends Fragment {
                     int clusterSize = checkinClusterNode.checkinList.size();
                     checkinClusterNode.x = (checkinClusterNode.x * clusterSize + x) / (clusterSize + 1);
                     checkinClusterNode.y = (checkinClusterNode.y * clusterSize + y) / (clusterSize + 1);
-
+                    checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            showCheckinListDialog(checkinClusterNode);
+                        }
+                    });
                     checkinClusterNode.checkinList.add(checkin);
                     TextView checkinsNumCircle = checkinClusterNode.icon.findViewById(R.id.checkin_num);
                     int checkinsNum = checkinClusterNode.checkinList.size();
@@ -709,7 +736,8 @@ public class MapFragment extends Fragment {
             checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    translateToImgPx(x, y, false);
+//                    translateToImgPx(x, y, false);
+                    showCheckinDialog(checkin.key);
                 }
             });
             checkinNode.checkinList.add(checkin);
