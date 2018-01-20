@@ -129,8 +129,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
-//        if (logFlag)
-//            requestScreenCapture();
+        if (logFlag)
+            requestScreenCapture();
     }
 
     private void setCheckinPreference() {
