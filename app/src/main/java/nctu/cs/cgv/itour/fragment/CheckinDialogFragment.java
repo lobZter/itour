@@ -83,9 +83,10 @@ public class CheckinDialogFragment extends DialogFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        appLog("CheckinDialogFragment onViewCreated: " + postId);
-
         final Checkin checkin = checkinMap.get(postId);
+
+        appLog("CheckinDialogFragment onViewCreated: " + postId);
+        actionLog("browse checkin: " + checkin.location + " " + checkin.key);
 
         TextView username = (TextView) view.findViewById(R.id.tv_username);
         TextView location = (TextView) view.findViewById(R.id.tv_location);

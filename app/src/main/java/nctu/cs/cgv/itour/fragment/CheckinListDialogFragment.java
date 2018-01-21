@@ -62,10 +62,10 @@ public class CheckinListDialogFragment extends DialogFragment {
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long id) {
                 String key = checkinList.get(position).key;
+                String location = checkinList.get(position).location;
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(key);
                 checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-                actionLog("browse checkin: " + key);
             }
         });
     }

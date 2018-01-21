@@ -602,7 +602,6 @@ public class MapFragment extends Fragment {
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(key);
         checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-        actionLog("browse checkin: " + key);
     }
 
     public void showCheckinListDialog(CheckinNode checkinNode) {
