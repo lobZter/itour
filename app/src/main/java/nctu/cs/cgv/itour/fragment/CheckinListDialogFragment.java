@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.GridLayout;
 import android.widget.GridView;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class CheckinListDialogFragment extends DialogFragment {
         GridPhotoAdapter gridPhotoAdapter = new GridPhotoAdapter(getContext(), checkinList);
 
         GridView gridView = view.findViewById(R.id.grid_view);
+//        gridView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, 3));
         gridView.setNumColumns(3);
         gridView.setAdapter(gridPhotoAdapter);
         gridView.setOnItemClickListener(new GridView.OnItemClickListener(){

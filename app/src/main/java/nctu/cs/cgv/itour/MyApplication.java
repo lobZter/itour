@@ -31,7 +31,7 @@ public class MyApplication extends Application {
     public static Mesh realMesh;
     public static Mesh warpMesh;
     public static EdgeNode edgeNode;
-    public static boolean logFlag = true;
+    public static boolean logFlag = false;
 
     // map constant
     public static final float MIN_ZOOM = 0.5f;
