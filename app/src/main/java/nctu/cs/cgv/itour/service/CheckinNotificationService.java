@@ -51,7 +51,6 @@ public class CheckinNotificationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-//        Query query = databaseReference.child("checkin").child(mapTag);
         Query query = databaseReference.child("notification").child(mapTag);
 
         query.limitToLast(1).addChildEventListener(new ChildEventListener() {
@@ -95,6 +94,8 @@ public class CheckinNotificationService extends Service {
         notificationIntent.putExtra("lat", notification.lat);
         notificationIntent.putExtra("lng", notification.lng);
         notificationIntent.putExtra("key", notification.postId);
+        notificationIntent.putExtra("title", notification.title);
+        notificationIntent.putExtra("msg", notification.msg);
         PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());

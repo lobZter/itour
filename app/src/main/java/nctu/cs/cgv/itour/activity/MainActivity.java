@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
@@ -406,6 +407,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onNewIntent(Intent intent) {
         if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
+            Utility.actionLog("notice checkin", intent.getStringExtra("title"), intent.getStringExtra("key"));
             float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
             onLocateClick(imgPx[0], imgPx[1], intent.getStringExtra("key"));
         }

@@ -276,7 +276,6 @@ public class MapFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-                actionLog("edit checkin");
                 appLog("go CheckinActivity");
                 startActivity(new Intent(context, CheckinActivity.class));
             }
@@ -323,7 +322,7 @@ public class MapFragment extends Fragment {
                 searchView.clearFocus();
                 searchView.setText(autocompleteStr);
                 // send action log to server
-                actionLog("search: " + autocompleteStr);
+                actionLog("search: ", autocompleteStr, "");
             }
         });
     }

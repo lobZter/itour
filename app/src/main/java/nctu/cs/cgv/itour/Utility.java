@@ -129,7 +129,7 @@ public class Utility {
         }
     }
 
-    public static void actionLog(String log) {
+    public static void actionLog(String log, String location, String postId) {
         if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
@@ -137,6 +137,8 @@ public class Utility {
         String url = APPServerURL + "/actionLog";
         RequestParams requestParams = new RequestParams();
         requestParams.put("log", log);
+        requestParams.put("location", location);
+        requestParams.put("postId", postId);
         requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
         requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));

@@ -641,7 +641,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         }
 
         // save checkin data to firebase database
-        String location = locationEdit.getText().toString().trim();
+        final String location = locationEdit.getText().toString().trim();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
@@ -679,7 +679,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                             if(!audio.equals(""))
                                 moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
                         }
-                        actionLog("post checkin");
+                        actionLog("post checkin", location, key);
                         progressDialog.dismiss();
                         setResult(RESULT_CODE_CHECKIN_FINISH);
                         finish();
