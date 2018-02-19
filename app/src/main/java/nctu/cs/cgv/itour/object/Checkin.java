@@ -16,8 +16,8 @@ public class Checkin {
     public String location;
     public String description;
     public String photo;
-    public String audio;
-    public Map<String, Boolean> type;
+//    public String audio;
+//    public Map<String, Boolean> type;
     public String uid;
     public String username;
     public String timestamp;
@@ -39,8 +39,8 @@ public class Checkin {
                    String location,
                    String description,
                    String photo,
-                   String audio,
-                   Map<String, Boolean> type,
+//                   String audio,
+//                   Map<String, Boolean> type,
                    String uid,
                    String username,
                    String timestamp) {
@@ -50,8 +50,8 @@ public class Checkin {
         this.location = location;
         this.description = description;
         this.photo = photo;
-        this.audio = audio;
-        this.type = type;
+//        this.audio = audio;
+//        this.type = type;
         this.uid = uid;
         this.username = username;
         this.timestamp = timestamp;
@@ -72,8 +72,8 @@ public class Checkin {
         result.put("location", location);
         result.put("description", description);
         result.put("photo", photo);
-        result.put("audio", audio);
-        result.put("type", type);
+//        result.put("audio", audio);
+//        result.put("type", type);
         result.put("uid", uid);
         result.put("username", username);
         result.put("timestamp", timestamp);

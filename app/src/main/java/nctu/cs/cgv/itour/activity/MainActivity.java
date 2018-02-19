@@ -130,8 +130,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
-        if (logFlag)
-            requestScreenCapture();
+//        if (logFlag)
+//            requestScreenCapture();
     }
 
     private void setCheckinPreference() {
@@ -418,7 +418,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         appLog("MainActivity onResume");
 
-        if (logFlag) requestSystemOverlayPermission();
+//        if (logFlag) requestSystemOverlayPermission();
     }
 
     @Override
