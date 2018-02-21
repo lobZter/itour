@@ -56,7 +56,7 @@ public class Checkin {
         this.username = username;
         this.timestamp = timestamp;
 
-        this.targetUid = "";
+        this.targetUid = "all";
         this.popularTargetUid = new HashMap<>();
         this.popularTargetUid.put("all", false);
         this.fakeFlag = false;

@@ -23,6 +23,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements
 
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                     String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    if (!checkin.targetUid.equals("") && !checkin.targetUid.equals(uid))
+                    if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
                         return;
                 }
 

@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,8 @@ import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
@@ -46,65 +49,73 @@ import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
  * Created by lobZter on 2017/8/18.
  */
 
-public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
+public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.ViewHolder> {
 
     private static final String TAG = "CheckinItemAdapter";
+    private ArrayList<Checkin> checkins;
     private Context context;
 
-    public CheckinItemAdapter(Context context, List<Checkin> checkinItems) {
-        super(context, 0, checkinItems);
+    public CheckinItemAdapter(Context context, ArrayList<Checkin> checkins) {
+        this.checkins = checkins;
         this.context = context;
     }
 
+    private Context getContext() {
+        return context;
+    }
+
     @Override
-    public View getView(int position, View view, @NonNull ViewGroup parent) {
-        final Checkin checkin = getItem(position);
+    public CheckinItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Context context = parent.getContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
 
-        ViewHolder viewHolder;
-        if (view == null) {
-            viewHolder = new ViewHolder();
-            LayoutInflater inflater = LayoutInflater.from(context);
-            view = inflater.inflate(R.layout.item_checkin_card, parent, false);
-            viewHolder.username = (TextView) view.findViewById(R.id.tv_username);
-            viewHolder.location = (TextView) view.findViewById(R.id.tv_location);
-            viewHolder.like = (TextView) view.findViewById(R.id.tv_like);
-            viewHolder.description = (TextView) view.findViewById(R.id.tv_description);
+        View checkinCardView = inflater.inflate(R.layout.item_checkin_card, parent, false);
 
-            viewHolder.photo = (ImageView) view.findViewById(R.id.photo);
+        ViewHolder viewHolder = new ViewHolder(checkinCardView);
+        return viewHolder;
+    }
 
-            viewHolder.audioLayout = view.findViewById(R.id.audio);
-            viewHolder.audioDivider = view.findViewById(R.id.audio_divider);
-            viewHolder.playBtn = (ImageView) view.findViewById(R.id.btn_play);
-            viewHolder.progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-            viewHolder.progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
-            viewHolder.progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
+    @Override
+    public void onBindViewHolder(CheckinItemAdapter.ViewHolder viewHolder, int position) {
+        Checkin checkin = checkins.get(position);
 
-            viewHolder.likeBtn = (Button) view.findViewById(R.id.btn_like);
-            viewHolder.saveBtn = (Button) view.findViewById(R.id.btn_save);
-            viewHolder.locateBtn = (Button) view.findViewById(R.id.btn_locate);
-            view.setTag(viewHolder);
-        } else {
-            viewHolder = (ViewHolder) view.getTag();
+        viewHolder.username.setText(checkin.username);
+        viewHolder.location.setText(checkin.location);
+        viewHolder.description.setText(checkin.description);
+
+        int likeNum = checkin.likeNum;
+        if (checkin.like != null && checkin.like.size() > 0) {
+            likeNum += checkin.like.size();
         }
+        viewHolder.like.setText(String.valueOf(likeNum));
 
-        if (checkin != null) {
-            viewHolder.username.setText(checkin.username);
-            viewHolder.location.setText(checkin.location);
-            viewHolder.description.setText(checkin.description);
+        setPhoto(viewHolder, checkin.photo);
+    }
 
-            int likeNum = checkin.likeNum;
-            if (checkin.like != null && checkin.like.size() > 0) {
-                likeNum += checkin.like.size();
-            }
-            String likeStr = likeNum > 0 ? String.valueOf(likeNum) + context.getString(R.string.checkin_card_like_num) : "";
-            viewHolder.like.setText(likeStr);
+    // Returns the total count of items in the list
+    @Override
+    public int getItemCount() {
+        return checkins.size();
+    }
 
-            setPhoto(viewHolder, checkin.photo);
-//            setAudio(viewHolder, checkin.audio);
-            setActionBtn(viewHolder, checkin);
-        }
+    public void addAll(Collection<Checkin> checkinList) {
+        checkins.addAll(checkinList);
+        notifyDataSetChanged();
+    }
 
-        return view;
+    public void add(Checkin checkin) {
+        checkins.add(checkin);
+        notifyDataSetChanged();
+    }
+
+    public void clear() {
+        checkins.clear();
+        notifyDataSetChanged();
+    }
+
+    public void insert(Checkin checkin, int index) {
+        checkins.add(index, checkin);
+        notifyItemInserted(index);
     }
 
     private void setPhoto(final ViewHolder viewHolder, final String filename) {
@@ -148,226 +159,23 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
         }
     }
 
-    private void setAudio(final ViewHolder viewHolder, final String filename) {
-
-        if (filename.equals("")) {
-            viewHolder.audioLayout.setVisibility(View.GONE);
-            viewHolder.audioDivider.setVisibility(View.GONE);
-            return;
-        } else {
-            viewHolder.audioLayout.setVisibility(View.VISIBLE);
-            viewHolder.audioDivider.setVisibility(View.VISIBLE);
-        }
-
-        final MediaPlayer[] mediaPlayer = new MediaPlayer[1];
-        final Handler progressBarHandler = new Handler();
-        final Runnable progressBarRunnable = new Runnable() {
-            @Override
-            public void run() {
-                if (mediaPlayer[0] != null && mediaPlayer[0].isPlaying()) {
-                    viewHolder.progressBar.setProgress(mediaPlayer[0].getCurrentPosition() * 100 / mediaPlayer[0].getDuration());
-                    String str = String.format("%d:%02d", mediaPlayer[0].getCurrentPosition() / 1000, (mediaPlayer[0].getCurrentPosition() % 1000) * 60 / 1000);
-                    viewHolder.progressTextCurrent.setText(str);
-                }
-                progressBarHandler.postDelayed(this, 100);
-            }
-        };
-
-        viewHolder.playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mediaPlayer[0] != null) {
-                    if (mediaPlayer[0].isPlaying())
-                        pauseAudio(viewHolder, mediaPlayer[0]);
-                    else
-                        playAudio(viewHolder, mediaPlayer[0]);
-                }
-            }
-        });
-
-        final File externalCacheDir = context.getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            mediaPlayer[0] = initAudio(viewHolder, externalCacheDir.toString() + "/" + filename, progressBarHandler, progressBarRunnable);
-        } else {
-            // download audio
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    mediaPlayer[0] = initAudio(viewHolder, response.toString(), progressBarHandler, progressBarRunnable);
-
-                    if (externalCacheDir != null) {
-                        String path = response.toString();
-                        String dirPath = path.substring(0, path.lastIndexOf("/"));
-                        File rename = new File(dirPath + "/" + filename);
-                        response.renameTo(rename);
-                        moveFile(dirPath, filename, externalCacheDir.toString());
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-
-                }
-            });
-        }
-    }
-
-    private void setActionBtn(final ViewHolder viewHolder, final Checkin checkin) {
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(context, context.getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(context, context.getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                    if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                        viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                        viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-                        String likeStr = "";
-                        if (checkin.like != null && checkin.like.size() > 0) {
-                            likeStr = String.valueOf(checkin.likeNum + checkin.like.size() - 1) + context.getString(R.string.checkin_card_like_num);
-                        }
-                        viewHolder.like.setText(likeStr);
-                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).removeValue();
-                        checkin.like.remove(uid);
-                        checkinMap.get(checkin.key).like.remove(uid);
-                        actionLog("cancel like checkin", checkin.location, checkin.key);
-                    } else {
-                        viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
-                        viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
-                        String likeStr;
-                        if (checkin.like != null && checkin.like.size() > 0) {
-                            likeStr = String.valueOf(checkin.likeNum + checkin.like.size() + 1) + context.getString(R.string.checkin_card_like_num);
-                        } else {
-                            likeStr = String.valueOf(checkin.likeNum + 1) + getContext().getString(R.string.checkin_card_like_num);
-                        }
-                        viewHolder.like.setText(likeStr);
-                        databaseReference.child("checkin").child(mapTag).child(checkin.key).child("like").child(uid).setValue(true);
-                        checkin.like.put(uid, true);
-                        checkinMap.get(checkin.key).like.put(uid, true);
-                        actionLog("like checkin", checkin.location, checkin.key);
-                    }
-                }
-            });
-
-            viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-                    if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                        viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                        viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).removeValue();
-                        savedPostId.remove(checkin.key);
-                        actionLog("cancel save checkin", checkin.location, checkin.key);
-                    } else {
-                        viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
-                        viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-                        databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
-                        savedPostId.put(checkin.key, true);
-                        actionLog("save checkin", checkin.location, checkin.key);
-                    }
-                }
-            });
-
-            viewHolder.locateBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-                    ((MainActivity) context).onLocateClick(imgPx[0], imgPx[1], checkin.key);
-                    actionLog("locate checkin", checkin.location, checkin.key);
-                }
-            });
-
-            if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_red_500));
-                viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
-            } else {
-                viewHolder.likeBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                viewHolder.likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
-            }
-
-            if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.gps_marker_color));
-                viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-            } else {
-                viewHolder.saveBtn.setTextColor(ContextCompat.getColor(context, R.color.md_black_1000));
-                viewHolder.saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
-            }
-        }
-    }
-
-    private MediaPlayer initAudio(final ViewHolder viewHolder, final String filePath, final Handler progressBarHandler, final Runnable progressBarRunnable) {
-        viewHolder.progressBar.setProgress(0);
-        viewHolder.progressTextCurrent.setText(context.getString(R.string.default_start_time));
-        viewHolder.progressTextDuration.setText(context.getString(R.string.default_start_time));
-
-        final MediaPlayer mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                progressBarHandler.removeCallbacksAndMessages(null);
-                initAudio(viewHolder, filePath, progressBarHandler, progressBarRunnable);
-            }
-        });
-        try {
-            mediaPlayer.setDataSource(filePath);
-            mediaPlayer.prepare();
-
-            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
-            viewHolder.progressTextDuration.setText(str);
-
-            progressBarHandler.postDelayed(progressBarRunnable, 0);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
-        return mediaPlayer;
-    }
-
-    private void playAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
-        mediaPlayer.start();
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_pause_black_48dp, null));
-    }
-
-    private void pauseAudio(final ViewHolder viewHolder, final MediaPlayer mediaPlayer) {
-        mediaPlayer.pause();
-        viewHolder.playBtn.setImageDrawable(ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_play_arrow_black_48dp, null));
-    }
-
-    private static class ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView photo;
         TextView username;
         TextView location;
         TextView like;
         TextView description;
 
-        ImageView photo;
+        public ViewHolder(View view) {
+            // Stores the itemView in a public final member variable that can be used
+            // to access the context from any ViewHolder instance.
+            super(view);
 
-        View audioLayout;
-        View audioDivider;
-        ImageView playBtn;
-        ProgressBar progressBar;
-        TextView progressTextCurrent;
-        TextView progressTextDuration;
-
-        Button likeBtn;
-        Button saveBtn;
-        Button locateBtn;
+            photo = view.findViewById(R.id.photo);
+            username = view.findViewById(R.id.tv_username);
+            location = view.findViewById(R.id.tv_location);
+            like = view.findViewById(R.id.tv_like);
+            description = view.findViewById(R.id.tv_description);
+        }
     }
 }

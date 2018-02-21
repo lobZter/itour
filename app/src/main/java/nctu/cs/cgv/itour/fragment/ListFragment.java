@@ -1,13 +1,13 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,20 +15,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
-import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.Utility.dpToPx;
@@ -62,14 +58,14 @@ public class ListFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_list_view_swipe_refresh, container, false);
+        return inflater.inflate(R.layout.fragment_recycle_view_swipe_refresh, container, false);
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         setHasOptionsMenu(true);
 
-        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -79,16 +75,9 @@ public class ListFragment extends Fragment {
         });
         swipeRefreshLayout.setColorSchemeResources(R.color.gps_marker_color);
 
-        ListView checkinList = (ListView) view.findViewById(R.id.list_view);
-        checkinList.setAdapter(checkinItemAdapter);
-    }
-
-    public void addCheckin(final Checkin checkin) {
-        checkinItemAdapter.add(checkin);
-    }
-
-    public void removeCheckin(final Checkin checkin) {
-
+        RecyclerView recyclerView = view.findViewById(R.id.recycle_view);
+        recyclerView.setAdapter(checkinItemAdapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
     }
 
     public void addCheckins() {
