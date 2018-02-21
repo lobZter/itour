@@ -57,7 +57,7 @@ public class CheckinNotificationService extends Service {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
-                if (notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                if (notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) || notification.targetUid.equals("all"))
                     notifyCheckin(notification);
             }
 

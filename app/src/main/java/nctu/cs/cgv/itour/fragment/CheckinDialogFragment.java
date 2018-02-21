@@ -107,7 +107,7 @@ public class CheckinDialogFragment extends DialogFragment {
 
 
             setPhoto(view, checkin.photo);
-            setAudio(view, checkin.audio);
+//            setAudio(view, checkin.audio);
             setActionBtn(view, checkin);
         } else {
             username.setText("");

@@ -100,7 +100,7 @@ public class CheckinItemAdapter extends ArrayAdapter<Checkin> {
             viewHolder.like.setText(likeStr);
 
             setPhoto(viewHolder, checkin.photo);
-            setAudio(viewHolder, checkin.audio);
+//            setAudio(viewHolder, checkin.audio);
             setActionBtn(viewHolder, checkin);
         }
 
