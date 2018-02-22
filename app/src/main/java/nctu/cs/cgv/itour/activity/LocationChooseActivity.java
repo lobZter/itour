@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
@@ -60,6 +61,7 @@ import nctu.cs.cgv.itour.object.SpotNode;
 import static nctu.cs.cgv.itour.MyApplication.MAX_ZOOM;
 import static nctu.cs.cgv.itour.MyApplication.MIN_ZOOM;
 import static nctu.cs.cgv.itour.MyApplication.ZOOM_THRESHOLD;
+import static nctu.cs.cgv.itour.MyApplication.developmentFlag;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
@@ -644,6 +646,15 @@ public class LocationChooseActivity extends AppCompatActivity {
         final String location = locationEdit.getText().toString().trim();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        if (developmentFlag) {
+            String[] usernameTemplate = {"Ben", "寶寶柴", "不具名的男子", "阿明", "Andy", "阿寶", "王碩儒",
+                    "阿輝", "饅頭", "小豬", "籃球少年", "Pei", "Calvin", "張包子", "風中的男人", "邱海龜",
+                    "蒙奇D能兒", "煞氣a小倫", "Marco", "Louis", "湯姆嗑吐司", "滴會櫃", "hehe", "OuO",
+                    "跳跳虎的朋友", "NiHow", "小帥帥", "邱耀賢", "小劉", "Amy", "小親親", "寶寶柴", "明慧",
+                    "Sandy", "小花", "阿寶", "李季春", "小咪", "Shanna", "Emma", "黃郁文", "紅玫瑰與白玫瑰",
+                    "可愛小瑪丹", "Jessie", "鴨鴨", "泡泡", "鈺婷", "葉小瓜", "王美惠", "小慧", "Tina", "芊芊", "小鵲"};
+            username = usernameTemplate[new Random().nextInt(usernameTemplate.length)];
+        }
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
         Checkin checkin = new Checkin(String.valueOf(gps[0]), String.valueOf(gps[1]), location, description, photo, uid, username, timestamp);
         Map<String, Object> checkinValues = checkin.toMap();
