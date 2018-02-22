@@ -98,6 +98,10 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
         return checkins.size();
     }
 
+    public Checkin getItem(int index) {
+        return checkins.get(index);
+    }
+
     public void addAll(Collection<Checkin> checkinList) {
         checkins.addAll(checkinList);
         notifyDataSetChanged();
