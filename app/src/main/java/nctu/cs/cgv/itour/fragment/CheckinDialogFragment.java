@@ -48,16 +48,6 @@ public class CheckinDialogFragment extends DialogFragment {
 
     private String postId;
 
-    private ProgressBar progressBar;
-    private TextView progressTextCurrent;
-    private TextView progressTextDuration;
-    private ImageView playBtn;
-    private Handler progressBarHandler;
-    private Runnable progressBarRunnable;
-    private MediaPlayer mediaPlayer;
-    private boolean isPlaying = false;
-    private boolean audioReady = false;
-
     public static CheckinDialogFragment newInstance(String postId) {
         CheckinDialogFragment checkinDialogFragment = new CheckinDialogFragment();
         Bundle args = new Bundle();
@@ -88,10 +78,10 @@ public class CheckinDialogFragment extends DialogFragment {
         appLog("CheckinDialogFragment onViewCreated: " + postId);
         actionLog("browse checkin", checkin.location, checkin.key);
 
-        TextView username = (TextView) view.findViewById(R.id.tv_username);
-        TextView location = (TextView) view.findViewById(R.id.tv_location);
-        TextView like = (TextView) view.findViewById(R.id.tv_like);
-        TextView description = (TextView) view.findViewById(R.id.tv_description);
+        TextView username = view.findViewById(R.id.tv_username);
+        TextView location = view.findViewById(R.id.tv_location);
+        TextView like = view.findViewById(R.id.tv_like);
+        TextView description = view.findViewById(R.id.tv_description);
 
         if (checkin != null) {
             username.setText(checkin.username);
@@ -107,7 +97,6 @@ public class CheckinDialogFragment extends DialogFragment {
 
 
             setPhoto(view, checkin.photo);
-//            setAudio(view, checkin.audio);
             setActionBtn(view, checkin);
         } else {
             username.setText("");
@@ -116,7 +105,6 @@ public class CheckinDialogFragment extends DialogFragment {
             like.setText("");
 
             setPhoto(view, "");
-            setAudio(view, "");
         }
     }
 
@@ -161,66 +149,10 @@ public class CheckinDialogFragment extends DialogFragment {
         }
     }
 
-    private void setAudio(View view, final String filename) {
-
-        if (filename.equals("")) {
-            View audioLayout = view.findViewById(R.id.audio);
-            View audioDivider = view.findViewById(R.id.audio_divider);
-            audioLayout.setVisibility(View.GONE);
-            audioDivider.setVisibility(View.GONE);
-            return;
-        }
-
-        playBtn = (ImageView) view.findViewById(R.id.btn_play);
-        playBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (audioReady) {
-                    if (isPlaying)
-                        pauseAudio();
-                    else
-                        playAudio();
-                }
-            }
-        });
-
-        progressBar = (ProgressBar) view.findViewById(R.id.progressbar);
-        progressTextCurrent = (TextView) view.findViewById(R.id.tv_progress_current);
-        progressTextDuration = (TextView) view.findViewById(R.id.tv_progress_duration);
-        progressBarHandler = new Handler();
-
-        final File externalCacheDir = getContext().getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            initAudio(externalCacheDir.toString() + "/" + filename);
-        } else {
-            // download audio
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(getContext()) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    initAudio(response.toString());
-
-                    if (externalCacheDir != null) {
-                        String path = response.toString();
-                        String dirPath = path.substring(0, path.lastIndexOf("/"));
-                        File rename = new File(dirPath + "/" + filename);
-                        response.renameTo(rename);
-                        moveFile(dirPath, filename, externalCacheDir.toString());
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-
-                }
-            });
-        }
-    }
-
     private void setActionBtn(View view, final Checkin checkin) {
-        final Button likeBtn = (Button) view.findViewById(R.id.btn_like);
-        final Button saveBtn = (Button) view.findViewById(R.id.btn_save);
-        final TextView like = (TextView) view.findViewById(R.id.tv_like);
+        final Button likeBtn = view.findViewById(R.id.btn_like);
+        final Button saveBtn = view.findViewById(R.id.btn_save);
+        final TextView like = view.findViewById(R.id.tv_like);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             likeBtn.setOnClickListener(new View.OnClickListener() {
@@ -302,63 +234,6 @@ public class CheckinDialogFragment extends DialogFragment {
                 saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
             }
         }
-    }
-
-    private void initAudio(final String filePath) {
-        progressBar.setProgress(0);
-        progressTextCurrent.setText(getString(R.string.default_start_time));
-        progressTextDuration.setText(getString(R.string.default_start_time));
-
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                progressBarHandler.removeCallbacksAndMessages(null);
-                audioReady = false;
-                initAudio(filePath);
-            }
-        });
-        try {
-            mediaPlayer.setDataSource(filePath);
-            mediaPlayer.prepare();
-
-            String str = String.format("%d:%02d", mediaPlayer.getDuration() / 1000, (mediaPlayer.getDuration() % 1000) * 60 / 1000);
-            progressTextDuration.setText(str);
-
-            progressBarRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    if (isPlaying && mediaPlayer != null) {
-                        progressBar.setProgress(mediaPlayer.getCurrentPosition() * 100 / mediaPlayer.getDuration());
-                        String str = String.format("%d:%02d", mediaPlayer.getCurrentPosition() / 1000, (mediaPlayer.getCurrentPosition() % 1000) * 60 / 1000);
-                        progressTextCurrent.setText(str);
-                    }
-                    progressBarHandler.postDelayed(this, 100);
-                }
-            };
-            progressBarRunnable.run();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        audioReady = true;
-        isPlaying = false;
-        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play_arrow_black_48dp, null));
-    }
-
-    private void playAudio() {
-        mediaPlayer.start();
-
-        isPlaying = true;
-        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_pause_black_48dp, null));
-    }
-
-    private void pauseAudio() {
-        mediaPlayer.pause();
-
-        isPlaying = false;
-        playBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_play_arrow_black_48dp, null));
     }
 
     @Override
