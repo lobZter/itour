@@ -45,15 +45,17 @@
             android:theme="@style/Base.Theme.AppCompat" />
 
         <service
-            android:name=".service.GpsLocationService" />
+            android:name=".service.GpsLocationService"
+            android:stopWithTask="true" />
         <service
             android:name=".service.ScreenShotService"
-            android:stopWithTask="true" />
+            android:stopWithTask="false" />
         <service
             android:name=".service.AudioFeedbackService"
-            android:stopWithTask="true" />
+            android:stopWithTask="false" />
         <service
-            android:name=".service.CheckinNotificationService" />
+            android:name=".service.CheckinNotificationService"
+            android:stopWithTask="false" />
 
         <service android:name=".service.MyFirebaseMessagingService">
             <intent-filter>

@@ -82,7 +82,7 @@ public class CheckinNotificationService extends Service {
             }
         });
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {

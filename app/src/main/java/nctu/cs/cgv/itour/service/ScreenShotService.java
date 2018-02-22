@@ -76,7 +76,7 @@ public class ScreenShotService extends Service {
         };
         loopHandler.post(runnable);
 
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
