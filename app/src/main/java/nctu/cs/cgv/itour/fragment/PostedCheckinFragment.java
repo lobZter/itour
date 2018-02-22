@@ -2,9 +2,11 @@ package nctu.cs.cgv.itour.fragment;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
+import nctu.cs.cgv.itour.custom.ItemClickSupport;
 import nctu.cs.cgv.itour.custom.PostedCheckinItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
 
@@ -56,7 +59,19 @@ public class PostedCheckinFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.recycle_view);
         recyclerView.setAdapter(checkinItemAdapter);
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        recyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+
+        ItemClickSupport.addTo(recyclerView).setOnItemClickListener(
+                new ItemClickSupport.OnItemClickListener() {
+                    @Override
+                    public void onItemClicked(RecyclerView recyclerView, int position, View v) {
+                        Checkin checkin = checkinItemAdapter.getItem(position);
+                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                        CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
+                        checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
+                    }
+                }
+        );
     }
 
     public void refresh() {
