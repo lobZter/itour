@@ -7,17 +7,17 @@
         android:id="@+id/checkin_icon"
         android:layout_width="@dimen/merged_checkin_icon_width"
         android:layout_height="@dimen/merged_checkin_icon_height"
-        android:src="@drawable/checkin_icon_108px" />
+        android:src="@drawable/checkin_icon_96px" />
 
     <TextView
         android:id="@+id/checkin_num"
-        android:layout_marginStart="@dimen/merged_checkin_icon_margin_start"
-        android:layout_marginTop="@dimen/merged_checkin_icon_margin_top"
+        android:layout_marginStart="48px"
+        android:layout_marginTop="12px"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="36px"
+        android:textSize="28px"
         android:gravity="center"
-        android:text="1"
+        android:text=" 1"
         android:textColor="@color/md_white_1000" />
 
 </RelativeLayout>

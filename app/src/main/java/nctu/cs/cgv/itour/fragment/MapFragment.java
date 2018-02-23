@@ -628,7 +628,7 @@ public class MapFragment extends Fragment {
                 (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid))) {
             ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_60px));
             ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
-            clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_108px));
+            clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_96px));
         } else {
             boolean coolDownCheckinNode = true;
             boolean coolDownCheckinClusterNode = true;
@@ -652,7 +652,7 @@ public class MapFragment extends Fragment {
 
             if (coolDownCheckinClusterNode) {
                 ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
-                clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_108px));
+                clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_96px));
             }
         }
 
