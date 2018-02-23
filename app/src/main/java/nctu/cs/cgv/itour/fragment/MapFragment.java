@@ -128,7 +128,7 @@ public class MapFragment extends Fragment {
 //    private boolean fogSwitch = false;
 //    private boolean edgeLengthSwitch = false;
 
-    private String uid = "";
+    private String uid = ""; // Empty string means guest mode(getCurrentUser() == null)
 
     public static MapFragment newInstance() {
         return new MapFragment();
@@ -614,6 +614,7 @@ public class MapFragment extends Fragment {
 
         addCheckinIcon(checkin, imgPx[0], imgPx[1]);
         addCheckinClusterIcon(checkin, imgPx[0], imgPx[1]);
+        changeCheckin(checkin); // set heat checkin icon
         reRender();
     }
 
@@ -621,10 +622,11 @@ public class MapFragment extends Fragment {
         CheckinNode checkinNode = checkinNodeMap.get(checkin.key);
         CheckinNode checkinClusterNode = checkinClusterNodeMap.get(checkin.key);
 
-        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid))) {
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
+        if ((checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all")) ||
+                (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid))) {
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_60px));
             ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
-            clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_108px));
+            clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_108px));
         } else {
             boolean coolDownCheckinNode = true;
             boolean coolDownCheckinClusterNode = true;
@@ -643,7 +645,7 @@ public class MapFragment extends Fragment {
             }
 
             if (coolDownCheckinNode) {
-                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
+                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
             }
 
             if (coolDownCheckinClusterNode) {
@@ -686,10 +688,7 @@ public class MapFragment extends Fragment {
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
 
-        if (checkin.popularTargetUid.get("all") || (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)))
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_new_72px));
-        else
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_72px));
+        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
         checkinNode.checkinList.add(checkin);
         checkinNodeList.add(checkinNode);
