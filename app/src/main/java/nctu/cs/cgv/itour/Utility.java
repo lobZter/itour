@@ -137,7 +137,11 @@ public class Utility {
         String url = APPServerURL + "/actionLog";
         RequestParams requestParams = new RequestParams();
         requestParams.put("log", log);
-        requestParams.put("location", location);
+        if (location == null || location.equals("")) {
+            requestParams.put("location", "location");
+        } else {
+            requestParams.put("location", location);
+        }
         requestParams.put("postId", postId);
         requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
