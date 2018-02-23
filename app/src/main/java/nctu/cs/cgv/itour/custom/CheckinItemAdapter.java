@@ -122,6 +122,11 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
         notifyItemInserted(index);
     }
 
+    public void remove(int index) {
+        checkins.remove(index);
+        notifyItemRemoved(index);
+    }
+
     private void setPhoto(final ViewHolder viewHolder, final String filename) {
 
         if (filename.equals("")) {
