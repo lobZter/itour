@@ -504,14 +504,16 @@ public class MapFragment extends Fragment {
         // transform spot
         if (spotSwitch) {
             if (isMerged) {
-                for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                    SpotNode spotNode = spotNodeList.get(i);
-                    spotNode.icon.setVisibility(View.GONE);
+                for (SpotNode spotNode : spotNodeList) {
+                    if (spotNode.order == 2) {
+                        spotNode.icon.setVisibility(View.GONE);
+                    }
                 }
             } else {
-                for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                    SpotNode spotNode = spotNodeList.get(i);
-                    spotNode.icon.setVisibility(View.VISIBLE);
+                for (SpotNode spotNode : spotNodeList) {
+                    if (spotNode.order == 2) {
+                        spotNode.icon.setVisibility(View.VISIBLE);
+                    }
                 }
             }
 

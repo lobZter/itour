@@ -6,11 +6,13 @@ package nctu.cs.cgv.itour.object;
 
 public class SpotNode extends ImageNode {
 
+    public int order;
     public String name;
     public CheckinNode checkinNode;
 
-    public SpotNode(float x, float y, String name) {
+    public SpotNode(float x, float y, String name, int order) {
         super(x, y);
+        this.order = order;
         this.name = name;
         this.checkinNode = null;
     }

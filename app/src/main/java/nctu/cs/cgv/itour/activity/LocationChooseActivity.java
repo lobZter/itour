@@ -197,7 +197,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotNodeList = new ArrayList<>();
         for (SpotNode spotNode: spotList.nodeMap.values()) {
             // allocate new spotNode instead using spotNode in nodeMap
-            spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name));
+            spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name, spotNode.order));
         }
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         for (SpotNode spotNode : spotNodeList) {
@@ -468,17 +468,19 @@ public class LocationChooseActivity extends AppCompatActivity {
 
         // transform spot
         if (isMerged) {
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                SpotNode spotNode = spotNodeList.get(i);
-                spotNode.icon.setVisibility(View.GONE);
+            for (SpotNode spotNode : spotNodeList) {
+                if (spotNode.order == 2) {
+                    spotNode.icon.setVisibility(View.GONE);
+                }
             }
         } else {
-            for (int i = spotList.primarySpotMaxIdx + 1; i < spotNodeList.size(); i++) {
-                SpotNode spotNode = spotNodeList.get(i);
-                spotNode.icon.setVisibility(View.VISIBLE);
+            for (SpotNode spotNode : spotNodeList) {
+                if (spotNode.order == 2) {
+                    spotNode.icon.setVisibility(View.VISIBLE);
+                }
             }
         }
-
+        
         for (SpotNode spotNode : spotNodeList) {
             point[0] = spotNode.x;
             point[1] = spotNode.y;

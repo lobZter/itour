@@ -18,7 +18,6 @@ import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 public class SpotList {
 
     public Map<String, SpotNode> nodeMap;
-    public int primarySpotMaxIdx = 13;
 
     public SpotList(File spotListFile) {
         nodeMap = new LinkedHashMap<>();
@@ -35,9 +34,12 @@ public class SpotList {
 
             while ((line = bufferedReader.readLine()) != null) {
                 line = line.trim();
-                String[] arr = line.split(","); // name,lat,lng
+                String[] arr = line.split(","); // name,lat,lng,order
                 float[] imgPx = gpsToImgPx(Float.valueOf(arr[1]), Float.valueOf(arr[2]));
-                nodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[0]));
+                int order = Integer.parseInt(arr[3]);
+                if (order < 3) {
+                    nodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[0], order));
+                }
 
             }
 
