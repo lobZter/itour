@@ -56,6 +56,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
+import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
 import static nctu.cs.cgv.itour.MyApplication.MAX_ZOOM;
@@ -66,7 +67,6 @@ import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.fileUploadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
-import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
@@ -105,6 +105,7 @@ public class LocationChooseActivity extends AppCompatActivity {
     private View checkinIcon;
     private View gpsMarker;
     // containers
+    private SpotList spotList;
     private List<SpotNode> spotNodeList;
     // Gesture detectors
     private GestureDetector gestureDetector;
@@ -195,6 +196,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotX = (int) getResources().getDimension(R.dimen.spot_icon_width) / 2;
         spotIconPivotY = spToPx(this, 14) / 2;
         spotNodeList = new ArrayList<>();
+        spotList = new SpotList(new File(dirPath + "/" + mapTag + "_spot_list.txt"));
         for (SpotNode spotNode: spotList.nodeMap.values()) {
             // allocate new spotNode instead using spotNode in nodeMap
             spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name, spotNode.order));

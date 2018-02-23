@@ -34,7 +34,7 @@ public class MyApplication extends Application {
     // flags
     public static final boolean logFlag = true;
     public static final boolean developmentFlag = false;
-    public static final boolean screenCaptureFlag = false;
+    public static final boolean screenCaptureFlag = true;
     public static final boolean audioFeedbackFlag = true;
 
     // map constant

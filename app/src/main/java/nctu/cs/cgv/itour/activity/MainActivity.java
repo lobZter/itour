@@ -199,8 +199,12 @@ public class MainActivity extends AppCompatActivity implements
                 }
 
                 checkin.key = dataSnapshot.getKey();
-                checkinMap.put(dataSnapshot.getKey(), checkin);
-                mapFragment.addCheckin(checkin);
+                try {
+                    checkinMap.put(dataSnapshot.getKey(), checkin);
+                    mapFragment.addCheckin(checkin);
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
@@ -211,13 +215,18 @@ public class MainActivity extends AppCompatActivity implements
 
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                     String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    if (!checkin.targetUid.equals("") && !checkin.targetUid.equals(uid))
+                    if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
                         return;
                 }
 
                 checkin.key = dataSnapshot.getKey();
-                checkinMap.put(dataSnapshot.getKey(), checkin);
-                mapFragment.changeCheckin(checkin);
+
+                try {
+                    checkinMap.put(dataSnapshot.getKey(), checkin);
+                    mapFragment.changeCheckin(checkin);
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
@@ -226,7 +235,12 @@ public class MainActivity extends AppCompatActivity implements
                 if(checkin == null) return;
 
                 checkin.key = dataSnapshot.getKey();
-                checkinMap.remove(dataSnapshot.getKey());
+
+                try {
+                    checkinMap.remove(dataSnapshot.getKey());
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
@@ -255,17 +269,29 @@ public class MainActivity extends AppCompatActivity implements
         savePostIdListener = savePostIdQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                try {
+                    savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                try {
+                    savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                savedPostId.remove(dataSnapshot.getKey());
+                try {
+                    savedPostId.remove(dataSnapshot.getKey());
+                } catch (Exception e) {
+
+                }
             }
 
             @Override
@@ -451,7 +477,11 @@ public class MainActivity extends AppCompatActivity implements
         if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
             Utility.actionLog("notice checkin", intent.getStringExtra("title"), intent.getStringExtra("key"));
             float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
-            onLocateClick(imgPx[0], imgPx[1], intent.getStringExtra("key"));
+            try {
+                onLocateClick(imgPx[0], imgPx[1], intent.getStringExtra("key"));
+            } catch (Exception e) {
+
+            }
         }
     }
 
