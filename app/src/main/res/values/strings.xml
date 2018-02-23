@@ -2,19 +2,32 @@
     <string name="app_name">iTour</string>
 
     <!-- Strings related to login -->
+    <!--<string name="prompt_email">Email</string>-->
+    <!--<string name="prompt_name">Display Name</string>-->
+    <!--<string name="prompt_password">Password</string>-->
+    <!--<string name="prompt_confirm_password">Confirm Password</string>-->
+    <!--<string name="action_sign_in">Sign in</string>-->
+    <!--<string name="action_register">Register</string>-->
+    <!--<string name="action_guest">guest</string>-->
+    <!--<string name="error_invalid_email">This email address is invalid</string>-->
+    <!--<string name="error_invalid_password">Password should be longer than 6</string>-->
+    <!--<string name="error_confirm_password">Password does not match</string>-->
+    <!--<string name="error_incorrect_password">This password is incorrect</string>-->
+    <!--<string name="error_field_required">This field is required</string>-->
+    <!--<string name="hint_new_account">Don\'t have an account?</string>-->
     <string name="prompt_email">Email</string>
-    <string name="prompt_name">Display Name</string>
-    <string name="prompt_password">Password</string>
-    <string name="prompt_confirm_password">Confirm Password</string>
-    <string name="action_sign_in">Sign in</string>
-    <string name="action_register">Register</string>
-    <string name="action_guest">guest</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">Password should be longer than 6</string>
-    <string name="error_confirm_password">Password does not match</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="hint_new_account">Don\'t have an account?</string>
+    <string name="prompt_name">暱稱</string>
+    <string name="prompt_password">密碼</string>
+    <string name="prompt_confirm_password">確認密碼</string>
+    <string name="action_sign_in">登入</string>
+    <string name="action_register">註冊</string>
+    <string name="action_guest">訪客</string>
+    <string name="error_invalid_email">無效的Email</string>
+    <string name="error_invalid_password">密碼長度需大於6</string>
+    <string name="error_confirm_password">再次輸入的密碼不符</string>
+    <string name="error_incorrect_password">密碼錯誤</string>
+    <string name="error_field_required">此欄為必填</string>
+    <string name="hint_new_account">沒有帳號嗎?</string>
     <string name="dialog_sign_in">登入中</string>
     <string name="dialog_register">註冊中</string>
     <string name="error_sign_in_failed">登入失敗</string>
@@ -24,35 +37,45 @@
     <string name="default_maximum_time">10:00</string>
     <string name="default_start_time">0:00</string>
 
-    <string name="permission_title">Permission Needed</string>
-    <string name="permission_message">We need to store map package on the device and track your GPS location to run this app!</string>
+    <string name="permission_title">需要權限</string>
+    <string name="permission_message">需要網路下載地圖包及GPS追蹤您在旅遊地圖上的位置</string>
 
-    <!--<string name="toast_mic_not_found">找不到麥克風</string>-->
-    <!--<string name="toast_is_recording">請先完成錄音</string>-->
-    <!--<string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>-->
-    <!--<string name="toast_audio_recorder_stop_failed">錄製失敗</string>-->
-    <!--<string name="toast_upload_file_failed">檔案上傳失敗</string>-->
-    <!--<string name="dialog_uploading">檔案上傳中</string>-->
-    <string name="toast_mic_not_found">Microphone not found.</string>
-    <string name="toast_is_recording">Please finish recording first.</string>
-    <string name="toast_audio_recorder_prepare_failed">Microphone not working.</string>
-    <string name="toast_audio_recorder_stop_failed">Audio recording failed.</string>
-    <string name="toast_upload_file_failed">File uploading failed.</string>
-    <string name="toast_guest_function">Please sign in to enable this function.</string>
-    <string name="toast_gps_outside">You are not in the map area.</string>
-    <string name="toast_gps_waiting">Waiting for GPS.</string>
-    <string name="toast_cannot_checkin">Cannot post checkin.</string>
-    <string name="dialog_uploading">File uploading.</string>
-
-    <string name="dialog_delete_title">Delete Post</string>
-    <string name="dialog_delete_message">Are you sure you want to delete this post?</string>
-    <string name="dialog_positive_btn">OK</string>
-    <string name="dialog_negative_btn">Cancel</string>
-    <string name="dialog_download_file">Downloading map package...Please wait...</string>
-
-    <string name="dialog_recording_title">Record feedback</string>
-    <string name="dialog_recording_message">Press OK to start recording.</string>
-    <string name="dialog_stop_recording_message">Press OK to stop recording.</string>
+    <!--<string name="toast_mic_not_found">Microphone not found.</string>-->
+    <!--<string name="toast_is_recording">Please finish recording first.</string>-->
+    <!--<string name="toast_audio_recorder_prepare_failed">Microphone not working.</string>-->
+    <!--<string name="toast_audio_recorder_stop_failed">Audio recording failed.</string>-->
+    <!--<string name="toast_upload_file_failed">File uploading failed.</string>-->
+    <!--<string name="toast_guest_function">Please sign in to enable this function.</string>-->
+    <!--<string name="toast_gps_outside">You are not in the map area.</string>-->
+    <!--<string name="toast_gps_waiting">Waiting for GPS.</string>-->
+    <!--<string name="toast_cannot_checkin">Cannot post checkin.</string>-->
+    <!--<string name="dialog_uploading">File uploading.</string>-->
+    <!--<string name="dialog_delete_title">Delete Post</string>-->
+    <!--<string name="dialog_delete_message">Are you sure you want to delete this post?</string>-->
+    <!--<string name="dialog_positive_btn">OK</string>-->
+    <!--<string name="dialog_negative_btn">Cancel</string>-->
+    <!--<string name="dialog_download_file">Downloading map package...Please wait...</string>-->
+    <!--<string name="dialog_recording_title">Record feedback</string>-->
+    <!--<string name="dialog_recording_message">Press OK to start recording.</string>-->
+    <!--<string name="dialog_stop_recording_message">Press OK to stop recording.</string>-->
+    <string name="toast_mic_not_found">找不到麥克風</string>
+    <string name="toast_is_recording">請先完成錄音</string>
+    <string name="toast_audio_recorder_prepare_failed">麥克風暫不可用</string>
+    <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
+    <string name="toast_upload_file_failed">檔案上傳失敗</string>
+    <string name="toast_guest_function">登入後即可使用此功能</string>
+    <string name="toast_gps_outside">您現在不再地圖的範圍內</string>
+    <string name="toast_gps_waiting">等待GPS訊號</string>
+    <string name="toast_cannot_checkin">不能使用打卡功能</string>
+    <string name="dialog_uploading">檔案上傳中</string>
+    <string name="dialog_delete_title">刪除打卡</string>
+    <string name="dialog_delete_message">確定要刪除嗎?</string>
+    <string name="dialog_positive_btn">是</string>
+    <string name="dialog_negative_btn">取消</string>
+    <string name="dialog_download_file">下載地圖包中...</string>
+    <string name="dialog_recording_title">錄製回報中</string>
+    <string name="dialog_recording_message">按"是"開始錄音</string>
+    <string name="dialog_stop_recording_message">按"是"結束錄音</string>
 
     <string name="subtitle_map">Map</string>
     <string name="subtitle_list">List</string>
@@ -77,22 +100,22 @@
     <string name="setting_about">關於</string>
     <string name="setting_copyright">Create by Computer Graphics and Visualization Lab, National Chiao Tung University</string>
 
-    <string name="post_checkin_description_hint">在想些什麼...</string>
-    <string name="post_checkin_audio_hint">留下聲音...</string>
-    <string name="post_checkin_photo_hint">新增照片...</string>
     <!--<string name="post_checkin_description_hint">What\'s on your mind?</string>-->
     <!--<string name="post_checkin_audio_hint">Leave sound here!</string>-->
     <!--<string name="post_checkin_photo_hint">Add a photo?</string>-->
+    <string name="post_checkin_description_hint">在想些什麼...</string>
+    <string name="post_checkin_audio_hint">留下聲音...</string>
+    <string name="post_checkin_photo_hint">新增照片...</string>
 
-    <string name="activity_choose_location_title">打卡地點</string>
     <!--<string name="activity_choose_location_title">Choose Checkin Location</string>-->
+    <string name="activity_choose_location_title">打卡地點</string>
 
-    <string name="menu_filter_popular">人氣度</string>
-    <string name="menu_filter_time">時間</string>
     <!--<string name="menu_filter_popular">popularity</string>-->
     <!--<string name="menu_filter_time">time</string>-->
+    <string name="menu_filter_popular">人氣度</string>
+    <string name="menu_filter_time">時間</string>
 
-    <string name="tv_checkin_remove">This post may have been removed.</string>
+    <string name="tv_checkin_remove">此打卡可能已被刪除</string>
 
     <string name="recording_start">錄音開始</string>
     <string name="recording_finish">錄音完成</string>
@@ -100,9 +123,4 @@
     <string name="checkin_card_like_num">人說讚</string>
 
     <string name="checkin_notification_title">新打卡</string>
-
-    <string name="feedback_go">回報成功</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
