@@ -26,7 +26,6 @@ public class Checkin {
     public Map<String, Boolean> popularTargetUid;
     public Boolean fakeFlag;
     public int likeNum;
-//    public String notification;
 
     public String key;
     public Map<String, Boolean> like = new HashMap<>();
@@ -61,7 +60,6 @@ public class Checkin {
         this.popularTargetUid.put("all", false);
         this.fakeFlag = false;
         this.likeNum = 0;
-//        this.notification = "";
     }
 
     @Exclude
@@ -81,7 +79,6 @@ public class Checkin {
         result.put("popularTargetUid", popularTargetUid);
         result.put("fakeFlag", fakeFlag);
         result.put("likeNum", likeNum);
-//        result.put("notification", notification);
 
         return result;
     }

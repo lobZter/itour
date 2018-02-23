@@ -620,28 +620,12 @@ public class LocationChooseActivity extends AppCompatActivity {
         // push firebase database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         final String key = databaseReference.child("checkin").child(mapTag).push().getKey();
-        final Map<String, Boolean> type = new HashMap<>();
-        final List<File> fileList = new ArrayList<>();
         // rename file with postId
-        if (photo.equals("")) {
-            type.put("photo", false);
-        } else {
+        if (!photo.equals("")) {
             File from = new File(getCacheDir().toString() + "/" + photo);
             File to = new File(getCacheDir().toString() + "/" + key + ".jpg");
             photo = key + ".jpg";
             from.renameTo(to);
-            fileList.add(to);
-            type.put("photo", true);
-        }
-        if (audio.equals("")) {
-            type.put("audio", false);
-        } else {
-            File from = new File(getCacheDir().toString() + "/" + audio);
-            File to = new File(getCacheDir().toString() + "/" + key + ".mp4");
-            from.renameTo(to);
-            audio = key + ".mp4";
-            fileList.add(to);
-            type.put("audio", true);
         }
 
         // save checkin data to firebase database
@@ -670,41 +654,43 @@ public class LocationChooseActivity extends AppCompatActivity {
                 RequestParams params = new RequestParams();
                 params.setForceMultipartEntityContentType(true);
                 try {
-                    File[] fileArray = new File[fileList.size()];
-                    fileList.toArray(fileArray);
-                    params.put("files", fileArray);
+                    params.put("photo", new File(getCacheDir().toString() + "/" + key + ".jpg"));
+                    client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onStart() {
+
+                        }
+
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                            // move files
+                            if (getExternalCacheDir() != null) {
+                                if(!photo.equals(""))
+                                    moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
+                                if(!audio.equals(""))
+                                    moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
+                            }
+                            actionLog("post checkin", location, key);
+                            progressDialog.dismiss();
+                            setResult(RESULT_CODE_CHECKIN_FINISH);
+                            finish();
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                            databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+                            progressDialog.dismiss();
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
+                    databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+                    progressDialog.dismiss();
+                    Toast.makeText(getApplicationContext(), "FileNotFoundException", Toast.LENGTH_SHORT).show();
                 }
 
-                client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onStart() {
 
-                    }
-
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        // move files
-                        if (getExternalCacheDir() != null) {
-                            if(!photo.equals(""))
-                                moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
-                            if(!audio.equals(""))
-                                moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
-                        }
-                        actionLog("post checkin", location, key);
-                        progressDialog.dismiss();
-                        setResult(RESULT_CODE_CHECKIN_FINISH);
-                        finish();
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
-                        progressDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
-                    }
-                });
 
             }
         });
