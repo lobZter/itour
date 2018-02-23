@@ -651,46 +651,53 @@ public class LocationChooseActivity extends AppCompatActivity {
         databaseReference.updateChildren(childUpdates, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-                // upload files to app server
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.setForceMultipartEntityContentType(true);
-                try {
-                    params.put("photo", new File(getCacheDir().toString() + "/" + key + ".jpg"));
-                    client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
-                        @Override
-                        public void onStart() {
 
-                        }
-
-                        @Override
-                        public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                            // move files
-                            if (getExternalCacheDir() != null) {
-                                if(!photo.equals(""))
-                                    moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
-                                if(!audio.equals(""))
-                                    moveFile(getCacheDir().toString(), audio, getExternalCacheDir().toString());
-                            }
-                            actionLog("post checkin", location, key);
-                            progressDialog.dismiss();
-                            setResult(RESULT_CODE_CHECKIN_FINISH);
-                            finish();
-                        }
-
-                        @Override
-                        public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                            databaseReference.child("checkin").child(mapTag).child(key).removeValue();
-                            progressDialog.dismiss();
-                            Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+                if (photo.equals("")) {
+                    actionLog("post checkin", location, key);
                     progressDialog.dismiss();
-                    Toast.makeText(getApplicationContext(), "FileNotFoundException", Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_CODE_CHECKIN_FINISH);
+                    finish();
+                } else {
+                    // upload files to app server
+                    try {
+                        AsyncHttpClient client = new AsyncHttpClient();
+                        RequestParams params = new RequestParams();
+                        params.setForceMultipartEntityContentType(true);
+                        params.put("photo", new File(getCacheDir().toString() + "/" + key + ".jpg"));
+                        client.post(fileUploadURL, params, new AsyncHttpResponseHandler() {
+                            @Override
+                            public void onStart() {
+
+                            }
+
+                            @Override
+                            public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                                // move files
+                                if (getExternalCacheDir() != null) {
+                                    if(!photo.equals(""))
+                                        moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
+                                }
+                                actionLog("post checkin", location, key);
+                                progressDialog.dismiss();
+                                setResult(RESULT_CODE_CHECKIN_FINISH);
+                                finish();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                                databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+                                progressDialog.dismiss();
+                                Toast.makeText(getApplicationContext(), getString(R.string.toast_upload_file_failed) + statusCode, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        databaseReference.child("checkin").child(mapTag).child(key).removeValue();
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), "FileNotFoundException", Toast.LENGTH_SHORT).show();
+                    }
                 }
+
 
 
 
