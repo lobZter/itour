@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.widget.ImageView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -21,13 +22,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
+import java.io.File;
+
+import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
+import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 public class CheckinNotificationService extends Service {
@@ -57,7 +65,9 @@ public class CheckinNotificationService extends Service {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
-                if (notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) || notification.targetUid.equals("all"))
+                if (notification == null) return;
+                if (notification.targetUid.equals("all") ||
+                        (FirebaseAuth.getInstance().getCurrentUser() != null && notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())))
                     notifyCheckin(notification);
             }
 
@@ -87,7 +97,15 @@ public class CheckinNotificationService extends Service {
 
     private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
 
-        Bitmap icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+        Bitmap icon;
+        final File externalCacheDir = getExternalCacheDir();
+        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + notification.photo).exists()) {
+            // load photo from storage
+            icon = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + notification.photo);
+        } else {
+            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+        }
+
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         notificationIntent.putExtra("checkinNotificationIntent", true);
@@ -106,10 +124,10 @@ public class CheckinNotificationService extends Service {
         notificationBuilder.setContentText(notification.msg);
         notificationBuilder.setContentIntent(intent);
 
-//        Notification notification = notificationBuilder.build();
-//        notification.flags |= Notification.FLAG_AUTO_CANCEL;
+        Notification builtNotification = notificationBuilder.build();
+        builtNotification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-//        notificationManager.cancelAll();
-        notificationManager.notify(CUSTOM_ID, notificationBuilder.build());
+        notificationManager.cancelAll();
+        notificationManager.notify(CUSTOM_ID, builtNotification);
     }
 }

@@ -10,6 +10,7 @@ public class Notification {
     public String targetUid;
     public String title;
     public String msg;
+    public String photo;
     public String lng;
     public String lat;
     public String timestamp;
@@ -21,6 +22,7 @@ public class Notification {
                          String targetUid,
                          String title,
                          String msg,
+                         String photo,
                          String lng,
                          String lat,
                          String timestamp) {
@@ -28,6 +30,7 @@ public class Notification {
         this.targetUid = targetUid;
         this.title = title;
         this.msg = msg;
+        this.photo = photo;
         this.lat = lat;
         this.lng = lng;
         this.timestamp = timestamp;
