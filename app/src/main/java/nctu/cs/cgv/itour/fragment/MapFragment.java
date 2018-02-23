@@ -667,6 +667,7 @@ public class MapFragment extends Fragment {
             double distance = Math.pow(x - checkinNode.x, 2) + Math.pow(y - checkinNode.y, 2);
             if (distance < OVERLAP_THRESHOLD) {
                 checkinNode.checkinList.add(checkin);
+                checkinNodeMap.put(checkin.key, checkinNode);
                 if (checkinNode.checkinList.size() > 1) {
                     checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
