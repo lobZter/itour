@@ -58,11 +58,13 @@ import nctu.cs.cgv.itour.service.CheckinNotificationService;
 import nctu.cs.cgv.itour.service.GpsLocationService;
 import nctu.cs.cgv.itour.service.ScreenShotService;
 
+import static nctu.cs.cgv.itour.MyApplication.audioFeedbackFlag;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.edgeNode;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
+import static nctu.cs.cgv.itour.MyApplication.screenCaptureFlag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.appLog;
@@ -131,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
-//        if (logFlag)
-//            requestScreenCapture();
+        if (logFlag && screenCaptureFlag)
+            requestScreenCapture();
     }
 
     private void setCheckinPreference() {
@@ -389,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case SCREEN_CAPTURE_REQUEST:
-                if (resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK && screenCaptureFlag) {
                     Intent service = new Intent(this, ScreenShotService.class);
                     service.putExtra("resultCode", resultCode);
                     service.putExtra("resultData", data);
@@ -397,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 break;
             case SCREEN_OVERLAY_PERMISSON_REQUEST:
-                if (resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK && audioFeedbackFlag) {
                     Intent service = new Intent(this, AudioFeedbackService.class);
                     startService(service);
                 }
@@ -419,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         appLog("MainActivity onResume");
 
-//        if (logFlag) requestSystemOverlayPermission();
+        if (logFlag && audioFeedbackFlag) requestSystemOverlayPermission();
     }
 
     @Override
@@ -497,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements
                     boolean micPermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
 
                     // ignore mic permission
-                    if (!logFlag) micPermission = true;
+                    if (logFlag == false || audioFeedbackFlag == false) micPermission = true;
 
                     if (storagePermission && gpsPermission && micPermission) {
                         init();
