@@ -47,7 +47,7 @@
 
         <service
             android:name=".service.GpsLocationService"
-            android:stopWithTask="true" />
+            android:stopWithTask="false" />
         <service
             android:name=".service.ScreenShotService"
             android:stopWithTask="false" />

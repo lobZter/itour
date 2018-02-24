@@ -508,9 +508,6 @@ public class MainActivity extends AppCompatActivity implements
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
-
-        stopService(new Intent(this, GpsLocationService.class));
-        stopService(new Intent(this, CheckinNotificationService.class));
     }
 
 //    @Override
