@@ -211,7 +211,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         ArrayList<String> array = new ArrayList<>();
         array.addAll(spotList.getSpotsName());
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_search, array);
-        locationEdit.setThreshold(1);
+        locationEdit.setThreshold(0);
         locationEdit.setAdapter(adapter);
         locationEdit.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -697,10 +697,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "FileNotFoundException", Toast.LENGTH_SHORT).show();
                     }
                 }
-
-
-
-
             }
         });
     }
