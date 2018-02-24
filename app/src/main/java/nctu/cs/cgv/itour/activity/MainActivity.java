@@ -115,6 +115,11 @@ public class MainActivity extends AppCompatActivity implements
     private Query savePostIdQuery;
     private ChildEventListener savePostIdListener;
 
+    private boolean noticeCheckinFlag = false;
+    private float notification_imgPxX;
+    private float notification_imgPxY;
+    private String notification_key;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -449,12 +454,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onNewIntent(Intent intent) {
         if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
             Utility.actionLog("notice checkin", intent.getStringExtra("title"), intent.getStringExtra("key"));
-            float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
-            try {
-                onLocateClick(imgPx[0], imgPx[1], intent.getStringExtra("key"));
-            } catch (Exception e) {
 
-            }
+            float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
+            notification_imgPxX = imgPx[0];
+            notification_imgPxY = imgPx[1];
+            notification_key = intent.getStringExtra("key");
+            noticeCheckinFlag = true;
         }
     }
 
@@ -464,6 +469,13 @@ public class MainActivity extends AppCompatActivity implements
         appLog("MainActivity onResume");
 
         if (logFlag && audioFeedbackFlag) requestSystemOverlayPermission();
+
+        if (noticeCheckinFlag) {
+            noticeCheckinFlag = false;
+            try {
+                onLocateClick(notification_imgPxX, notification_imgPxY, notification_key);
+            } catch (Exception ignore) {}
+        }
     }
 
     @Override

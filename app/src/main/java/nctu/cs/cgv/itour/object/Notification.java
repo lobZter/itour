@@ -14,6 +14,7 @@ public class Notification {
     public String lng;
     public String lat;
     public String timestamp;
+    public boolean noticed;
 
     public Notification () {
     }
@@ -25,7 +26,8 @@ public class Notification {
                          String photo,
                          String lng,
                          String lat,
-                         String timestamp) {
+                         String timestamp,
+                         boolean noticed) {
         this.postId = postId;
         this.targetUid = targetUid;
         this.title = title;
@@ -34,6 +36,7 @@ public class Notification {
         this.lat = lat;
         this.lng = lng;
         this.timestamp = timestamp;
+        this.noticed = noticed;
     }
 
 }
