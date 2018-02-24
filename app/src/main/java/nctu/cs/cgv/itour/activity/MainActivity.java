@@ -171,33 +171,6 @@ public class MainActivity extends AppCompatActivity implements
                         return;
                 }
 
-                // download photo
-                final File externalCacheDir = getExternalCacheDir();
-                if (externalCacheDir != null) {
-                    if (!(new File(externalCacheDir.toString() + "/" + checkin.photo).exists())) {
-                        // download photo
-                        AsyncHttpClient client = new AsyncHttpClient();
-                        client.get(fileDownloadURL + "?filename=" + checkin.photo, new FileAsyncHttpResponseHandler(MainActivity.this) {
-
-                            @Override
-                            public void onSuccess ( int statusCode, Header[] headers, File response)
-                            {
-                                String path = response.toString();
-                                String dirPath = path.substring(0, path.lastIndexOf("/"));
-                                File rename = new File(dirPath + "/" + checkin.photo);
-                                response.renameTo(rename);
-                                moveFile(dirPath, checkin.photo, externalCacheDir.toString());
-                            }
-
-
-                            @Override
-                            public void onFailure ( int statusCode, Header[] headers, Throwable
-                            throwable, File file){
-                        }
-                        });
-                    }
-                }
-
                 checkin.key = dataSnapshot.getKey();
                 try {
                     checkinMap.put(dataSnapshot.getKey(), checkin);

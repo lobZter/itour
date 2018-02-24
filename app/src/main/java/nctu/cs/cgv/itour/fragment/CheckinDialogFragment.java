@@ -1,15 +1,9 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,20 +11,14 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
-import java.io.File;
-import java.io.IOException;
-
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Checkin;
 
@@ -38,7 +26,6 @@ import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.appLog;
-import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -117,45 +104,9 @@ public class CheckinDialogFragment extends DialogFragment {
             return;
         }
 
-        final File externalCacheDir = getContext().getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            // load photo from storage
-            try {
-                Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
-                photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                photo.setImageBitmap(bitmap);
-            } catch (Exception e) {
-
-            }
-
-        } else {
-            // download photo
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(getContext()) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    try {
-                        Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
-                        photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        photo.setImageBitmap(bitmap);
-
-                        if (externalCacheDir != null) {
-                            String path = response.toString();
-                            String dirPath = path.substring(0, path.lastIndexOf("/"));
-                            File rename = new File(dirPath + "/" + filename);
-                            response.renameTo(rename);
-                            moveFile(dirPath, filename, externalCacheDir.toString());
-                        }
-                    } catch (Exception e) {
-
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-                }
-            });
-        }
+        Glide.with(getContext())
+                .load(fileDownloadURL + "?filename=" + filename)
+                .into(photo);
     }
 
     private void setActionBtn(View view, final Checkin checkin) {

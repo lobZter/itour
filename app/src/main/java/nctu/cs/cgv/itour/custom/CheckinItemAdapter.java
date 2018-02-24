@@ -1,49 +1,22 @@
 package nctu.cs.cgv.itour.custom;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
+import com.bumptech.glide.Glide;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
-import static nctu.cs.cgv.itour.MyApplication.mapTag;
-import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
-import static nctu.cs.cgv.itour.Utility.moveFile;
-import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
-import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
 /**
  * Created by lobZter on 2017/8/18.
@@ -136,44 +109,9 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
             viewHolder.photo.setVisibility(View.VISIBLE);
         }
 
-        final File externalCacheDir = context.getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            try {
-                // load photo from storage
-                Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
-                viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                viewHolder.photo.setImageBitmap(bitmap);
-            } catch (Exception e) {
-
-            }
-        } else {
-            // download photo
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, File response) {
-                    try {
-                        Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
-                        viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                        viewHolder.photo.setImageBitmap(bitmap);
-
-                        if (externalCacheDir != null) {
-                            String path = response.toString();
-                            String dirPath = path.substring(0, path.lastIndexOf("/"));
-                            File rename = new File(dirPath + "/" + filename);
-                            response.renameTo(rename);
-                            moveFile(dirPath, filename, externalCacheDir.toString());
-                        }
-                    } catch (Exception e) {
-
-                    }
-                }
-
-                @Override
-                public void onFailure(int statusCode, Header[] headers, Throwable throwable, File file) {
-                }
-            });
-        }
+        Glide.with(context)
+                .load(fileDownloadURL + "?filename=" + filename)
+                .into(viewHolder.photo);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
