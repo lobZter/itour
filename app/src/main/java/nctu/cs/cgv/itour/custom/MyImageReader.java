@@ -59,6 +59,9 @@ public class MyImageReader implements ImageReader.OnImageAvailableListener {
         FileOutputStream fileOutputStream = null;
         Bitmap bitmap = null;
 
+        if(FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
         try {
             String filename = FirebaseAuth.getInstance().getCurrentUser().getUid() + "-";
             filename += new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
