@@ -138,26 +138,34 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
 
         final File externalCacheDir = context.getExternalCacheDir();
         if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + filename).exists()) {
-            // load photo from storage
-            Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
-            viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            viewHolder.photo.setImageBitmap(bitmap);
+            try {
+                // load photo from storage
+                Bitmap bitmap = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + filename);
+                viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                viewHolder.photo.setImageBitmap(bitmap);
+            } catch (Exception e) {
+
+            }
         } else {
             // download photo
             AsyncHttpClient client = new AsyncHttpClient();
             client.get(fileDownloadURL + "?filename=" + filename, new FileAsyncHttpResponseHandler(context) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, File response) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
-                    viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    viewHolder.photo.setImageBitmap(bitmap);
+                    try {
+                        Bitmap bitmap = BitmapFactory.decodeFile(response.toString());
+                        viewHolder.photo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        viewHolder.photo.setImageBitmap(bitmap);
 
-                    if (externalCacheDir != null) {
-                        String path = response.toString();
-                        String dirPath = path.substring(0, path.lastIndexOf("/"));
-                        File rename = new File(dirPath + "/" + filename);
-                        response.renameTo(rename);
-                        moveFile(dirPath, filename, externalCacheDir.toString());
+                        if (externalCacheDir != null) {
+                            String path = response.toString();
+                            String dirPath = path.substring(0, path.lastIndexOf("/"));
+                            File rename = new File(dirPath + "/" + filename);
+                            response.renameTo(rename);
+                            moveFile(dirPath, filename, externalCacheDir.toString());
+                        }
+                    } catch (Exception e) {
+
                     }
                 }
 
