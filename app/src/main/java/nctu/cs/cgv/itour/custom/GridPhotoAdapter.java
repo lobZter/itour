@@ -36,7 +36,8 @@ public class GridPhotoAdapter extends ArrayAdapter<Checkin> {
         LayoutInflater inflater = LayoutInflater.from(context);
         view = inflater.inflate(R.layout.item_grid_photo, parent, false);
 
-        final ImageView photo = (ImageView) view.findViewById(R.id.photo);
+        final ImageView photo = view.findViewById(R.id.photo);
+        photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Checkin checkin = getItem(position);
         final String filename = checkin.photo;
