@@ -382,7 +382,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                         float orientation[] = new float[3];
                         SensorManager.getOrientation(R, orientation);
                         final float RADIAN = 57.296f;
-                        gpsMarker.setRotation(orientation[0] * RADIAN);
+                        gpsMarker.setRotation(orientation[0] * RADIAN + rotation);
                     }
                 }
             }
