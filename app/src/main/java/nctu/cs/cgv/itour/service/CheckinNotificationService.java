@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -42,6 +43,7 @@ public class CheckinNotificationService extends Service {
 
     private NotificationManager notificationManager;
     private int CUSTOM_ID = 666;
+    private long currentTimestamp;
 
     @Nullable
     @Override
@@ -61,7 +63,9 @@ public class CheckinNotificationService extends Service {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("notification").child(mapTag);
 
-        query.limitToLast(1).addChildEventListener(new ChildEventListener() {
+        currentTimestamp = System.currentTimeMillis() / 1000;
+
+        query.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
@@ -129,5 +133,10 @@ public class CheckinNotificationService extends Service {
 
         notificationManager.cancelAll();
         notificationManager.notify(CUSTOM_ID, builtNotification);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }
