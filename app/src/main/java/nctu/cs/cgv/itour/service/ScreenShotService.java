@@ -59,23 +59,24 @@ public class ScreenShotService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        resultCode = intent.getIntExtra("resultCode", -1);
-        resultData = intent.getParcelableExtra("resultData");
+        if (intent != null) {
+            resultCode = intent.getIntExtra("resultCode", -1);
+            resultData = intent.getParcelableExtra("resultData");
 
-        File imageDir = new File(imageLogPath);
-        if (!imageDir.exists()) {
-            imageDir.mkdirs();
-        }
-
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                startCapture();
-                loopHandler.postDelayed(this, 3000);
+            File imageDir = new File(imageLogPath);
+            if (!imageDir.exists()) {
+                imageDir.mkdirs();
             }
-        };
-        loopHandler.post(runnable);
 
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    startCapture();
+                    loopHandler.postDelayed(this, 3000);
+                }
+            };
+            loopHandler.post(runnable);
+        }
         return START_STICKY;
     }
 
