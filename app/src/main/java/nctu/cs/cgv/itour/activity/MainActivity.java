@@ -53,6 +53,7 @@ import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.custom.MyViewPager;
 import nctu.cs.cgv.itour.fragment.ListFragment;
 import nctu.cs.cgv.itour.fragment.MapFragment;
+import nctu.cs.cgv.itour.fragment.NewsFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -296,7 +297,7 @@ public class MainActivity extends AppCompatActivity implements
         fragmentList.add(mapFragment);
         fragmentList.add(listFragment);
         fragmentList.add(personalFragment);
-//        fragmentList.add(PlanFragment.newInstance());
+        fragmentList.add(NewsFragment.newInstance());
         fragmentList.add(SettingsFragment.newInstance());
 
         viewPager = findViewById(R.id.view_pager);
@@ -333,9 +334,12 @@ public class MainActivity extends AppCompatActivity implements
                             Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
                         }
                         break;
-//                    case R.id.tab_plan:
-//                        viewPager.setCurrentItem(3);
-//                        break;
+                    case R.id.tab_news:
+                        viewPager.setCurrentItem(3);
+                        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+                            Toast.makeText(getApplicationContext(), getString(R.string.toast_guest_function), Toast.LENGTH_SHORT).show();
+                        }
+                        break;
                     case R.id.tab_settings:
                         viewPager.setCurrentItem(3);
                         break;
