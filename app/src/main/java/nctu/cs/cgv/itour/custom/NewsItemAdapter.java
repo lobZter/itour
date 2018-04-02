@@ -5,13 +5,19 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.object.Notification;
+
+import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 
 /**
  * Created by lobZter on 2017/7/10.
@@ -49,6 +55,24 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.ViewHo
 
         viewHolder.title.setText(notification.title);
         viewHolder.msg.setText(notification.msg);
+        if(notification.watched) {
+            viewHolder.itemLayout.setBackgroundColor(getContext().getColor(R.color.transparent));
+        }
+        setPhoto(viewHolder, notification.photo);
+    }
+
+    private void setPhoto(final NewsItemAdapter.ViewHolder viewHolder, final String filename) {
+
+        if (filename.equals("")) {
+            viewHolder.photo.setVisibility(View.GONE);
+            return;
+        } else {
+            viewHolder.photo.setVisibility(View.VISIBLE);
+        }
+
+        Glide.with(context)
+                .load(fileDownloadURL + "?filename=" + filename)
+                .into(viewHolder.photo);
     }
 
     // Returns the total count of items in the list
@@ -89,6 +113,8 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.ViewHo
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView title;
         TextView msg;
+        ImageView photo;
+        LinearLayout itemLayout;
 
         public ViewHolder(View view) {
             // Stores the itemView in a public final member variable that can be used
@@ -97,6 +123,8 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.ViewHo
 
             title = view.findViewById(R.id.tv_title);
             msg = view.findViewById(R.id.tv_msg);
+            photo = view.findViewById(R.id.photo);
+            itemLayout = view.findViewById(R.id.layout_item);
         }
     }
 }

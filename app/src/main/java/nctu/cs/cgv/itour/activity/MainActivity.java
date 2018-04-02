@@ -36,6 +36,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.roughike.bottombar.BottomBar;
@@ -232,6 +233,8 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
+
+        FirebaseMessaging.getInstance().subscribeToTopic("news");
     }
 
     public void detachChecinListener() {

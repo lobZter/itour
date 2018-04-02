@@ -678,6 +678,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                                         moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
                                 }
                                 actionLog("post checkin", location, key);
+
                                 progressDialog.dismiss();
                                 setResult(RESULT_CODE_CHECKIN_FINISH);
                                 finish();
