@@ -901,10 +901,10 @@ public class MapFragment extends Fragment {
 //        }
     }
 
-    public void handleSensorChange(float rotation) {
+    public void handleSensorChange(float r) {
         final float RADIAN = 57.296f;
         if (gpsMarker != null) {
-            gpsMarker.setRotation(rotation * RADIAN);
+            gpsMarker.setRotation(r * RADIAN + rotation);
         }
     }
 

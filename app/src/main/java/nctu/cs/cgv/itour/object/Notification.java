@@ -14,6 +14,7 @@ public class Notification {
     public String lng;
     public String lat;
     public long timestamp;
+    public boolean watched;
 
     public Notification () {
     }
@@ -34,6 +35,7 @@ public class Notification {
         this.lat = lat;
         this.lng = lng;
         this.timestamp = timestamp;
+        this.watched = false;
     }
 
 }
