@@ -18,6 +18,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -45,7 +46,7 @@ import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 public class CheckinNotificationService extends Service {
-
+    private static final String TAG = "CheckinNotificationService";
     private NotificationManager notificationManager;
     private int CUSTOM_ID = 666;
     private long currentTimestamp;
@@ -127,7 +128,7 @@ public class CheckinNotificationService extends Service {
             // load photo from storage
             icon = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + notification.photo);
         } else {
-            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+        icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
         }
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
@@ -151,15 +152,15 @@ public class CheckinNotificationService extends Service {
         Notification builtNotification = notificationBuilder.build();
         builtNotification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-        notificationManager.cancelAll();
-        notificationManager.notify(CUSTOM_ID, builtNotification);
+//        notificationManager.cancelAll();
+        notificationManager.notify((int)(System.currentTimeMillis() / 1000), builtNotification);
     }
 
     private void setBroadcastReceiver() {
         messageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                switch (Objects.requireNonNull(intent.getAction())) {
+                switch (intent.getAction()) {
                     case "gpsUpdate":
                         currentLat = intent.getFloatExtra("lat", 0);
                         currentLng = intent.getFloatExtra("lng", 0);
@@ -169,12 +170,12 @@ public class CheckinNotificationService extends Service {
         };
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("gpsUpdate");
-        registerReceiver(messageReceiver, intentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(messageReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
     }
 }

@@ -33,8 +33,8 @@ public class Checkin {
     public Checkin() {
     }
 
-    public Checkin(String lng,
-                   String lat,
+    public Checkin(String lat,
+                   String lng,
                    String location,
                    String description,
                    String photo,

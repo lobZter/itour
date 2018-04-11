@@ -617,8 +617,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         temp.postTranslate(mapCenterX, mapCenterY);
         temp.mapPoints(point);
         float[] gps = imgPxToGps((mapCenterX - point[0]) / scale, (mapCenterY - point[1]) / scale);
-        final String lat = String.valueOf(gps[0]);
-        final String lng = String.valueOf(gps[1]);
+        final String lat = String.valueOf(gps[1]);
+        final String lng = String.valueOf(gps[0]);
 
         // push firebase database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
