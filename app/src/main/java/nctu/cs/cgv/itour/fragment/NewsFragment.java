@@ -106,7 +106,6 @@ public class NewsFragment extends Fragment {
                     @Override
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Notification notification = newsItemAdapter.getItem(position);
-                        notification.watched = true;
                         NewsFragment.this.notify();
                         float[] imgPx = gpsToImgPx(Float.valueOf(notification.lat), Float.valueOf(notification.lng));
                         ((MainActivity) getActivity()).onLocateClick(imgPx[0], imgPx[1], notification.postId);

@@ -56,6 +56,7 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.RotationGestureDetector;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Node;
+import nctu.cs.cgv.itour.object.Notification;
 import nctu.cs.cgv.itour.object.SpotList;
 import nctu.cs.cgv.itour.object.SpotNode;
 
@@ -82,7 +83,6 @@ public class LocationChooseActivity extends AppCompatActivity {
     // intent info
     private String description;
     private String photo;
-    private String audio;
     // variables
     private Matrix transformMat;
     private float scale = 1;
@@ -137,7 +137,6 @@ public class LocationChooseActivity extends AppCompatActivity {
         Intent intent = getIntent();
         description = intent.getStringExtra("description");
         photo = intent.getStringExtra("photo");
-        audio = intent.getStringExtra("audio");
 
         // set actionBar title, top-left icon
         ActionBar actionBar = getSupportActionBar();
@@ -618,6 +617,8 @@ public class LocationChooseActivity extends AppCompatActivity {
         temp.postTranslate(mapCenterX, mapCenterY);
         temp.mapPoints(point);
         float[] gps = imgPxToGps((mapCenterX - point[0]) / scale, (mapCenterY - point[1]) / scale);
+        final String lat = String.valueOf(gps[0]);
+        final String lng = String.valueOf(gps[1]);
 
         // push firebase database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
@@ -633,7 +634,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         // save checkin data to firebase database
         final String location = locationEdit.getText().toString().trim();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        final String username;
         if (developmentFlag) {
             String[] usernameTemplate = {"Ben", "寶寶柴", "不具名的男子", "阿明", "Andy", "阿寶", "王碩儒",
                     "阿輝", "饅頭", "小豬", "籃球少年", "Pei", "Calvin", "張包子", "風中的男人", "邱海龜",
@@ -642,9 +643,11 @@ public class LocationChooseActivity extends AppCompatActivity {
                     "Sandy", "小花", "阿寶", "李季春", "小咪", "Shanna", "Emma", "黃郁文", "紅玫瑰與白玫瑰",
                     "可愛小瑪丹", "Jessie", "鴨鴨", "泡泡", "鈺婷", "葉小瓜", "王美惠", "小慧", "Tina", "芊芊", "小鵲"};
             username = usernameTemplate[new Random().nextInt(usernameTemplate.length)];
+        } else {
+            username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
         }
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-        Checkin checkin = new Checkin(String.valueOf(gps[0]), String.valueOf(gps[1]), location, description, photo, uid, username, timestamp);
+        Checkin checkin = new Checkin(lat, lng, location, description, photo, uid, username, timestamp);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/checkin/" + mapTag + "/" + key, checkinValues);
@@ -654,6 +657,8 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                 if (photo.equals("")) {
                     actionLog("post checkin", location, key);
+                    pushNotification(key, username, location, lat, lng);
+
                     progressDialog.dismiss();
                     setResult(RESULT_CODE_CHECKIN_FINISH);
                     finish();
@@ -678,7 +683,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                                         moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
                                 }
                                 actionLog("post checkin", location, key);
-
+                                pushNotification(key, username, location, lat, lng);
                                 progressDialog.dismiss();
                                 setResult(RESULT_CODE_CHECKIN_FINISH);
                                 finish();
@@ -699,6 +704,28 @@ public class LocationChooseActivity extends AppCompatActivity {
                     }
                 }
             }
+        });
+    }
+
+    private void pushNotification(final String key, String username, final String location, String lat, String lng) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
+        Notification notification = new Notification(key,
+                "all",
+                username,
+                location + " | " + description,
+                photo,
+                lat,
+                lng,
+                System.currentTimeMillis() / 1000);
+        Map<String, Object> notificationValues = notification.toMap();
+        Map<String, Object> notificationUpdates = new HashMap<>();
+        notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
+        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+                    actionLog("push notification", location, key);
+                }
         });
     }
 }

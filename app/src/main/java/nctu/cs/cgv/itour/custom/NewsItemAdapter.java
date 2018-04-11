@@ -55,9 +55,6 @@ public class NewsItemAdapter extends RecyclerView.Adapter<NewsItemAdapter.ViewHo
 
         viewHolder.title.setText(notification.title);
         viewHolder.msg.setText(notification.msg);
-        if(notification.watched) {
-            viewHolder.itemLayout.setBackgroundColor(getContext().getColor(R.color.transparent));
-        }
         setPhoto(viewHolder, notification.photo);
     }
 
