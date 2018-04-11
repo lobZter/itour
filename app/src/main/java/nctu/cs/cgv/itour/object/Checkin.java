@@ -33,13 +33,11 @@ public class Checkin {
     public Checkin() {
     }
 
-    public Checkin(String lng,
-                   String lat,
+    public Checkin(String lat,
+                   String lng,
                    String location,
                    String description,
                    String photo,
-//                   String audio,
-//                   Map<String, Boolean> type,
                    String uid,
                    String username,
                    String timestamp) {
@@ -49,8 +47,6 @@ public class Checkin {
         this.location = location;
         this.description = description;
         this.photo = photo;
-//        this.audio = audio;
-//        this.type = type;
         this.uid = uid;
         this.username = username;
         this.timestamp = timestamp;
@@ -70,8 +66,6 @@ public class Checkin {
         result.put("location", location);
         result.put("description", description);
         result.put("photo", photo);
-//        result.put("audio", audio);
-//        result.put("type", type);
         result.put("uid", uid);
         result.put("username", username);
         result.put("timestamp", timestamp);
@@ -79,7 +73,6 @@ public class Checkin {
         result.put("popularTargetUid", popularTargetUid);
         result.put("fakeFlag", fakeFlag);
         result.put("likeNum", likeNum);
-
         return result;
     }
 }
