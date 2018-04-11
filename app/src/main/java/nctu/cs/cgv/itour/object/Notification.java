@@ -16,6 +16,7 @@ public class Notification {
     public String title;
     public String msg;
     public String photo;
+    public String location;
     public String lat;
     public String lng;
     public long timestamp;
@@ -28,6 +29,7 @@ public class Notification {
                          String title,
                          String msg,
                          String photo,
+                         String location,
                          String lat,
                          String lng,
                          long timestamp) {
@@ -36,6 +38,7 @@ public class Notification {
         this.title = title;
         this.msg = msg;
         this.photo = photo;
+        this.location = location;
         this.lat = lat;
         this.lng = lng;
         this.timestamp = timestamp;
@@ -49,6 +52,7 @@ public class Notification {
         result.put("title", title);
         result.put("msg", msg);
         result.put("photo", photo);
+        result.put("location", location);
         result.put("lat", lat);
         result.put("lng", lng);
         result.put("timestamp", timestamp);

@@ -715,6 +715,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 username,
                 location + " | " + description,
                 photo,
+                location,
                 lat,
                 lng,
                 System.currentTimeMillis() / 1000);

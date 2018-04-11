@@ -4,8 +4,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -13,6 +15,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -27,9 +30,11 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.FileAsyncHttpResponseHandler;
 
 import java.io.File;
+import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 
@@ -44,6 +49,9 @@ public class CheckinNotificationService extends Service {
     private NotificationManager notificationManager;
     private int CUSTOM_ID = 666;
     private long currentTimestamp;
+    private BroadcastReceiver messageReceiver;
+    private float currentLat = 0.0f;
+    private float currentLng = 0.0f;
 
     @Nullable
     @Override
@@ -55,6 +63,7 @@ public class CheckinNotificationService extends Service {
     public void onCreate() {
         super.onCreate();
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        setBroadcastReceiver();
     }
 
     @Override
@@ -72,7 +81,7 @@ public class CheckinNotificationService extends Service {
                 if (notification == null) return;
                 if (notification.targetUid.equals("all") ||
                         (FirebaseAuth.getInstance().getCurrentUser() != null && notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())))
-                    notifyCheckin(notification);
+                    checkDistance(notification);
             }
 
             @Override
@@ -97,6 +106,17 @@ public class CheckinNotificationService extends Service {
         });
 
         return START_STICKY;
+    }
+
+    private void checkDistance(nctu.cs.cgv.itour.object.Notification notification) {
+        float dist = Utility.gpsToMeter(currentLat, currentLng, Float.valueOf(notification.lat), Float.valueOf(notification.lng));
+        if (dist <= 100f) {
+            notification.title += "在你周圍打卡";
+            notifyCheckin(notification);
+        } else if (300f <= dist && dist <= 600f) {
+            notification.title += "在" + notification.location + "打卡了";
+            notifyCheckin(notification);
+        }
     }
 
     private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
@@ -135,8 +155,26 @@ public class CheckinNotificationService extends Service {
         notificationManager.notify(CUSTOM_ID, builtNotification);
     }
 
+    private void setBroadcastReceiver() {
+        messageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (Objects.requireNonNull(intent.getAction())) {
+                    case "gpsUpdate":
+                        currentLat = intent.getFloatExtra("lat", 0);
+                        currentLng = intent.getFloatExtra("lng", 0);
+                        break;
+                }
+            }
+        };
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("gpsUpdate");
+        registerReceiver(messageReceiver, intentFilter);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(messageReceiver);
     }
 }
