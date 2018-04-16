@@ -35,6 +35,7 @@ public class MyApplication extends Application {
     public static final boolean logFlag = true;
     public static final boolean screenCaptureFlag = false;
     public static final boolean audioFeedbackFlag = true;
+    public static final boolean appLogFlag = false;
 
     // map constant
     public static final float MIN_ZOOM = 0.5f;

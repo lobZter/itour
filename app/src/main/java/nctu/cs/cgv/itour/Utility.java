@@ -28,6 +28,7 @@ import nctu.cs.cgv.itour.object.IdxWeights;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.actionLogPath;
+import static nctu.cs.cgv.itour.MyApplication.appLogFlag;
 import static nctu.cs.cgv.itour.MyApplication.appLogPath;
 import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
@@ -191,7 +192,7 @@ public class Utility {
     }
 
     public static void appLog(String log) {
-        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
+        if (!logFlag || !appLogFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
             return;
 
         RequestParams requestParams = new RequestParams();
