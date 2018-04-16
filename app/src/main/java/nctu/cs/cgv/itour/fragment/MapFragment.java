@@ -87,7 +87,7 @@ public class MapFragment extends Fragment {
     private int mergedCheckinIconPivotY;
     private int spotIconPivotX;
     private int spotIconPivotY;
-    //    private int edgeNodeIconPivotX;
+//    private int edgeNodeIconPivotX;
 //    private int edgeNodeIconPivotY;
     // UI references
     private RelativeLayout rootLayout;
