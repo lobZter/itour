@@ -18,7 +18,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,7 +48,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
@@ -195,7 +193,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotIconPivotY = spToPx(this, 14) / 2;
         spotNodeList = new ArrayList<>();
         spotList = new SpotList(new File(dirPath + "/" + mapTag + "_spot_list.txt"));
-        for (SpotNode spotNode: spotList.nodeMap.values()) {
+        for (SpotNode spotNode : spotList.nodeMap.values()) {
             // allocate new spotNode instead using spotNode in nodeMap
             spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name, spotNode.order));
         }
@@ -418,7 +416,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
             float[] imgPx = gpsToImgPx(lat, lng);
 
-            if(imgPx[0] != -1 && imgPx[1] != -1) {
+            if (imgPx[0] != -1 && imgPx[1] != -1) {
 
                 // translate to center when handleGpsUpdate first time
                 if (gpsDistortedX == -1 && gpsDistortedY == -1) {
@@ -480,7 +478,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                 }
             }
         }
-        
+
         for (SpotNode spotNode : spotNodeList) {
             point[0] = spotNode.x;
             point[1] = spotNode.y;
@@ -667,7 +665,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                             public void onSuccess(int statusCode, Header[] headers, byte[] response) {
                                 // move files
                                 if (getExternalCacheDir() != null) {
-                                    if(!photo.equals(""))
+                                    if (!photo.equals(""))
                                         moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
                                 }
                                 actionLog("post checkin", location, key);
@@ -711,10 +709,10 @@ public class LocationChooseActivity extends AppCompatActivity {
         Map<String, Object> notificationUpdates = new HashMap<>();
         notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
         databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
-                @Override
-                public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-                    actionLog("push notification", location, key);
-                }
+            @Override
+            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+                actionLog("push notification", location, key);
+            }
         });
     }
 }

@@ -7,8 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -25,8 +23,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.util.Log;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,8 +33,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
 
@@ -48,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.custom.MyViewPager;
@@ -69,7 +62,6 @@ import nctu.cs.cgv.itour.service.ScreenShotService;
 import static nctu.cs.cgv.itour.MyApplication.audioFeedbackFlag;
 import static nctu.cs.cgv.itour.MyApplication.dirPath;
 import static nctu.cs.cgv.itour.MyApplication.edgeNode;
-import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
@@ -78,7 +70,6 @@ import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
-import static nctu.cs.cgv.itour.Utility.moveFile;
 
 public class MainActivity extends AppCompatActivity implements
 //        SettingsFragment.OnFogListener,
@@ -170,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 final Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if(checkin == null) return;
+                if (checkin == null) return;
 
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                     String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -191,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 // like change
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if(checkin == null) return;
+                if (checkin == null) return;
 
                 if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                     String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -212,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if(checkin == null) return;
+                if (checkin == null) return;
 
                 checkin.key = dataSnapshot.getKey();
 
@@ -481,7 +472,8 @@ public class MainActivity extends AppCompatActivity implements
             noticeCheckinFlag = false;
             try {
                 onLocateClick(notification_imgPxX, notification_imgPxY, notification_key);
-            } catch (Exception ignore) {}
+            } catch (Exception ignore) {
+            }
         }
     }
 
