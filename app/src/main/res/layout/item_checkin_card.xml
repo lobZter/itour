@@ -36,6 +36,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentStart="true"
                     android:text="皓"
+                    android:maxLines="1"
                     android:textColor="@color/primary_text"
                     android:textSize="16sp" />
 
@@ -55,6 +56,7 @@
                     android:layout_below="@id/tv_username"
                     android:layout_toEndOf="@id/at_sign"
                     android:text="淡水文化園區-殼牌倉庫"
+                    android:maxLines="1"
                     android:textColor="@color/gps_marker_color"
                     android:textSize="16sp" />
 

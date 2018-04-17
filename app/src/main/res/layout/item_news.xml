@@ -5,13 +5,17 @@
     android:orientation="horizontal"
     android:id="@+id/layout_item"
     android:background="@color/md_white_1000"
-    android:padding="16dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:id="@+id/layout_text"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="16dp"
+        android:gravity="center_vertical"
         android:layout_weight="5"
         android:orientation="vertical">
 
@@ -20,6 +24,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Title"
+            android:maxLines="1"
             android:textColor="@color/primary_text"
             android:textSize="18sp" />
 
@@ -27,8 +32,9 @@
             android:id="@+id/tv_msg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="msgmsgmsgmsgmsgmsgmsg"
-            android:textColor="@color/primary_text" />
+            android:text="msg"
+            android:maxLines="1"
+            android:textColor="@color/secondary_text" />
 
     </LinearLayout>
 
