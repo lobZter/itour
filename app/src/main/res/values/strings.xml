@@ -106,6 +106,7 @@
     <string name="post_checkin_description_hint">在想些什麼...</string>
     <string name="post_checkin_audio_hint">留下聲音...</string>
     <string name="post_checkin_photo_hint">新增照片...</string>
+    <string name="error_image_file">圖片錯誤</string>
 
     <!--<string name="activity_choose_location_title">Choose Checkin Location</string>-->
     <string name="activity_choose_location_title">打卡地點</string>

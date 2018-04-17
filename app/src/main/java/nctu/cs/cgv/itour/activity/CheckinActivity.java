@@ -3,20 +3,17 @@ package nctu.cs.cgv.itour.activity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -31,17 +28,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import id.zelory.compressor.Compressor;
 import nctu.cs.cgv.itour.R;
 
 import static nctu.cs.cgv.itour.Utility.hideSoftKeyboard;
+import static nctu.cs.cgv.itour.Utility.moveFile;
 
 public class CheckinActivity extends AppCompatActivity {
 
@@ -303,11 +304,22 @@ public class CheckinActivity extends AppCompatActivity {
                 // /data/user/0/nctu.cs.cgv.itour/cache/cropped1795714260.jpg
                 // getCacheDir()
                 String path = result.getUri().getPath();
-                Bitmap bitmap = BitmapFactory.decodeFile(path);
                 photoFile = path.substring(path.lastIndexOf("/") + 1);
-                pickedPhoto.setImageBitmap(bitmap);
-                photoBtn.setVisibility(View.GONE);
-                pickedPhotoLayout.setVisibility(View.VISIBLE);
+//                Bitmap bitmap = BitmapFactory.decodeFile(path);
+//                photoFile = path.substring(path.lastIndexOf("/") + 1);
+//                pickedPhoto.setImageBitmap(bitmap);
+
+                try {
+                    File compressedImageFile = new Compressor(this).compressToFile(new File(path));
+                    moveFile(getCacheDir().toString() + "/image", photoFile, getCacheDir().toString());
+                    Glide.with(this)
+                            .load(new File(result.getUri().getPath()))
+                            .into(pickedPhoto);
+                    photoBtn.setVisibility(View.GONE);
+                    pickedPhotoLayout.setVisibility(View.VISIBLE);
+                } catch (IOException e) {
+                    Toast.makeText(this, R.string.error_image_file, Toast.LENGTH_SHORT).show();
+                }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = result.getError();
             }
