@@ -335,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements
                         }
                         break;
                     case R.id.tab_settings:
-                        viewPager.setCurrentItem(3);
+                        viewPager.setCurrentItem(4);
                         break;
                 }
             }

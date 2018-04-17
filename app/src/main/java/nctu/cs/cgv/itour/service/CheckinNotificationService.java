@@ -10,15 +10,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -27,22 +22,16 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.FileAsyncHttpResponseHandler;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
-import java.util.Objects;
 
-import cz.msebera.android.httpclient.Header;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.object.Checkin;
+import nctu.cs.cgv.itour.object.UngoData;
 
-import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
-import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
-import static nctu.cs.cgv.itour.Utility.moveFile;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 public class CheckinNotificationService extends Service {
@@ -54,6 +43,7 @@ public class CheckinNotificationService extends Service {
     private float currentLat = 0.0f;
     private float currentLng = 0.0f;
     private String uid;
+    private UngoData ungoData = null;
 
     @Nullable
     @Override
@@ -78,36 +68,48 @@ public class CheckinNotificationService extends Service {
 
         uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        Query query = databaseReference.child("notification").child(mapTag);
+        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
-        currentTimestamp = System.currentTimeMillis() / 1000;
-        Log.d(TAG, "currentTimestamp" + currentTimestamp);
-
-        query.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
+        final Query ungoQuery = databaseReference.child("users").child(uid).child("data").child(mapTag);
+        ungoQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
-                Log.d(TAG, "childAdd" + notification.timestamp);
-                if (notification == null) return;
-                if (notification.uid.equals(uid)) return;
-                if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
-                    checkDistance(notification);
-            }
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ungoData = dataSnapshot.getValue(UngoData.class);
+                if (ungoData == null) return;
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Query notificationQuery = databaseReference.child("notification").child(mapTag);
+                currentTimestamp = System.currentTimeMillis() / 1000;
+                notificationQuery.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
+                        if (notification == null) return;
+                        if (notification.uid.equals(uid)) return;
+                        if (!ungoData.ungo.containsKey(notification.location) || ungoData.ungo.get(notification.location) == 0)
+                            if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
+                                checkDistance(notification);
+                    }
 
-            }
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                    }
 
-            }
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                    }
 
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
 
             @Override
@@ -138,7 +140,7 @@ public class CheckinNotificationService extends Service {
             // load photo from storage
             icon = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + notification.photo);
         } else {
-        icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
         }
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
@@ -154,7 +156,7 @@ public class CheckinNotificationService extends Service {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
         notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
         notificationBuilder.setLargeIcon(icon);
-        notificationBuilder.setVibrate(new long[] {0, 300, 300, 300, 300});
+        notificationBuilder.setVibrate(new long[]{0, 300, 300, 300, 300});
         notificationBuilder.setContentTitle(notification.title);
         notificationBuilder.setContentText(notification.msg);
         notificationBuilder.setContentIntent(intent);
@@ -163,7 +165,7 @@ public class CheckinNotificationService extends Service {
         builtNotification.flags |= Notification.FLAG_AUTO_CANCEL;
 
 //        notificationManager.cancelAll();
-        notificationManager.notify((int)(System.currentTimeMillis() / 1000), builtNotification);
+        notificationManager.notify((int) (System.currentTimeMillis() / 1000), builtNotification);
     }
 
     private void setBroadcastReceiver() {
