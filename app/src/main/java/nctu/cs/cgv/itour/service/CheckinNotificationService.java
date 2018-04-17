@@ -53,6 +53,7 @@ public class CheckinNotificationService extends Service {
     private BroadcastReceiver messageReceiver;
     private float currentLat = 0.0f;
     private float currentLng = 0.0f;
+    private String uid;
 
     @Nullable
     @Override
@@ -70,18 +71,27 @@ public class CheckinNotificationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            this.stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("notification").child(mapTag);
 
         currentTimestamp = System.currentTimeMillis() / 1000;
+        Log.d(TAG, "currentTimestamp" + currentTimestamp);
 
         query.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
+                Log.d(TAG, "childAdd" + notification.timestamp);
                 if (notification == null) return;
-                if (notification.targetUid.equals("all") ||
-                        (FirebaseAuth.getInstance().getCurrentUser() != null && notification.targetUid.equals(FirebaseAuth.getInstance().getCurrentUser().getUid())))
+                if (notification.uid.equals(uid)) return;
+                if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
                     checkDistance(notification);
             }
 

@@ -12,6 +12,7 @@ import java.util.Map;
 public class Notification {
 
     public String postId;
+    public String uid;
     public String targetUid;
     public String title;
     public String msg;
@@ -25,6 +26,7 @@ public class Notification {
     }
 
     public Notification (String postId,
+                         String uid,
                          String targetUid,
                          String title,
                          String msg,
@@ -34,6 +36,7 @@ public class Notification {
                          String lng,
                          long timestamp) {
         this.postId = postId;
+        this.uid = uid;
         this.targetUid = targetUid;
         this.title = title;
         this.msg = msg;
@@ -48,6 +51,7 @@ public class Notification {
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("postId", postId);
+        result.put("uid", uid);
         result.put("targetUid", targetUid);
         result.put("title", title);
         result.put("msg", msg);

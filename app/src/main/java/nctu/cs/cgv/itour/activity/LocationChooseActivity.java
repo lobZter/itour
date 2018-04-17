@@ -643,7 +643,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                 if (photo.equals("")) {
                     actionLog("post checkin", location, key);
-                    pushNotification(key, username, location, lat, lng);
+                    pushNotification(key, uid, username, location, lat, lng);
 
                     progressDialog.dismiss();
                     setResult(RESULT_CODE_CHECKIN_FINISH);
@@ -669,7 +669,7 @@ public class LocationChooseActivity extends AppCompatActivity {
                                         moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
                                 }
                                 actionLog("post checkin", location, key);
-                                pushNotification(key, username, location, lat, lng);
+                                pushNotification(key, uid, username, location, lat, lng);
                                 progressDialog.dismiss();
                                 setResult(RESULT_CODE_CHECKIN_FINISH);
                                 finish();
@@ -693,10 +693,11 @@ public class LocationChooseActivity extends AppCompatActivity {
         });
     }
 
-    private void pushNotification(final String key, String username, final String location, String lat, String lng) {
+    private void pushNotification(final String key, final String uid, final String username, final String location, final String lat, final String lng) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
         Notification notification = new Notification(key,
+                uid,
                 "all",
                 username,
                 location + " | " + description,

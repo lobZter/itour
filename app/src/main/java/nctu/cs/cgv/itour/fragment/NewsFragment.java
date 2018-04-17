@@ -77,7 +77,6 @@ public class NewsFragment extends Fragment {
                 nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
                 if (notification == null) return;
                 newsItemAdapter.add(notification);
-                Log.d("NewsFragment", notification.title);
             }
 
             @Override
