@@ -81,6 +81,11 @@ public class AudioFeedbackService extends Service {
         params.x = 0;
         params.y = 100;
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+        } else {
+            params.type = WindowManager.LayoutParams.TYPE_PHONE;
+        }
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         windowManager.addView(overlayView, params);
 
