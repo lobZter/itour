@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -25,6 +26,8 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
@@ -32,10 +35,11 @@ import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.UngoData;
 
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 public class CheckinNotificationService extends Service {
-    private static final String TAG = "CheckinNotificationService";
+    private static final String TAG = "CheckinNotification";
     private NotificationManager notificationManager;
     private int CUSTOM_ID = 666;
     private long currentTimestamp;
@@ -75,7 +79,6 @@ public class CheckinNotificationService extends Service {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ungoData = dataSnapshot.getValue(UngoData.class);
-                if (ungoData == null) return;
 
                 Query notificationQuery = databaseReference.child("notification").child(mapTag);
                 currentTimestamp = System.currentTimeMillis() / 1000;
@@ -85,9 +88,9 @@ public class CheckinNotificationService extends Service {
                         nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
                         if (notification == null) return;
                         if (notification.uid.equals(uid)) return;
-                        if (!ungoData.ungo.containsKey(notification.location) || ungoData.ungo.get(notification.location) == 0)
+                        if (ungoData == null || ungoData.ungo == null || !ungoData.ungo.containsKey(notification.location) || ungoData.ungo.get(notification.location) == 0)
                             if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
-                                checkDistance(notification);
+                                checkDistance(notification, dataSnapshot.getKey());
                     }
 
                     @Override
@@ -121,19 +124,33 @@ public class CheckinNotificationService extends Service {
         return START_STICKY;
     }
 
-    private void checkDistance(nctu.cs.cgv.itour.object.Notification notification) {
+    private void checkDistance(nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
         float dist = Utility.gpsToMeter(currentLat, currentLng, Float.valueOf(notification.lat), Float.valueOf(notification.lng));
         if (dist <= 100f) {
-            notification.title += "在你周圍打卡";
+            notification.title += "在離你" + String.valueOf((int)dist) + "公尺的地方打卡了";
             notifyCheckin(notification);
+            pushNews(notification, notificationKey);
         } else if (300f <= dist && dist <= 600f) {
-            notification.title += "在" + notification.location + "打卡了";
+            notification.title += "在你周圍打卡了";
             notifyCheckin(notification);
+            pushNews(notification, notificationKey);
         }
     }
 
-    private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
+    private void pushNews(final nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
+        Map<String, Object> notificationValues = notification.toMap();
+        Map<String, Object> notificationUpdates = new HashMap<>();
+        notificationUpdates.put("/users/" + uid + "/data/" + mapTag + "/news/" + notificationKey, notificationValues);
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+                actionLog("push news", notification.location, notification.postId);
+            }
+        });
+    }
 
+    private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
         Bitmap icon;
         final File externalCacheDir = getExternalCacheDir();
         if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + notification.photo).exists()) {

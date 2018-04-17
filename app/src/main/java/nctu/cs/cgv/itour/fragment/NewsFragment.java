@@ -3,18 +3,14 @@ package nctu.cs.cgv.itour.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -27,15 +23,11 @@ import com.google.firebase.database.Query;
 import java.util.ArrayList;
 
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
 import nctu.cs.cgv.itour.custom.ItemClickSupport;
-import nctu.cs.cgv.itour.custom.PlanItem;
 import nctu.cs.cgv.itour.custom.NewsItemAdapter;
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Notification;
 
-import static android.support.v7.widget.DividerItemDecoration.HORIZONTAL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.dpToPx;
@@ -68,6 +60,9 @@ public class NewsFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
+        if (FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+
         RecyclerView newsList = view.findViewById(R.id.recycle_view);
         Context context = getContext();
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
@@ -77,10 +72,9 @@ public class NewsFragment extends Fragment {
         newsList.addItemDecoration(itemDecor);
 
 
-
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        Query query = databaseReference.child("notification").child(mapTag);
-
+        Query query = databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .child("data").child(mapTag).child("news");
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -129,7 +123,7 @@ public class NewsFragment extends Fragment {
         if (getUserVisibleHint()) {
             if (actionBar != null) {
                 actionBar.setElevation(0);
-                actionBar.setSubtitle(getString(R.string.subtitle_plan));
+                actionBar.setSubtitle(getString(R.string.subtitle_news));
             }
         } else {
             if (actionBar != null) {
