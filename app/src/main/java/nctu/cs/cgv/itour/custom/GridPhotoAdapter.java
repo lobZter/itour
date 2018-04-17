@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 
 import java.util.ArrayList;
 
@@ -44,6 +45,9 @@ public class GridPhotoAdapter extends ArrayAdapter<Checkin> {
         if (!filename.equals("")) {
             Glide.with(context)
                     .load(fileDownloadURL + "?filename=" + filename)
+                    .apply(new RequestOptions()
+                            .placeholder(R.drawable.ic_broken_image_black_48dp)
+                            .centerCrop())
                     .into(photo);
         }
 

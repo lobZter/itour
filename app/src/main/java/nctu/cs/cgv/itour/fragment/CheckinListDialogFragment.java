@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.GridLayout;
 import android.widget.GridView;
 
 import java.util.ArrayList;
@@ -20,8 +19,6 @@ import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.GridPhotoAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.CheckinNode;
-
-import static nctu.cs.cgv.itour.Utility.actionLog;
 
 @SuppressLint("ValidFragment")
 public class CheckinListDialogFragment extends DialogFragment {
@@ -60,7 +57,7 @@ public class CheckinListDialogFragment extends DialogFragment {
 //        gridView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, 3));
         gridView.setNumColumns(3);
         gridView.setAdapter(gridPhotoAdapter);
-        gridView.setOnItemClickListener(new GridView.OnItemClickListener(){
+        gridView.setOnItemClickListener(new GridView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long id) {
                 String key = checkinList.get(position).key;

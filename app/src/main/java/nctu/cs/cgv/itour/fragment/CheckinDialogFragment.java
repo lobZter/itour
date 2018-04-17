@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -106,6 +107,9 @@ public class CheckinDialogFragment extends DialogFragment {
 
         Glide.with(getContext())
                 .load(fileDownloadURL + "?filename=" + filename)
+                .apply(new RequestOptions()
+                        .placeholder(R.drawable.ic_broken_image_black_48dp)
+                        .centerCrop())
                 .into(photo);
     }
 
