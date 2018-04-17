@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour.service;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -58,7 +60,19 @@ public class CheckinNotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "nctu.cs.cgv.itour",
+                    "Channel Tourgether",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Tourgether");
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 300, 300, 300, 300});
+            notificationManager.createNotificationChannel(channel);
+        }
         setBroadcastReceiver();
     }
 
