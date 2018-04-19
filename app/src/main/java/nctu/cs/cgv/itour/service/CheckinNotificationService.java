@@ -43,6 +43,7 @@ import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUE
 public class CheckinNotificationService extends Service {
     private static final String TAG = "CheckinNotification";
     private NotificationManager notificationManager;
+    private String channelId = "checkin notification";
     private int CUSTOM_ID = 666;
     private long currentTimestamp;
     private BroadcastReceiver messageReceiver;
@@ -64,8 +65,8 @@ public class CheckinNotificationService extends Service {
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    "nctu.cs.cgv.itour",
-                    "Channel Tourgether",
+                    channelId,
+                    "Channel checkin",
                     NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("Tourgether");
             channel.enableLights(true);
@@ -191,11 +192,11 @@ public class CheckinNotificationService extends Service {
         notificationBuilder.setContentTitle(notification.title);
         notificationBuilder.setContentText(notification.msg);
         notificationBuilder.setContentIntent(intent);
+        notificationBuilder.setChannelId(channelId);
 
         Notification builtNotification = notificationBuilder.build();
         builtNotification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-//        notificationManager.cancelAll();
         notificationManager.notify((int) (System.currentTimeMillis() / 1000), builtNotification);
     }
 
