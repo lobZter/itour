@@ -181,7 +181,12 @@ public class AudioFeedbackService extends Service {
 
                     }
                 }).create();
-        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        } else {
+            alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
+
         alertDialog.show();
     }
 
@@ -204,7 +209,11 @@ public class AudioFeedbackService extends Service {
 
                     }
                 }).create();
-        alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        } else {
+            alertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        }
         alertDialog.show();
     }
 
