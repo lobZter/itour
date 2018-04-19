@@ -626,7 +626,11 @@ public class MapFragment extends Fragment {
 
         if ((checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all")) ||
                 (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid))) {
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_60px));
+            if (uid.equals(checkin.uid)) {
+                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_hot_checkin_icon_60px));
+            } else {
+                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_60px));
+            }
             ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
             clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_96px));
         } else {
@@ -647,7 +651,11 @@ public class MapFragment extends Fragment {
             }
 
             if (coolDownCheckinNode) {
-                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
+                if (uid.equals(checkin.uid)) {
+                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
+                } else {
+                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
+                }
             }
 
             if (coolDownCheckinClusterNode) {
@@ -676,6 +684,9 @@ public class MapFragment extends Fragment {
                         }
                     });
                 }
+                if (uid.equals(checkin.uid)) {
+                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
+                }
                 return;
             }
         }
@@ -691,7 +702,11 @@ public class MapFragment extends Fragment {
         });
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
 
-        ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
+        if (uid.equals(checkin.uid)) {
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
+        } else {
+            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
+        }
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
         checkinNode.checkinList.add(checkin);
         checkinNodeList.add(checkinNode);
