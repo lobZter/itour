@@ -4,8 +4,11 @@
     android:layout_height="match_parent">
 
     <nctu.cs.cgv.itour.custom.SquareImageView
+        android:layout_gravity="center"
         android:id="@+id/photo"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:scaleType="center"
+        android:src="@drawable/ic_broken_image_black_48dp" />
 
 </FrameLayout>

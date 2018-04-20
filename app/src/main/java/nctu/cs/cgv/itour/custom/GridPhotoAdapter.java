@@ -38,16 +38,13 @@ public class GridPhotoAdapter extends ArrayAdapter<Checkin> {
         view = inflater.inflate(R.layout.item_grid_photo, parent, false);
 
         final ImageView photo = view.findViewById(R.id.photo);
-        photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
         Checkin checkin = getItem(position);
         final String filename = checkin.photo;
         if (!filename.equals("")) {
             Glide.with(context)
                     .load(fileDownloadURL + "?filename=" + filename)
-                    .apply(new RequestOptions()
-                            .placeholder(R.drawable.ic_broken_image_black_48dp)
-                            .centerCrop())
+                    .apply(new RequestOptions().placeholder(R.drawable.ic_broken_image_black_48dp))
                     .into(photo);
         }
 

@@ -112,9 +112,7 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
 
         Glide.with(context)
                 .load(fileDownloadURL + "?filename=" + filename)
-                .apply(new RequestOptions()
-                        .placeholder(R.drawable.ic_broken_image_black_48dp)
-                        .centerCrop())
+                .apply(new RequestOptions().placeholder(R.drawable.ic_broken_image_black_48dp))
                 .into(viewHolder.photo);
     }
 
