@@ -625,7 +625,9 @@ public class MapFragment extends Fragment {
         CheckinNode checkinClusterNode = checkinClusterNodeMap.get(checkin.key);
 
         if ((checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all")) ||
-                (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid))) {
+                (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)) ||
+                (checkin.like != null && checkin.likeNum + checkin.like.size() > 5) ||
+                (checkin.likeNum > 5)) {
             if (uid.equals(checkin.uid)) {
                 ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_hot_checkin_icon_60px));
             } else {
