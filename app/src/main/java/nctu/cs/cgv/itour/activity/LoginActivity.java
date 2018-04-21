@@ -85,8 +85,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         Button guestBtn = findViewById(R.id.btn_guest);
-        if (logFlag) guestBtn.setVisibility(View.GONE);
-        else guestBtn.setVisibility(View.VISIBLE);
         guestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
