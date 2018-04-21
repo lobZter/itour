@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements
         setCheckinPreference();
         setView();
 
-        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
         if (logFlag && screenCaptureFlag)
             requestScreenCapture();
