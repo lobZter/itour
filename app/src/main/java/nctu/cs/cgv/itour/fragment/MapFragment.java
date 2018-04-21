@@ -742,8 +742,8 @@ public class MapFragment extends Fragment {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        translateToImgPx(spotNode.x, spotNode.y, false);
-                        showCheckinListDialog(spotNode.checkinNode);
+                        translateToImgPx(spotNode.x, spotNode.y, false);
+//                        showCheckinListDialog(spotNode.checkinNode);
                     }
                 });
                 spotNode.checkinNode.checkinList.add(checkin);
@@ -766,7 +766,8 @@ public class MapFragment extends Fragment {
                     checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            showCheckinListDialog(checkinClusterNode);
+                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
+//                            showCheckinListDialog(checkinClusterNode);
                         }
                     });
                     checkinClusterNode.checkinList.add(checkin);
