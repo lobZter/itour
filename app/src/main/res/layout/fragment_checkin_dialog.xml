@@ -15,68 +15,48 @@
             android:scaleType="center"
             android:src="@drawable/ic_broken_image_black_48dp" />
 
-        <View
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider" />
+            android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
+            <ImageView
                 android:id="@+id/btn_like"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableStart="@drawable/ic_favorite_border_black_24dp"
-                android:text="@string/btn_like_string"
-                android:textColor="@color/md_black_1000" />
+                android:padding="12dp"
+                android:src="@drawable/ic_favorite_border_black_24dp" />
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="@color/divider" />
-
-            <Button
+            <ImageView
                 android:id="@+id/btn_save"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableStart="@drawable/ic_bookmark_border_black_24dp"
-                android:text="@string/btn_save_string"
-                android:textColor="@color/md_black_1000" />
+                android:layout_toEndOf="@id/btn_like"
+                android:padding="12dp"
+                android:src="@drawable/ic_bookmark_border_black_24dp" />
 
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="@color/divider" />
+            <TextView
+                android:id="@+id/tv_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/btn_locate"
+                android:layout_centerVertical="true"
+                android:text="14公尺"
+                android:textSize="14sp" />
 
-            <Button
+            <ImageButton
+                android:background="@color/transparent"
                 android:id="@+id/btn_locate"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableStart="@drawable/ic_gps_fixed_black_24dp"
-                android:text="@string/btn_like_string"
-                android:textColor="@color/md_black_1000" />
+                android:layout_alignParentEnd="true"
+                android:padding="12dp"
+                android:src="@drawable/ic_gps_fixed_black_24dp" />
 
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider" />
+        </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:layout_marginTop="4dp"
             android:paddingEnd="8dp"
             android:paddingStart="8dp">
 
@@ -84,59 +64,71 @@
                 android:id="@+id/tv_username"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
                 android:layout_alignParentStart="true"
+                android:gravity="bottom"
                 android:text="皓"
                 android:textColor="@color/primary_text"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/at_sign"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_toEndOf="@id/tv_username"
-                android:text="\@"
-                android:textColor="@color/gps_marker_color"
-                android:textSize="16sp" />
-
-            <TextView
                 android:id="@+id/tv_location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@id/at_sign"
+                android:layout_alignParentBottom="true"
+
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/tv_username"
                 android:text="淡水福佑宮"
                 android:textColor="@color/gps_marker_color"
                 android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/tv_like"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@id/tv_description"
+                android:layout_alignParentBottom="true"
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/tv_location"
                 android:text="8人說讚"
-                android:textColor="@color/secondary_text" />
-
-            <TextView
-                android:id="@+id/tv_description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/tv_username"
-                android:layout_marginTop="4dp"
-                android:text="淡水福佑宮，俗稱「淡水媽祖廟」，位於臺灣新北市淡水區，主祀天上聖母媽祖。為新北市三級古蹟。"
+                android:textColor="@color/secondary_text"
                 android:textSize="14sp" />
 
+            <!--<ImageView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:layout_toStartOf="@id/tv_distance"-->
+            <!--android:src="@drawable/ic_location_on_9e9e9e_24dp" />-->
+
+            <!--<TextView-->
+            <!--android:id="@+id/tv_distance"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentEnd="true"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:text="14公尺"-->
+            <!--android:textSize="14sp" />-->
+
         </RelativeLayout>
+
+        <TextView
+            android:id="@+id/tv_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:text="淡水福佑宮，俗稱「淡水媽祖廟」，位於臺灣新北市淡水區，主祀天上聖母媽祖。為新北市三級古蹟。"
+            android:textSize="14sp" />
+
 
         <View
             android:id="@+id/comment_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginBottom="4dp"
-            android:layout_marginTop="4dp"
             android:background="@color/divider"
             android:visibility="gone" />
 

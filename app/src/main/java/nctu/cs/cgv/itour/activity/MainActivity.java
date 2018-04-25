@@ -518,8 +518,8 @@ public class MainActivity extends AppCompatActivity implements
     public void onLocateClick(float imgPxX, float imgPxY, String key) {
         bottomBar.selectTabAtPosition(0);
         mapFragment.translateToImgPx(imgPxX, imgPxY, false);
-        if (!key.equals(""))
-            mapFragment.showCheckinDialog(key);
+//        if (!key.equals(""))
+//            mapFragment.showCheckinDialog(key);
     }
 
     private void checkPermission() {

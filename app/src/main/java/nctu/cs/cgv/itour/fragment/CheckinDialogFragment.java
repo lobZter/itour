@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
 import nctu.cs.cgv.itour.custom.CommentItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
@@ -41,6 +44,7 @@ import nctu.cs.cgv.itour.object.Comment;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -124,8 +128,9 @@ public class CheckinDialogFragment extends DialogFragment {
     }
 
     private void setActionBtn(final View view, final Checkin checkin) {
-        final Button likeBtn = view.findViewById(R.id.btn_like);
-        final Button saveBtn = view.findViewById(R.id.btn_save);
+        final ImageView likeBtn = view.findViewById(R.id.btn_like);
+        final ImageView saveBtn = view.findViewById(R.id.btn_save);
+        final ImageView locateBtn = view.findViewById(R.id.btn_locate);
         final TextView like = view.findViewById(R.id.tv_like);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -149,8 +154,10 @@ public class CheckinDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                     if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
+//                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+//                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
+                        likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                                R.drawable.ic_favorite_border_black_24dp, null));
                         String likeStr = "";
                         if (checkin.like != null && checkin.like.size() > 0) {
                             likeStr = String.valueOf(checkin.likeNum + checkin.like.size() - 1) + getContext().getString(R.string.checkin_card_like_num);
@@ -161,8 +168,10 @@ public class CheckinDialogFragment extends DialogFragment {
                         checkinMap.get(checkin.key).like.remove(uid);
                         actionLog("cancel like checkin", checkin.location, checkin.key);
                     } else {
-                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+//                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+//                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                        likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                                R.drawable.ic_favorite_red_500_24dp, null));
                         String likeStr;
                         if (checkin.like != null && checkin.like.size() > 0) {
                             likeStr = String.valueOf(checkin.likeNum + checkin.like.size() + 1) + getContext().getString(R.string.checkin_card_like_num);
@@ -183,14 +192,18 @@ public class CheckinDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                     if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+//                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
+//                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
+                        saveBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                                R.drawable.ic_bookmark_border_black_24dp, null));
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).removeValue();
                         savedPostId.remove(checkin.key);
                         actionLog("cancel save checkin", checkin.location, checkin.key);
                     } else {
-                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+//                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+//                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+                        saveBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                                R.drawable.ic_bookmark_blue_24dp, null));
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
                         savedPostId.put(checkin.key, true);
                         actionLog("save checkin", checkin.location, checkin.key);
@@ -199,15 +212,30 @@ public class CheckinDialogFragment extends DialogFragment {
             });
 
             if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-                likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-                likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+//                likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
+//                likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
+                likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                        R.drawable.ic_favorite_red_500_24dp, null));
             }
 
             if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-                saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-                saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+//                saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
+//                saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
+                likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                        R.drawable.ic_bookmark_blue_24dp, null));
             }
         }
+
+        locateBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+                ((MainActivity) Objects.requireNonNull(getActivity())).onLocateClick(imgPx[0], imgPx[1], checkin.key);
+                Fragment fragment = Objects.requireNonNull(getFragmentManager()).findFragmentByTag("fragment_checkin_dialog");
+                Objects.requireNonNull(getFragmentManager()).beginTransaction().remove(fragment).commit();
+                actionLog("locate checkin", checkin.location, checkin.key);
+            }
+        });
     }
 
     private void setComment(final View view, final Checkin checkin) {
