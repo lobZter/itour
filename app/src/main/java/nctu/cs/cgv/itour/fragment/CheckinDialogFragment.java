@@ -1,32 +1,46 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
+import nctu.cs.cgv.itour.custom.CommentItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
+import nctu.cs.cgv.itour.object.Comment;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -53,17 +67,15 @@ public class CheckinDialogFragment extends DialogFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_checkin_dialog, container);
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
         final Checkin checkin = checkinMap.get(postId);
-
-        appLog("CheckinDialogFragment onViewCreated: " + postId);
         actionLog("browse checkin", checkin.location, checkin.key);
 
         TextView username = view.findViewById(R.id.tv_username);
@@ -80,12 +92,12 @@ public class CheckinDialogFragment extends DialogFragment {
             if (checkin.like != null && checkin.like.size() > 0) {
                 likeNum += checkin.like.size();
             }
-            String likeStr = likeNum > 0 ? String.valueOf(likeNum) + getContext().getString(R.string.checkin_card_like_num) : "";
+            String likeStr = likeNum > 0 ? String.valueOf(likeNum) + Objects.requireNonNull(getContext()).getString(R.string.checkin_card_like_num) : "";
             like.setText(likeStr);
-
 
             setPhoto(view, checkin.photo);
             setActionBtn(view, checkin);
+            setComment(view, checkin);
         } else {
             username.setText("");
             location.setText("");
@@ -96,24 +108,22 @@ public class CheckinDialogFragment extends DialogFragment {
         }
     }
 
-    private void setPhoto(View view, final String filename) {
+    private void setPhoto(final View view, final String filename) {
 
-        final ImageView photo = (ImageView) view.findViewById(R.id.photo);
+        final ImageView photo = view.findViewById(R.id.photo);
 
         if (filename.equals("")) {
             photo.setVisibility(View.GONE);
             return;
         }
 
-        Glide.with(getContext())
+        Glide.with(Objects.requireNonNull(getContext()))
                 .load(fileDownloadURL + "?filename=" + filename)
-                .apply(new RequestOptions()
-                        .placeholder(R.drawable.ic_broken_image_black_48dp)
-                        .centerCrop())
+                .apply(new RequestOptions().placeholder(R.drawable.ic_broken_image_black_48dp))
                 .into(photo);
     }
 
-    private void setActionBtn(View view, final Checkin checkin) {
+    private void setActionBtn(final View view, final Checkin checkin) {
         final Button likeBtn = view.findViewById(R.id.btn_like);
         final Button saveBtn = view.findViewById(R.id.btn_save);
         final TextView like = view.findViewById(R.id.tv_like);
@@ -200,17 +210,70 @@ public class CheckinDialogFragment extends DialogFragment {
         }
     }
 
+    private void setComment(final View view, final Checkin checkin) {
+        View commentDivider = view.findViewById(R.id.comment_divider);
+        RecyclerView commentList = view.findViewById(R.id.lv_comment);
+        RelativeLayout commentEdit = view.findViewById(R.id.comment_edit);
+        TextView commentUsername = view.findViewById(R.id.tv_comment_username);
+        final EditText commentMsg = view.findViewById(R.id.et_comment_msg);
+        ImageView sendBtn = view.findViewById(R.id.btn_comment_send);
+
+        // set comment list
+        if (checkin.comment.size() > 0) {
+            commentDivider.setVisibility(View.VISIBLE);
+            commentList.setVisibility(View.VISIBLE);
+            ArrayList<Comment> comments = new ArrayList<>(checkin.comment.values());
+            CommentItemAdapter commentItemAdapter = new CommentItemAdapter(getContext(), comments);
+            commentList.setAdapter(commentItemAdapter);
+            commentList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, true));
+        }
+
+        // set comment edit
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            commentEdit.setVisibility(View.VISIBLE);
+            commentUsername.setText(FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+            sendBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // send comment
+                    String msg = commentMsg.getText().toString().trim();
+                    if (msg.equals("")) return;
+
+                    Comment comment = new Comment(msg,
+                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            FirebaseAuth.getInstance().getCurrentUser().getDisplayName(),
+                            System.currentTimeMillis() / 1000);
+                    String pushKey = FirebaseDatabase.getInstance().getReference()
+                            .child("checkin").child(mapTag).child(checkin.key).child("comment")
+                            .push().getKey();
+
+                    Map<String, Object> commentValue = comment.toMap();
+                    Map<String, Object> childUpdates = new HashMap<>();
+                    childUpdates.put("/checkin/" + mapTag + "/" + checkin.key + "/comment/" + pushKey, commentValue);
+                    FirebaseDatabase.getInstance().getReference().updateChildren(childUpdates,
+                            new DatabaseReference.CompletionListener() {
+                                @Override
+                                public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+
+                                }
+                            });
+                }
+            });
+        }
+    }
+
+
     @Override
     public void onStart() {
         super.onStart();
         // set dialog layout
-        getDialog().getWindow()
-                .setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        Objects.requireNonNull(getDialog().getWindow())
+                .setLayout(WindowManager.LayoutParams.MATCH_PARENT,     // width
+                        WindowManager.LayoutParams.WRAP_CONTENT);    // height
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView");
     }
 }

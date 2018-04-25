@@ -20,7 +20,7 @@ public class Checkin {
     public String username;
     public String timestamp;
     public Map<String, Boolean> like = new HashMap<>();
-    public Map<String, Boolean> comment = new HashMap<>();
+    public Map<String, Comment> comment = new HashMap<>();
     // for admin function
     public String targetUid;
     public Map<String, Boolean> popularTargetUid;

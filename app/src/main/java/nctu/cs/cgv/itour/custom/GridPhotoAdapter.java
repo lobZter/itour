@@ -31,6 +31,7 @@ public class GridPhotoAdapter extends ArrayAdapter<Checkin> {
         this.context = context;
     }
 
+    @NonNull
     @Override
     public View getView(int position, View view, @NonNull ViewGroup parent) {
 
