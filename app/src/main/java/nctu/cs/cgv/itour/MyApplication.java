@@ -31,6 +31,8 @@ public class MyApplication extends Application {
     public static Mesh realMesh;
     public static Mesh warpMesh;
     public static EdgeNode edgeNode;
+    public static float latitude = 0.0f;
+    public static float longitude = 0.0f;
     // flags
     public static final boolean logFlag = true;
     public static final boolean screenCaptureFlag = false;

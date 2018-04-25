@@ -61,7 +61,6 @@ import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 import static nctu.cs.cgv.itour.Utility.spToPx;
 
@@ -87,7 +86,7 @@ public class MapFragment extends Fragment {
     private int mergedCheckinIconPivotY;
     private int spotIconPivotX;
     private int spotIconPivotY;
-//    private int edgeNodeIconPivotX;
+    //    private int edgeNodeIconPivotX;
 //    private int edgeNodeIconPivotY;
     // UI references
     private RelativeLayout rootLayout;
@@ -276,7 +275,6 @@ public class MapFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-                appLog("go CheckinActivity");
                 startActivity(new Intent(context, CheckinActivity.class));
             }
         });
@@ -900,7 +898,7 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public void handleFogUpdate(float lat, float lng) {
+    public void handleFogUpdate(double lat, double lng) {
 
 //        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
 //

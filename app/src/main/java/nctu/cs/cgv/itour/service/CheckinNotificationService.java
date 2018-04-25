@@ -36,6 +36,8 @@ import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.UngoData;
 
+import static nctu.cs.cgv.itour.MyApplication.latitude;
+import static nctu.cs.cgv.itour.MyApplication.longitude;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
@@ -47,8 +49,8 @@ public class CheckinNotificationService extends Service {
     private int CUSTOM_ID = 666;
     private long currentTimestamp;
     private BroadcastReceiver messageReceiver;
-    private float currentLat = 0.0f;
-    private float currentLng = 0.0f;
+    private double currentLat = 0.0;
+    private double currentLng = 0.0;
     private String uid;
     private UngoData ungoData = null;
 
@@ -140,9 +142,9 @@ public class CheckinNotificationService extends Service {
     }
 
     private void checkDistance(nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
-        float dist = Utility.gpsToMeter(currentLat, currentLng, Float.valueOf(notification.lat), Float.valueOf(notification.lng));
+        float dist = Utility.gpsToMeter(latitude, longitude, Float.valueOf(notification.lat), Float.valueOf(notification.lng));
         if (dist <= 100f) {
-            notification.title += "在離你" + String.valueOf((int)dist) + "公尺的地方打卡了";
+            notification.title += "在離你" + String.valueOf((int) dist) + "公尺的地方打卡了";
             notifyCheckin(notification);
             pushNews(notification, notificationKey);
         } else if (300f <= dist && dist <= 600f) {

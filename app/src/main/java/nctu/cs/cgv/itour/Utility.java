@@ -12,10 +12,8 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,14 +21,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.entity.mime.content.InputStreamBody;
 import nctu.cs.cgv.itour.object.IdxWeights;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.actionLogPath;
-import static nctu.cs.cgv.itour.MyApplication.appLogFlag;
-import static nctu.cs.cgv.itour.MyApplication.appLogPath;
-import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
@@ -49,20 +43,6 @@ public class Utility {
 
     public static int spToPx(Context context, float sp) {
         return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, context.getResources().getDisplayMetrics()));
-    }
-
-    public static float lerp(float from, float to, float alpha) {
-        return from + alpha * (to - from);
-    }
-
-    public static float[] lerp(float[] from, float[] to, float alpha) {
-        if (from.length != to.length) return null;
-
-        for (int i = 0; i < from.length; i++) {
-            from[i] = from[i] + alpha * (to[i] - from[i]);
-        }
-
-        return from;
     }
 
     public static float[] gpsToImgPx(float lat, float lng) {
@@ -172,8 +152,7 @@ public class Utility {
         });
 
         File file = new File(actionLogPath + "/" + "actionLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
-        if(!file.exists())
-        {
+        if (!file.exists()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -182,7 +161,7 @@ public class Utility {
         }
 
         try {
-            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file,true));
+            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file, true));
             BufferedWriter buffered_writer = new BufferedWriter(file_writer);
             buffered_writer.write("{" + requestParams.toString() + "},\n");
             buffered_writer.close();
@@ -191,45 +170,13 @@ public class Utility {
         }
     }
 
-    public static void appLog(String log) {
-        if (!logFlag || !appLogFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
-            return;
-
-        RequestParams requestParams = new RequestParams();
-        requestParams.put("log", log);
-        requestParams.put("username", FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
-        requestParams.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
-        requestParams.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
-
-        File file = new File(appLogPath + "/" + "appLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
-        if(!file.exists())
-        {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        try {
-            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file,true));
-            BufferedWriter buffered_writer = new BufferedWriter(file_writer);
-            buffered_writer.write("{" + requestParams.toString() + "},\n");
-            buffered_writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static float gpsToMeter(float lat1, float lon1, float lat2, float lon2){
+    public static float gpsToMeter(float lat1, float lon1, float lat2, float lon2) {
         double R = 6378.137; // Radius of earth in KM
         double dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
         double dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
-        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                        Math.sin(dLon/2) * Math.sin(dLon/2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = R * c;
-        return (float)(d * 1000); // meters
+        return (float) d * 1000; // meters
     }
 }

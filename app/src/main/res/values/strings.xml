@@ -116,7 +116,7 @@
     <string name="menu_filter_popular">人氣度</string>
     <string name="menu_filter_time">時間</string>
 
-    <string name="tv_checkin_remove">此打卡可能已被刪除</string>
+    <string name="tv_checkin_remove">此打卡已被刪除</string>
 
     <string name="recording_start">錄音開始</string>
     <string name="recording_finish">錄音完成</string>
@@ -124,4 +124,5 @@
     <string name="checkin_card_like_num">人說讚</string>
 
     <string name="checkin_notification_title">新打卡</string>
+    <string name="meter">公尺</string>
 </resources>

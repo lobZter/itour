@@ -1,5 +1,6 @@
 package nctu.cs.cgv.itour.fragment;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
 import nctu.cs.cgv.itour.custom.CommentItemAdapter;
@@ -42,9 +45,12 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Comment;
 
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
+import static nctu.cs.cgv.itour.MyApplication.latitude;
+import static nctu.cs.cgv.itour.MyApplication.longitude;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
+import static nctu.cs.cgv.itour.Utility.gpsToMeter;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -78,6 +84,7 @@ public class CheckinDialogFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG, "onViewCreated");
 
         final Checkin checkin = checkinMap.get(postId);
         actionLog("browse checkin", checkin.location, checkin.key);
@@ -86,11 +93,15 @@ public class CheckinDialogFragment extends DialogFragment {
         TextView location = view.findViewById(R.id.tv_location);
         TextView like = view.findViewById(R.id.tv_like);
         TextView description = view.findViewById(R.id.tv_description);
+        TextView distance = view.findViewById(R.id.tv_distance);
 
         if (checkin != null) {
             username.setText(checkin.username);
             location.setText(checkin.location);
             description.setText(checkin.description);
+
+            float dist = Utility.gpsToMeter(latitude, longitude, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
+            distance.setText(String.valueOf((int)dist) + getString(R.string.meter));
 
             int likeNum = checkin.likeNum;
             if (checkin.like != null && checkin.like.size() > 0) {
@@ -107,6 +118,7 @@ public class CheckinDialogFragment extends DialogFragment {
             location.setText("");
             description.setText(getString(R.string.tv_checkin_remove));
             like.setText("");
+            distance.setText("");
 
             setPhoto(view, "");
         }

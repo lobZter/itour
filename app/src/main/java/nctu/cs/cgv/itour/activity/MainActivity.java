@@ -68,7 +68,6 @@ import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.screenCaptureFlag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
-import static nctu.cs.cgv.itour.Utility.appLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
 
 public class MainActivity extends AppCompatActivity implements
@@ -464,7 +463,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        appLog("MainActivity onResume");
 
         if (logFlag && audioFeedbackFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             requestSystemOverlayPermission();
@@ -481,7 +479,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        appLog("MainActivity onPause");
     }
 
     @Override

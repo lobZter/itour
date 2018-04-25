@@ -33,7 +33,9 @@ import cz.msebera.android.httpclient.Header;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
+import static nctu.cs.cgv.itour.MyApplication.latitude;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
+import static nctu.cs.cgv.itour.MyApplication.longitude;
 
 public class GpsLocationService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -101,12 +103,15 @@ public class GpsLocationService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
 
-        sendGpsUpdate(location);
+        latitude = (float) location.getLatitude();
+        longitude = (float) location.getLongitude();
+
+        sendGpsUpdate();
 
         // check whether it should update fog or not
         double distance = Math.sqrt(Math.pow(lastFogClearLat - location.getLatitude(), 2.0) + Math.pow(lastFogClearLng - location.getLongitude(), 2.0));
         if (distance > FOG_UPDATE_THRESHOLD) {
-            sendFogUpdate(location);
+            sendFogUpdate();
             lastFogClearLat = (float) location.getLatitude();
             lastFogClearLng = (float) location.getLongitude();
 
@@ -212,19 +217,19 @@ public class GpsLocationService extends Service implements
                 .build();
     }
 
-    private void sendGpsUpdate(Location location) {
+    private void sendGpsUpdate() {
         // send message to activities by broadcasting
         Intent intent = new Intent("gpsUpdate");
-        intent.putExtra("lat", (float) location.getLatitude());
-        intent.putExtra("lng", (float) location.getLongitude());
+        intent.putExtra("lat", latitude);
+        intent.putExtra("lng", longitude);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    private void sendFogUpdate(Location location) {
+    private void sendFogUpdate() {
         // send message to activities by broadcasting
         Intent intent = new Intent("fogUpdate");
-        intent.putExtra("lat", (float) location.getLatitude());
-        intent.putExtra("lng", (float) location.getLongitude());
+        intent.putExtra("lat", latitude);
+        intent.putExtra("lng", longitude);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }
