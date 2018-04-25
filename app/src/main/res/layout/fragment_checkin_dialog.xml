@@ -15,9 +15,68 @@
             android:scaleType="center"
             android:src="@drawable/ic_broken_image_black_48dp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_like"
+                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_favorite_border_black_24dp"
+                android:text="@string/btn_like_string"
+                android:textColor="@color/md_black_1000" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <Button
+                android:id="@+id/btn_save"
+                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_bookmark_border_black_24dp"
+                android:text="@string/btn_save_string"
+                android:textColor="@color/md_black_1000" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="@color/divider" />
+
+            <Button
+                android:id="@+id/btn_locate"
+                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:drawableStart="@drawable/ic_gps_fixed_black_24dp"
+                android:text="@string/btn_like_string"
+                android:textColor="@color/md_black_1000" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="4dp"
+            android:background="@color/divider" />
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
             android:layout_marginTop="4dp"
             android:paddingEnd="8dp"
             android:paddingStart="8dp">
@@ -29,7 +88,8 @@
                 android:layout_alignParentStart="true"
                 android:text="皓"
                 android:textColor="@color/primary_text"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/at_sign"
@@ -54,10 +114,11 @@
                 android:id="@+id/tv_like"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_above="@id/tv_description"
                 android:layout_marginStart="8dp"
                 android:layout_toEndOf="@id/tv_location"
-                android:layout_above="@id/tv_description"
-                android:text="8人說讚" />
+                android:text="8人說讚"
+                android:textColor="@color/secondary_text" />
 
             <TextView
                 android:id="@+id/tv_description"
@@ -67,48 +128,68 @@
                 android:layout_below="@+id/tv_username"
                 android:layout_marginTop="4dp"
                 android:text="淡水福佑宮，俗稱「淡水媽祖廟」，位於臺灣新北市淡水區，主祀天上聖母媽祖。為新北市三級古蹟。"
-                android:textColor="@color/secondary_text"
                 android:textSize="14sp" />
 
         </RelativeLayout>
 
         <View
+            android:id="@+id/comment_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
+            android:layout_marginBottom="4dp"
             android:layout_marginTop="4dp"
-            android:background="@color/divider" />
+            android:background="@color/divider"
+            android:visibility="gone" />
 
-        <LinearLayout
+        <ListView
+            android:id="@+id/lv_comment"
+            android:layout_width="match_parent"
+            android:layout_height="32sp"
+            android:layout_marginBottom="4dp"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:background="@color/divider"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:paddingBottom="4dp"
+            android:paddingEnd="8dp"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp">
 
-            <Button
-                android:id="@+id/btn_like"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableLeft="@drawable/ic_favorite_border_black_24dp"
-                android:text="@string/btn_like_string"
-                android:textColor="@color/md_black_1000" />
-
-            <View
-                android:layout_width="1dp"
+            <TextView
+                android:id="@+id/tv_comment_username"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:background="@color/divider" />
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="皓"
+                android:textColor="@color/primary_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btn_save"
-                style="@style/Base.Widget.AppCompat.Button.Borderless.Colored"
-                android:layout_width="0dp"
+            <EditText
+                android:id="@+id/et_comment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="8dp"
+                android:layout_toEndOf="@id/tv_comment_username"
+                android:layout_toStartOf="@id/btn_comment_send" />
+
+            <ImageView
+                android:id="@+id/btn_comment_send"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableLeft="@drawable/ic_bookmark_border_black_24dp"
-                android:text="@string/btn_save_string"
-                android:textColor="@color/md_black_1000" />
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_send_black_24dp" />
 
-        </LinearLayout>
+        </RelativeLayout>
 
     </LinearLayout>
 
