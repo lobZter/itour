@@ -16,19 +16,18 @@ public class Checkin {
     public String location;
     public String description;
     public String photo;
-//    public String audio;
-//    public Map<String, Boolean> type;
     public String uid;
     public String username;
     public String timestamp;
-
+    public Map<String, Boolean> like = new HashMap<>();
+    public Map<String, Boolean> comment = new HashMap<>();
+    // for admin function
     public String targetUid;
     public Map<String, Boolean> popularTargetUid;
     public Boolean fakeFlag;
     public int likeNum;
 
     public String key;
-    public Map<String, Boolean> like = new HashMap<>();
 
     public Checkin() {
     }
@@ -50,7 +49,7 @@ public class Checkin {
         this.uid = uid;
         this.username = username;
         this.timestamp = timestamp;
-
+        // for admin function
         this.targetUid = "all";
         this.popularTargetUid = new HashMap<>();
         this.popularTargetUid.put("all", false);

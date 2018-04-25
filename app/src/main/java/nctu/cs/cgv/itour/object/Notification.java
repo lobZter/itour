@@ -22,19 +22,19 @@ public class Notification {
     public String lng;
     public long timestamp;
 
-    public Notification () {
+    public Notification() {
     }
 
-    public Notification (String postId,
-                         String uid,
-                         String targetUid,
-                         String title,
-                         String msg,
-                         String photo,
-                         String location,
-                         String lat,
-                         String lng,
-                         long timestamp) {
+    public Notification(String postId,
+                        String uid,
+                        String targetUid,
+                        String title,
+                        String msg,
+                        String photo,
+                        String location,
+                        String lat,
+                        String lng,
+                        long timestamp) {
         this.postId = postId;
         this.uid = uid;
         this.targetUid = targetUid;
