@@ -46,11 +46,7 @@ public class CheckinNotificationService extends Service {
     private static final String TAG = "CheckinNotification";
     private NotificationManager notificationManager;
     private String channelId = "checkin notification";
-    private int CUSTOM_ID = 666;
     private long currentTimestamp;
-    private BroadcastReceiver messageReceiver;
-    private double currentLat = 0.0;
-    private double currentLng = 0.0;
     private String uid;
     private UngoData ungoData = null;
 
@@ -68,15 +64,13 @@ public class CheckinNotificationService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     channelId,
-                    "Channel checkin",
+                    "打卡通知",
                     NotificationManager.IMPORTANCE_HIGH);
-            channel.setDescription("Tourgether");
             channel.enableLights(true);
             channel.enableVibration(true);
             channel.setVibrationPattern(new long[]{0, 300, 300, 300, 300});
             notificationManager.createNotificationChannel(channel);
         }
-        setBroadcastReceiver();
     }
 
     @Override
@@ -202,26 +196,8 @@ public class CheckinNotificationService extends Service {
         notificationManager.notify((int) (System.currentTimeMillis() / 1000), builtNotification);
     }
 
-    private void setBroadcastReceiver() {
-        messageReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                switch (intent.getAction()) {
-                    case "gpsUpdate":
-                        currentLat = intent.getFloatExtra("lat", 0);
-                        currentLng = intent.getFloatExtra("lng", 0);
-                        break;
-                }
-            }
-        };
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction("gpsUpdate");
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver, intentFilter);
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(messageReceiver);
     }
 }
