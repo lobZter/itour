@@ -1,25 +1,20 @@
 package nctu.cs.cgv.itour.fragment;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +22,8 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -39,7 +36,6 @@ import java.util.Objects;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.custom.CheckinItemAdapter;
 import nctu.cs.cgv.itour.custom.CommentItemAdapter;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.Comment;
@@ -50,7 +46,6 @@ import static nctu.cs.cgv.itour.MyApplication.longitude;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
-import static nctu.cs.cgv.itour.Utility.gpsToMeter;
 import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 
@@ -251,21 +246,54 @@ public class CheckinDialogFragment extends DialogFragment {
     }
 
     private void setComment(final View view, final Checkin checkin) {
-        View commentDivider = view.findViewById(R.id.comment_divider);
-        RecyclerView commentList = view.findViewById(R.id.lv_comment);
-        RelativeLayout commentEdit = view.findViewById(R.id.comment_edit);
-        TextView commentUsername = view.findViewById(R.id.tv_comment_username);
+        final View commentDivider = view.findViewById(R.id.comment_divider);
+        final RecyclerView commentList = view.findViewById(R.id.lv_comment);
+        final RelativeLayout commentEdit = view.findViewById(R.id.comment_edit);
+        final TextView commentUsername = view.findViewById(R.id.tv_comment_username);
         final EditText commentMsg = view.findViewById(R.id.et_comment_msg);
-        ImageView sendBtn = view.findViewById(R.id.btn_comment_send);
+        final ImageView sendBtn = view.findViewById(R.id.btn_comment_send);
 
         // set comment list
         if (checkin.comment.size() > 0) {
             commentDivider.setVisibility(View.VISIBLE);
             commentList.setVisibility(View.VISIBLE);
-            ArrayList<Comment> comments = new ArrayList<>(checkin.comment.values());
-            CommentItemAdapter commentItemAdapter = new CommentItemAdapter(getContext(), comments);
+            final CommentItemAdapter commentItemAdapter = new CommentItemAdapter(getContext(), new ArrayList<Comment>());
             commentList.setAdapter(commentItemAdapter);
-            commentList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, true));
+            commentList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+            commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("checkin").child(mapTag).child(checkin.key).child("comment")
+                    .addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            Comment comment = dataSnapshot.getValue(Comment.class);
+                            if (comment != null) {
+                                commentItemAdapter.add(comment);
+                                commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
+                            }
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
         }
 
         // set comment edit
@@ -294,7 +322,7 @@ public class CheckinDialogFragment extends DialogFragment {
                             new DatabaseReference.CompletionListener() {
                                 @Override
                                 public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-
+                                    commentMsg.setText("");
                                 }
                             });
                 }
