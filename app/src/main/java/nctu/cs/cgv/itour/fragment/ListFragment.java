@@ -40,7 +40,7 @@ import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 public class ListFragment extends Fragment {
 
     private static final String TAG = "ListFragment";
-    private CheckinItemAdapter checkinItemAdapter;
+    public CheckinItemAdapter checkinItemAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ActionBar actionBar;
     private final int ORDER_TIME = 0;

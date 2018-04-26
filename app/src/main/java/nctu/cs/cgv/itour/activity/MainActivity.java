@@ -191,6 +191,9 @@ public class MainActivity extends AppCompatActivity implements
                     }
 
                     checkinMap.put(dataSnapshot.getKey(), checkin);
+                    listFragment.checkinItemAdapter.notifyDataSetChanged();
+                    personalFragment.notifySavedCheckinChanged();
+                    personalFragment.notifyPostedCheckinChanged();
                     mapFragment.changeCheckin(checkin);
                 } catch (Exception ignored) {
 

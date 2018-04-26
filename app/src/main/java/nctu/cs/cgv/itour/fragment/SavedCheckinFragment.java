@@ -30,8 +30,8 @@ import static nctu.cs.cgv.itour.activity.MainActivity.savedPostId;
 public class SavedCheckinFragment extends Fragment {
 
     private static final String TAG = "SavedCheckinFragment";
-    private CheckinItemAdapter checkinItemAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+    public CheckinItemAdapter checkinItemAdapter;
 
     public static SavedCheckinFragment newInstance() {
         return new SavedCheckinFragment();
@@ -93,9 +93,5 @@ public class SavedCheckinFragment extends Fragment {
                 }
             }
         }
-    }
-
-    public void addSavedCheckin(Checkin checkin) {
-        checkinItemAdapter.add(checkin);
     }
 }

@@ -67,7 +67,7 @@
     <string name="toast_gps_outside">您現在不在地圖的範圍內</string>
     <string name="toast_gps_waiting">等待GPS訊號</string>
     <string name="toast_cannot_checkin">不能使用打卡功能</string>
-    <string name="dialog_uploading">檔案上傳中</string>
+    <string name="dialog_uploading">上傳中</string>
     <string name="dialog_delete_title">刪除打卡</string>
     <string name="dialog_delete_message">確定要刪除嗎?</string>
     <string name="dialog_positive_btn">是</string>

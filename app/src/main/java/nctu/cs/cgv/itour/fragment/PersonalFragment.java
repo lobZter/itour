@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -14,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.custom.MyViewPager;
@@ -31,19 +33,18 @@ public class PersonalFragment extends Fragment {
     private SavedCheckinFragment savedCheckinFragment;
 
     public static PersonalFragment newInstance() {
-        PersonalFragment fragment = new PersonalFragment();
-        return fragment;
+        return new PersonalFragment();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_list, parent, false);
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
 
-        actionBar = ((AppCompatActivity) getActivity()).getSupportActionBar();
+        actionBar = ((AppCompatActivity) Objects.requireNonNull(getActivity())).getSupportActionBar();
 
         postedCheckinFragment = PostedCheckinFragment.newInstance();
         savedCheckinFragment = SavedCheckinFragment.newInstance();
@@ -97,11 +98,11 @@ public class PersonalFragment extends Fragment {
         }
     }
 
-    public void addSavedCheckin(Checkin checkin) {
-        savedCheckinFragment.addSavedCheckin(checkin);
+    public void notifySavedCheckinChanged() {
+        savedCheckinFragment.checkinItemAdapter.notifyDataSetChanged();
     }
 
-    public void addPostedCheckin(Checkin checkin) {
-        postedCheckinFragment.addPostedCheckin(checkin);
+    public void notifyPostedCheckinChanged() {
+        postedCheckinFragment.checkinItemAdapter.notifyDataSetChanged();
     }
 }

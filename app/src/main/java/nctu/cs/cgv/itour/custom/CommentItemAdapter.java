@@ -75,11 +75,11 @@ public class CommentItemAdapter extends RecyclerView.Adapter<CommentItemAdapter.
         notifyItemRemoved(index);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         TextView username;
         TextView msg;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             // Stores the itemView in a public final member variable that can be used
             // to access the context from any ViewHolder instance.
             super(view);

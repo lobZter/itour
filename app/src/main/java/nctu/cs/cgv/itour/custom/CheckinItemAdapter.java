@@ -1,6 +1,7 @@
 package nctu.cs.cgv.itour.custom;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,23 +35,19 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
         this.context = context;
     }
 
-    private Context getContext() {
-        return context;
-    }
-
+    @NonNull
     @Override
-    public CheckinItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public CheckinItemAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         View checkinCardView = inflater.inflate(R.layout.item_checkin_card, parent, false);
 
-        ViewHolder viewHolder = new ViewHolder(checkinCardView);
-        return viewHolder;
+        return new ViewHolder(checkinCardView);
     }
 
     @Override
-    public void onBindViewHolder(CheckinItemAdapter.ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(@NonNull CheckinItemAdapter.ViewHolder viewHolder, int position) {
         Checkin checkin = checkins.get(position);
 
         viewHolder.username.setText(checkin.username);
@@ -116,14 +113,14 @@ public class CheckinItemAdapter extends RecyclerView.Adapter<CheckinItemAdapter.
                 .into(viewHolder.photo);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         ImageView photo;
         TextView username;
         TextView location;
         TextView like;
         TextView description;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             // Stores the itemView in a public final member variable that can be used
             // to access the context from any ViewHolder instance.
             super(view);

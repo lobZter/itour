@@ -32,8 +32,8 @@ import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 public class PostedCheckinFragment extends Fragment {
 
     private static final String TAG = "PostedCheckinFragment";
-    private CheckinItemAdapter checkinItemAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+    public CheckinItemAdapter checkinItemAdapter;
 
     public static PostedCheckinFragment newInstance() {
         return new PostedCheckinFragment();
@@ -118,9 +118,5 @@ public class PostedCheckinFragment extends Fragment {
                 }
             }
         }
-    }
-
-    public void addPostedCheckin(Checkin checkin) {
-        checkinItemAdapter.add(checkin);
     }
 }
