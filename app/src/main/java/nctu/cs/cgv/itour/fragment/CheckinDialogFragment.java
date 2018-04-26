@@ -15,7 +15,9 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +29,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,6 +57,8 @@ public class CheckinDialogFragment extends DialogFragment {
     private static final String TAG = "CheckinDialogFragment";
 
     private String postId;
+    private Query query;
+    private ChildEventListener childEventListener;
 
     public static CheckinDialogFragment newInstance(String postId) {
         CheckinDialogFragment checkinDialogFragment = new CheckinDialogFragment();
@@ -137,7 +142,7 @@ public class CheckinDialogFragment extends DialogFragment {
     private void setActionBtn(final View view, final Checkin checkin) {
         final ImageView likeBtn = view.findViewById(R.id.btn_like);
         final ImageView saveBtn = view.findViewById(R.id.btn_save);
-        final ImageView locateBtn = view.findViewById(R.id.btn_locate);
+        final LinearLayout locateBtn = view.findViewById(R.id.btn_locate);
         final TextView like = view.findViewById(R.id.tv_like);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
@@ -241,48 +246,45 @@ public class CheckinDialogFragment extends DialogFragment {
         final EditText commentMsg = view.findViewById(R.id.et_comment_msg);
         final ImageView sendBtn = view.findViewById(R.id.btn_comment_send);
 
-        // set comment list
-        if (checkin.comment.size() > 0) {
-            commentDivider.setVisibility(View.VISIBLE);
-            commentList.setVisibility(View.VISIBLE);
-            final CommentItemAdapter commentItemAdapter = new CommentItemAdapter(getContext(), new ArrayList<Comment>());
-            commentList.setAdapter(commentItemAdapter);
-            commentList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-            commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
+        final CommentItemAdapter commentItemAdapter = new CommentItemAdapter(getContext(), new ArrayList<Comment>());
+        commentList.setAdapter(commentItemAdapter);
+        commentList.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
 
-            FirebaseDatabase.getInstance().getReference()
-                    .child("checkin").child(mapTag).child(checkin.key).child("comment")
-                    .addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            Comment comment = dataSnapshot.getValue(Comment.class);
-                            if (comment != null) {
-                                commentItemAdapter.add(comment);
-                                commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
-                            }
-                        }
+        query = FirebaseDatabase.getInstance().getReference()
+                .child("checkin").child(mapTag).child(checkin.key).child("comment");
+        childEventListener = query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Comment comment = dataSnapshot.getValue(Comment.class);
+                if (comment != null) {
+                    commentItemAdapter.add(comment);
+                    commentDivider.setVisibility(View.VISIBLE);
+                    commentList.setVisibility(View.VISIBLE);
+                    commentList.scrollToPosition(commentItemAdapter.getItemCount() - 1);
+                }
+            }
 
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                        }
+            }
 
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                        }
+            }
 
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                        }
+            }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
-                        }
-                    });
-        }
+            }
+        });
 
         // set comment edit
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
@@ -331,5 +333,6 @@ public class CheckinDialogFragment extends DialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        query.removeEventListener(childEventListener);
     }
 }
