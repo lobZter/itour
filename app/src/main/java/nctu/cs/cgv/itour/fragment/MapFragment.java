@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -188,7 +189,7 @@ public class MapFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_map, parent, false);
     }
 
@@ -723,7 +724,6 @@ public class MapFragment extends Fragment {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        translateToImgPx(spotNode.x, spotNode.y, false);
                         showCheckinDialog(checkin.key);
                     }
                 });
@@ -739,7 +739,6 @@ public class MapFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         translateToImgPx(spotNode.x, spotNode.y, false);
-//                        showCheckinListDialog(spotNode.checkinNode);
                     }
                 });
                 spotNode.checkinNode.checkinList.add(checkin);
@@ -763,7 +762,6 @@ public class MapFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
-//                            showCheckinListDialog(checkinClusterNode);
                         }
                     });
                     checkinClusterNode.checkinList.add(checkin);
@@ -782,7 +780,6 @@ public class MapFragment extends Fragment {
             checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    translateToImgPx(x, y, false);
                     showCheckinDialog(checkin.key);
                 }
             });
@@ -979,5 +976,4 @@ public class MapFragment extends Fragment {
         }
         reRender();
     }
-
 }
