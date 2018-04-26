@@ -185,8 +185,6 @@ public class MapFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        ((MainActivity) getActivity()).detachChecinListener();
-        ((MainActivity) getActivity()).detachSavePostIdListener();
     }
 
     @Override

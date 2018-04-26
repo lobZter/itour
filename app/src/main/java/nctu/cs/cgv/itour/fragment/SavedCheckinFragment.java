@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
@@ -70,23 +71,8 @@ public class SavedCheckinFragment extends Fragment {
                     @Override
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Checkin checkin = checkinItemAdapter.getItem(position);
-                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
-                        checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
-                    }
-                }
-        );
-
-        ItemClickSupport.addTo(recyclerView).setOnItemLongClickListener(
-                new ItemClickSupport.OnItemLongClickListener() {
-                    @Override
-                    public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
-                        Checkin checkin = checkinItemAdapter.getItem(position);
-                        float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-                        ((MainActivity) getActivity()).onLocateClick(imgPx[0], imgPx[1], checkin.key);
-                        actionLog("locate checkin", checkin.location, checkin.key);
-
-                        return true;
+                        checkinDialogFragment.show(Objects.requireNonNull(getFragmentManager()), "fragment_checkin_dialog");
                     }
                 }
         );

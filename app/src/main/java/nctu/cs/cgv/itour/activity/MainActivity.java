@@ -159,20 +159,20 @@ public class MainActivity extends AppCompatActivity implements
         checkinListener = checkinQuery.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                final Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if (checkin == null) return;
-
-                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
-                        return;
-                }
-
-                checkin.key = dataSnapshot.getKey();
                 try {
+                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                    checkin.key = dataSnapshot.getKey();
+
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
+                            return;
+                    }
+
                     checkinMap.put(dataSnapshot.getKey(), checkin);
                     mapFragment.addCheckin(checkin);
-                } catch (Exception e) {
+
+                } catch (Exception ignore) {
 
                 }
             }
@@ -180,35 +180,31 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 // like change
-                Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if (checkin == null) return;
-
-                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
-                        return;
-                }
-
-                checkin.key = dataSnapshot.getKey();
-
                 try {
+                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                    checkin.key = dataSnapshot.getKey();
+
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                        if (!checkin.targetUid.equals("all") && !checkin.targetUid.equals(uid))
+                            return;
+                    }
+
                     checkinMap.put(dataSnapshot.getKey(), checkin);
                     mapFragment.changeCheckin(checkin);
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Checkin checkin = dataSnapshot.getValue(Checkin.class);
-                if (checkin == null) return;
-
-                checkin.key = dataSnapshot.getKey();
-
                 try {
+                    Checkin checkin = dataSnapshot.getValue(Checkin.class);
+                    checkin.key = dataSnapshot.getKey();
+
                     checkinMap.remove(dataSnapshot.getKey());
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
@@ -227,10 +223,6 @@ public class MainActivity extends AppCompatActivity implements
         FirebaseMessaging.getInstance().subscribeToTopic("news");
     }
 
-    public void detachChecinListener() {
-        checkinQuery.removeEventListener(checkinListener);
-    }
-
     public void querySavedPostId() {
         savedPostId.clear();
 
@@ -243,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 try {
                     savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
@@ -252,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 try {
                     savedPostId.put(dataSnapshot.getKey(), (Boolean) dataSnapshot.getValue());
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
@@ -261,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 try {
                     savedPostId.remove(dataSnapshot.getKey());
-                } catch (Exception e) {
+                } catch (Exception ignored) {
 
                 }
             }
@@ -276,10 +268,6 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
-    }
-
-    public void detachSavePostIdListener() {
-        savePostIdQuery.removeEventListener(savePostIdListener);
     }
 
     private void setView() {
@@ -490,6 +478,9 @@ public class MainActivity extends AppCompatActivity implements
         if (magnetometer != null || accelerometer != null) {
             sensorManager.unregisterListener(sensorEventListener);
         }
+
+        checkinQuery.removeEventListener(checkinListener);
+        savePostIdQuery.removeEventListener(savePostIdListener);
     }
 
 //    @Override

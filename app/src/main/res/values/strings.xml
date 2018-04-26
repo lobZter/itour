@@ -64,7 +64,7 @@
     <string name="toast_audio_recorder_stop_failed">錄製失敗</string>
     <string name="toast_upload_file_failed">檔案上傳失敗</string>
     <string name="toast_guest_function">登入後即可使用此功能</string>
-    <string name="toast_gps_outside">您現在不再地圖的範圍內</string>
+    <string name="toast_gps_outside">您現在不在地圖的範圍內</string>
     <string name="toast_gps_waiting">等待GPS訊號</string>
     <string name="toast_cannot_checkin">不能使用打卡功能</string>
     <string name="dialog_uploading">檔案上傳中</string>
@@ -84,7 +84,6 @@
     <string name="subtitle_setting">Settings</string>
 
     <string name="btn_like_string">LIKE</string>
-    <string name="btn_go_string">GO</string>
     <string name="btn_save_string">SAVE</string>
     <string name="btn_locate_string">LOCATE</string>
     <string name="btn_delete_string">DELETE</string>

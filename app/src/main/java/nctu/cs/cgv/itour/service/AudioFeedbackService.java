@@ -1,20 +1,14 @@
 package nctu.cs.cgv.itour.service;
 
-import android.Manifest;
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,7 +17,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -40,9 +33,6 @@ import nctu.cs.cgv.itour.R;
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.audioLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
-import static nctu.cs.cgv.itour.MyApplication.mapTag;
-import static nctu.cs.cgv.itour.Utility.actionLog;
-import static nctu.cs.cgv.itour.activity.MainActivity.checkinMap;
 
 public class AudioFeedbackService extends Service {
 
@@ -170,7 +160,7 @@ public class AudioFeedbackService extends Service {
                 .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(startRecording()) {
+                        if (startRecording()) {
                             fab.setImageResource(R.drawable.ic_stop_white_24dp);
                         }
                     }

@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.activity.MainActivity;
@@ -70,9 +71,8 @@ public class PostedCheckinFragment extends Fragment {
                     @Override
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Checkin checkin = checkinItemAdapter.getItem(position);
-                        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                         CheckinDialogFragment checkinDialogFragment = CheckinDialogFragment.newInstance(checkin.key);
-                        checkinDialogFragment.show(fragmentManager, "fragment_checkin_dialog");
+                        checkinDialogFragment.show(Objects.requireNonNull(getFragmentManager()), "fragment_checkin_dialog");
                     }
                 }
         );
@@ -80,11 +80,27 @@ public class PostedCheckinFragment extends Fragment {
         ItemClickSupport.addTo(recyclerView).setOnItemLongClickListener(
                 new ItemClickSupport.OnItemLongClickListener() {
                     @Override
-                    public boolean onItemLongClicked(RecyclerView recyclerView, int position, View v) {
-                        Checkin checkin = checkinItemAdapter.getItem(position);
-                        float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-                        ((MainActivity) getActivity()).onLocateClick(imgPx[0], imgPx[1], checkin.key);
-                        actionLog("locate checkin", checkin.location, checkin.key);
+                    public boolean onItemLongClicked(RecyclerView recyclerView, final int position, View v) {
+                        final Checkin checkin = checkinItemAdapter.getItem(position);
+                        new AlertDialog.Builder(Objects.requireNonNull(getActivity()))
+                                .setTitle(R.string.dialog_delete_title)
+                                .setMessage(R.string.dialog_delete_message)
+                                .setPositiveButton(R.string.dialog_positive_btn, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        FirebaseDatabase.getInstance().getReference().child("checkin").child(mapTag).child(checkin.key).removeValue();
+                                        actionLog("remove checkin\n" + checkin.toMap().toString(), checkin.location, checkin.key);
+                                        checkinMap.remove(checkin.key);
+                                        checkinItemAdapter.remove(position);
+                                    }
+                                })
+                                .setNegativeButton(R.string.dialog_negative_btn, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                })
+                                .show();
 
                         return true;
                     }

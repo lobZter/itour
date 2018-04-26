@@ -161,8 +161,6 @@ public class CheckinDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                     if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-//                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-//                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_border_black_24dp, 0, 0, 0);
                         likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                                 R.drawable.ic_favorite_border_black_24dp, null));
                         String likeStr = "";
@@ -175,8 +173,6 @@ public class CheckinDialogFragment extends DialogFragment {
                         checkinMap.get(checkin.key).like.remove(uid);
                         actionLog("cancel like checkin", checkin.location, checkin.key);
                     } else {
-//                        likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-//                        likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                         likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                                 R.drawable.ic_favorite_red_500_24dp, null));
                         String likeStr;
@@ -199,16 +195,12 @@ public class CheckinDialogFragment extends DialogFragment {
                 public void onClick(View v) {
                     DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
                     if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-//                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_black_1000));
-//                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_border_black_24dp, 0, 0, 0);
                         saveBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                                 R.drawable.ic_bookmark_border_black_24dp, null));
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).removeValue();
                         savedPostId.remove(checkin.key);
                         actionLog("cancel save checkin", checkin.location, checkin.key);
                     } else {
-//                        saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-//                        saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
                         saveBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                                 R.drawable.ic_bookmark_blue_24dp, null));
                         databaseReference.child("users").child(uid).child("saved").child(mapTag).child(checkin.key).setValue(true);
@@ -219,16 +211,12 @@ public class CheckinDialogFragment extends DialogFragment {
             });
 
             if (checkin.like.containsKey(uid) && checkin.like.get(uid)) {
-//                likeBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.md_red_500));
-//                likeBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_favorite_red_500_24dp, 0, 0, 0);
                 likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                         R.drawable.ic_favorite_red_500_24dp, null));
             }
 
             if (savedPostId.containsKey(checkin.key) && savedPostId.get(checkin.key)) {
-//                saveBtn.setTextColor(ContextCompat.getColor(getContext(), R.color.gps_marker_color));
-//                saveBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_bookmark_blue_24dp, 0, 0, 0);
-                likeBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                saveBtn.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
                         R.drawable.ic_bookmark_blue_24dp, null));
             }
         }

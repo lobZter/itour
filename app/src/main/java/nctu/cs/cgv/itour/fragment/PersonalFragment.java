@@ -51,10 +51,10 @@ public class PersonalFragment extends Fragment {
         fragmentList.add(postedCheckinFragment);
         fragmentList.add(savedCheckinFragment);
 
-        viewPager = (MyViewPager) view.findViewById(R.id.view_pager);
+        viewPager = view.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
 
-            String tabTitles[] = new String[]{"Posted", "Saved"};
+            String tabTitles[] = new String[]{"個人", "收藏"};
 
             @Override
             public Fragment getItem(int position) {
@@ -75,7 +75,7 @@ public class PersonalFragment extends Fragment {
         viewPager.setPagingEnabled(false);
         viewPager.setOffscreenPageLimit(2);
 
-        TabLayout tabLayout = (TabLayout) view.findViewById(R.id.tab_layout);
+        TabLayout tabLayout = view.findViewById(R.id.tab_layout);
         tabLayout.setupWithViewPager(viewPager);
     }
 
