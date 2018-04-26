@@ -7,6 +7,9 @@ import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -19,13 +22,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.IdxWeights;
+import nctu.cs.cgv.itour.object.Notification;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.actionLogPath;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 
@@ -178,5 +186,30 @@ public class Utility {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = R * c;
         return (float) d * 1000; // meters
+    }
+
+    public void pushNotification(final Checkin checkin) {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        String msg = checkin.location.equals("") ? checkin.description : checkin.location + " | " + checkin.description;
+        final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
+        final Notification notification = new Notification(checkin.key,
+                checkin.uid,
+                "all",
+                checkin.username,
+                msg,
+                checkin.photo,
+                checkin.location,
+                checkin.lat,
+                checkin.lng,
+                System.currentTimeMillis() / 1000);
+        Map<String, Object> notificationValues = notification.toMap();
+        Map<String, Object> notificationUpdates = new HashMap<>();
+        notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
+        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+                actionLog("push notification: " + notification.msg, checkin.location, checkin.key);
+            }
+        });
     }
 }

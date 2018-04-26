@@ -640,7 +640,6 @@ public class LocationChooseActivity extends AppCompatActivity {
 
                 if (photo.equals("")) {
                     actionLog("post checkin", location, key);
-                    pushNotification(key, uid, username, location, lat, lng);
 
                     progressDialog.dismiss();
                     setResult(RESULT_CODE_CHECKIN_FINISH);
@@ -666,7 +665,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                                         moveFile(getCacheDir().toString(), photo, getExternalCacheDir().toString());
                                 }
                                 actionLog("post checkin", location, key);
-                                pushNotification(key, uid, username, location, lat, lng);
                                 progressDialog.dismiss();
                                 setResult(RESULT_CODE_CHECKIN_FINISH);
                                 finish();
@@ -686,30 +684,6 @@ public class LocationChooseActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "FileNotFoundException", Toast.LENGTH_SHORT).show();
                     }
                 }
-            }
-        });
-    }
-
-    private void pushNotification(final String key, final String uid, final String username, final String location, final String lat, final String lng) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
-        Notification notification = new Notification(key,
-                uid,
-                "all",
-                username,
-                location + " | " + description,
-                photo,
-                location,
-                lat,
-                lng,
-                System.currentTimeMillis() / 1000);
-        Map<String, Object> notificationValues = notification.toMap();
-        Map<String, Object> notificationUpdates = new HashMap<>();
-        notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
-        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-                actionLog("push notification", location, key);
             }
         });
     }
