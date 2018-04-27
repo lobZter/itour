@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import nctu.cs.cgv.itour.R;
+import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.CheckinActivity;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.ArrayAdapterSearchView;
@@ -695,9 +696,64 @@ public class MapFragment extends Fragment {
     // nearby checkins, checkins with same location
     private void addCheckinClusterIcon(final Checkin checkin, final float x, final float y) {
 
-        final SpotNode spotNode = spotNodeMap.get(checkin.location);
-        if (spotNode != null) {
-            // add into spot
+        String location = "";
+        if (spotNodeMap.containsKey(checkin.location)) {
+            location = checkin.location;
+        } else {
+            float minDist = 101;
+            for (SpotNode spot : spotNodeList) {
+                float dist = Utility.gpsToMeter(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
+                        Float.valueOf(spot.lat), Float.valueOf(spot.lng));
+                if (dist <= 100f && dist < minDist) {
+                    location = spot.name;
+                    minDist = dist;
+                }
+            }
+        }
+
+        if (location.equals("")) {
+            // search for exist cluster node
+            for (final CheckinNode checkinClusterNode : checkinClusterNodeList) {
+                if (checkinClusterNode.onSpot) continue;
+
+                double distance = Math.pow(x - checkinClusterNode.x, 2) + Math.pow(y - checkinClusterNode.y, 2);
+                if (distance < CLUSTER_THRESHOLD) {
+                    int clusterSize = checkinClusterNode.checkinList.size();
+                    checkinClusterNode.x = (checkinClusterNode.x * clusterSize + x) / (clusterSize + 1);
+                    checkinClusterNode.y = (checkinClusterNode.y * clusterSize + y) / (clusterSize + 1);
+                    checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
+                        }
+                    });
+                    checkinClusterNode.checkinList.add(checkin);
+                    TextView checkinsNumCircle = checkinClusterNode.icon.findViewById(R.id.checkin_num);
+                    int checkinsNum = checkinClusterNode.checkinList.size();
+                    checkinsNumCircle.setText(checkinsNum < 10 ?
+                            " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
+                    checkinClusterNodeViewMap.put(checkin.key, checkinClusterNode.icon);
+                    return;
+                }
+            }
+            // cluster not found, create a new one
+            CheckinNode checkinNode = new CheckinNode(x, y,
+                    inflater.inflate(R.layout.item_merged_checkin, null));
+            checkinNode.icon.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showCheckinDialog(checkin.key);
+                }
+            });
+            checkinNode.checkinList.add(checkin);
+            TextView checkinsNumCircle = checkinNode.icon.findViewById(R.id.checkin_num);
+            checkinsNumCircle.setText(" 1");
+            rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
+            checkinClusterNodeList.add(checkinNode);
+            checkinClusterNodeViewMap.put(checkin.key, checkinNode.icon);
+
+        } else { // add into spot
+            final SpotNode spotNode = spotNodeMap.get(location);
             if (spotNode.checkinNode == null) { // no checkin on spot yet
                 spotNode.checkinNode = new CheckinNode(spotNode.x, spotNode.y,
                         inflater.inflate(R.layout.item_merged_checkin, null));
@@ -728,47 +784,6 @@ public class MapFragment extends Fragment {
                         " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
                 checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
             }
-        } else {
-            // search for exist cluster node
-            for (final CheckinNode checkinClusterNode : checkinClusterNodeList) {
-                if (checkinClusterNode.onSpot) continue;
-
-                double distance = Math.pow(x - checkinClusterNode.x, 2) + Math.pow(y - checkinClusterNode.y, 2);
-                if (distance < CLUSTER_THRESHOLD) {
-                    int clusterSize = checkinClusterNode.checkinList.size();
-                    checkinClusterNode.x = (checkinClusterNode.x * clusterSize + x) / (clusterSize + 1);
-                    checkinClusterNode.y = (checkinClusterNode.y * clusterSize + y) / (clusterSize + 1);
-                    checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
-                        }
-                    });
-                    checkinClusterNode.checkinList.add(checkin);
-                    TextView checkinsNumCircle = checkinClusterNode.icon.findViewById(R.id.checkin_num);
-                    int checkinsNum = checkinClusterNode.checkinList.size();
-                    checkinsNumCircle.setText(checkinsNum < 10 ?
-                            " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
-                    checkinClusterNodeViewMap.put(checkin.key, checkinClusterNode.icon);
-                    return;
-                }
-            }
-
-            // cluster not found, create a new one
-            CheckinNode checkinNode = new CheckinNode(x, y,
-                    inflater.inflate(R.layout.item_merged_checkin, null));
-            checkinNode.icon.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showCheckinDialog(checkin.key);
-                }
-            });
-            checkinNode.checkinList.add(checkin);
-            TextView checkinsNumCircle = checkinNode.icon.findViewById(R.id.checkin_num);
-            checkinsNumCircle.setText(" 1");
-            rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
-            checkinClusterNodeList.add(checkinNode);
-            checkinClusterNodeViewMap.put(checkin.key, checkinNode.icon);
         }
     }
 

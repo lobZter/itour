@@ -194,7 +194,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         spotList = new SpotList(new File(dirPath + "/" + mapTag + "_spot_list.txt"));
         for (SpotNode spotNode : spotList.nodeMap.values()) {
             // allocate new spotNode instead using spotNode in nodeMap
-            spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.name, spotNode.order));
+            spotNodeList.add(new SpotNode(spotNode.x, spotNode.y, spotNode.lat, spotNode.lng, spotNode.name, spotNode.order));
         }
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         for (SpotNode spotNode : spotNodeList) {

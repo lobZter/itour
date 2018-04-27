@@ -38,7 +38,7 @@ public class SpotList {
                 float[] imgPx = gpsToImgPx(Float.valueOf(arr[1]), Float.valueOf(arr[2]));
                 int order = Integer.parseInt(arr[3]);
                 if (order < 3) {
-                    nodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[0], order));
+                    nodeMap.put(arr[0], new SpotNode(imgPx[0], imgPx[1], arr[1], arr[2], arr[0], order));
                 }
 
             }
