@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         checkinQuery.removeEventListener(checkinListener);
-        savePostIdQuery.removeEventListener(savePostIdListener);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) savePostIdQuery.removeEventListener(savePostIdListener);
     }
 
 //    @Override

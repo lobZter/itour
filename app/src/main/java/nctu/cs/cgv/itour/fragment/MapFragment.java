@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -104,9 +105,9 @@ public class MapFragment extends Fragment {
 //    private List<ImageNode> pathEdgeNodeList;
 
 
-    private Map<String, CheckinNode> checkinNodeMap;
+    private Map<String, View> checkinNodeViewMap;
     private List<CheckinNode> checkinNodeList;
-    private Map<String, CheckinNode> checkinClusterNodeMap;
+    private Map<String, View> checkinClusterNodeViewMap;
     private List<CheckinNode> checkinClusterNodeList;
 
 
@@ -145,9 +146,9 @@ public class MapFragment extends Fragment {
         // init objects
 //        edgeNodeList = new ArrayList<>();
 //        pathEdgeNodeList = new ArrayList<>();
-        checkinNodeMap = new HashMap<>();
+        checkinNodeViewMap = new HashMap<>();
         checkinNodeList = new ArrayList<>();
-        checkinClusterNodeMap = new HashMap<>();
+        checkinClusterNodeViewMap = new HashMap<>();
         checkinClusterNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -617,50 +618,26 @@ public class MapFragment extends Fragment {
         reRender();
     }
 
+    // change with hot checkin icon
     public void changeCheckin(final Checkin checkin) {
-        CheckinNode checkinNode = checkinNodeMap.get(checkin.key);
-        CheckinNode checkinClusterNode = checkinClusterNodeMap.get(checkin.key);
+        View checkinNodeView = checkinNodeViewMap.get(checkin.key);
+        View checkinClusterNodeView = checkinClusterNodeViewMap.get(checkin.key);
 
-        if ((checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all")) ||
-                (!uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid)) ||
-                (checkin.like != null && checkin.likeNum + checkin.like.size() > 5) ||
-                (checkin.likeNum > 5)) {
+        boolean allPopularFlag = checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all");
+        boolean targetPopularFlag = !uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid);
+        int checkinLikeNum = checkin.likeNum;
+        if (checkin.like != null) checkinLikeNum += checkin.like.size();
+        if (allPopularFlag || targetPopularFlag || checkinLikeNum >= 5) {
             if (uid.equals(checkin.uid)) {
-                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_hot_checkin_icon_60px));
+                ((ImageView) checkinNodeView).setImageDrawable(
+                        ResourcesCompat.getDrawable(getResources(), R.drawable.self_hot_checkin_icon_60px, null));
             } else {
-                ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_60px));
+                ((ImageView) checkinNodeView).setImageDrawable(
+                        ResourcesCompat.getDrawable(getResources(), R.drawable.hot_checkin_icon_60px, null));
             }
-            ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
-            clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.hot_checkin_icon_96px));
-        } else {
-            boolean coolDownCheckinNode = true;
-            boolean coolDownCheckinClusterNode = true;
-            for (Checkin c : checkinNode.checkinList) {
-                if (c.popularTargetUid.get("all") || (!uid.equals("") && c.popularTargetUid.containsKey(uid) && c.popularTargetUid.get(uid))) {
-                    coolDownCheckinNode = false;
-                    break;
-                }
-            }
-
-            for (Checkin c : checkinClusterNode.checkinList) {
-                if (c.popularTargetUid.get("all") || (!uid.equals("") && c.popularTargetUid.containsKey(uid) && c.popularTargetUid.get(uid))) {
-                    coolDownCheckinClusterNode = false;
-                    break;
-                }
-            }
-
-            if (coolDownCheckinNode) {
-                if (uid.equals(checkin.uid)) {
-                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
-                } else {
-                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
-                }
-            }
-
-            if (coolDownCheckinClusterNode) {
-                ImageView clusterIcon = checkinClusterNode.icon.findViewById(R.id.checkin_icon);
-                clusterIcon.setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_96px));
-            }
+            ImageView clusterIcon = checkinClusterNodeView.findViewById(R.id.checkin_icon);
+            clusterIcon.setImageDrawable(
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.hot_checkin_icon_96px, null));
         }
 
         reRender();
@@ -674,7 +651,7 @@ public class MapFragment extends Fragment {
             double distance = Math.pow(x - checkinNode.x, 2) + Math.pow(y - checkinNode.y, 2);
             if (distance < OVERLAP_THRESHOLD) {
                 checkinNode.checkinList.add(checkin);
-                checkinNodeMap.put(checkin.key, checkinNode);
+                checkinNodeViewMap.put(checkin.key, checkinNode.icon);
                 if (checkinNode.checkinList.size() > 1) {
                     checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -684,7 +661,8 @@ public class MapFragment extends Fragment {
                     });
                 }
                 if (uid.equals(checkin.uid)) {
-                    ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
+                    ((ImageView) checkinNode.icon).setImageDrawable(
+                            ResourcesCompat.getDrawable(getResources(), R.drawable.self_checkin_icon_60px, null));
                 }
                 return;
             }
@@ -702,14 +680,16 @@ public class MapFragment extends Fragment {
         checkinNode.icon.setLayoutParams(new RelativeLayout.LayoutParams(checkinIconWidth, checkinIconHeight));
 
         if (uid.equals(checkin.uid)) {
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.self_checkin_icon_60px));
+            ((ImageView) checkinNode.icon).setImageDrawable(
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.self_checkin_icon_60px, null));
         } else {
-            ((ImageView) checkinNode.icon).setImageDrawable(context.getResources().getDrawable(R.drawable.checkin_icon_60px));
+            ((ImageView) checkinNode.icon).setImageDrawable(
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.checkin_icon_60px, null));
         }
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
         checkinNode.checkinList.add(checkin);
         checkinNodeList.add(checkinNode);
-        checkinNodeMap.put(checkin.key, checkinNode);
+        checkinNodeViewMap.put(checkin.key, checkinNode.icon);
     }
 
     // nearby checkins, checkins with same location
@@ -733,7 +713,7 @@ public class MapFragment extends Fragment {
                 checkinsNumCircle.setText(" 1");
                 rootLayout.addView(spotNode.checkinNode.icon, rootLayout.indexOfChild(seperator));
                 checkinClusterNodeList.add(spotNode.checkinNode);
-                checkinClusterNodeMap.put(checkin.key, spotNode.checkinNode);
+                checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
             } else {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -746,7 +726,7 @@ public class MapFragment extends Fragment {
                 int checkinsNum = spotNode.checkinNode.checkinList.size();
                 checkinsNumCircle.setText(checkinsNum < 10 ?
                         " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
-                checkinClusterNodeMap.put(checkin.key, spotNode.checkinNode);
+                checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
             }
         } else {
             // search for exist cluster node
@@ -769,7 +749,7 @@ public class MapFragment extends Fragment {
                     int checkinsNum = checkinClusterNode.checkinList.size();
                     checkinsNumCircle.setText(checkinsNum < 10 ?
                             " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
-                    checkinClusterNodeMap.put(checkin.key, checkinClusterNode);
+                    checkinClusterNodeViewMap.put(checkin.key, checkinClusterNode.icon);
                     return;
                 }
             }
@@ -788,7 +768,7 @@ public class MapFragment extends Fragment {
             checkinsNumCircle.setText(" 1");
             rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
             checkinClusterNodeList.add(checkinNode);
-            checkinClusterNodeMap.put(checkin.key, checkinNode);
+            checkinClusterNodeViewMap.put(checkin.key, checkinNode.icon);
         }
     }
 
