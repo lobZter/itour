@@ -18,7 +18,7 @@ public class Checkin {
     public String photo;
     public String uid;
     public String username;
-    public String timestamp;
+    public long timestamp;
     public Map<String, Boolean> like = new HashMap<>();
     public Map<String, Comment> comment = new HashMap<>();
     // for admin function
@@ -39,7 +39,7 @@ public class Checkin {
                    String photo,
                    String uid,
                    String username,
-                   String timestamp) {
+                   long timestamp) {
 
         this.lng = lng;
         this.lat = lat;

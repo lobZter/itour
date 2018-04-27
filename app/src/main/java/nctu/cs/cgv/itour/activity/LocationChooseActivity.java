@@ -629,7 +629,7 @@ public class LocationChooseActivity extends AppCompatActivity {
         final String location = locationEdit.getText().toString().trim();
         final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final String username = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        long timestamp = System.currentTimeMillis() / 1000;
         Checkin checkin = new Checkin(lat, lng, location, description, photo, uid, username, timestamp);
         Map<String, Object> checkinValues = checkin.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
