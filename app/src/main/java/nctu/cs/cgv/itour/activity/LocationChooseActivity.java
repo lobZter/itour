@@ -439,7 +439,7 @@ public class LocationChooseActivity extends AppCompatActivity {
 
     private void reRender() {
 
-        boolean isMerged = scale < ZOOM_THRESHOLD;
+        boolean isMerged = scale < ZOOM_THRESHOLD - 0.5;
 
         Matrix gpsMarkTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();

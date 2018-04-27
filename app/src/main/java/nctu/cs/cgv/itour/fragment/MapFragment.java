@@ -441,7 +441,7 @@ public class MapFragment extends Fragment {
 
     private void reRender() {
 
-        boolean isMerged = scale < ZOOM_THRESHOLD;
+        boolean isMerged = scale < ZOOM_THRESHOLD - 0.1f;
 
         Matrix gpsMarkTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();
@@ -508,13 +508,14 @@ public class MapFragment extends Fragment {
                         spotNode.icon.setVisibility(View.GONE);
                     }
                 }
-            } else {
-                for (SpotNode spotNode : spotNodeList) {
-                    if (spotNode.order == 2) {
-                        spotNode.icon.setVisibility(View.VISIBLE);
-                    }
-                }
             }
+//            } else {
+//                for (SpotNode spotNode : spotNodeList) {
+//                    if (spotNode.order == 2) {
+//                        spotNode.icon.setVisibility(View.VISIBLE);
+//                    }
+//                }
+//            }
 
             for (SpotNode spotNode : spotNodeList) {
                 point[0] = spotNode.x;
@@ -536,16 +537,16 @@ public class MapFragment extends Fragment {
                 for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
                     checkinClusterNode.icon.setVisibility(View.VISIBLE);
                 }
-
-            } else {
-                for (CheckinNode checkinNode : checkinNodeList) {
-                    checkinNode.icon.setVisibility(View.VISIBLE);
-                }
-
-                for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
-                    checkinClusterNode.icon.setVisibility(View.GONE);
-                }
             }
+//            } else {
+//                for (CheckinNode checkinNode : checkinNodeList) {
+//                    checkinNode.icon.setVisibility(View.VISIBLE);
+//                }
+//
+//                for (CheckinNode checkinClusterNode : checkinClusterNodeList) {
+//                    checkinClusterNode.icon.setVisibility(View.GONE);
+//                }
+//            }
 
             for (CheckinNode checkinNode : checkinNodeList) {
                 point[0] = checkinNode.x;
@@ -725,6 +726,11 @@ public class MapFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
+                            checkinClusterNode.icon.setVisibility(View.GONE);
+                            for (Checkin checkinInSpot : checkinClusterNode.checkinList) {
+                                View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+                                checkinIcon.setVisibility(View.VISIBLE);
+                            }
                         }
                     });
                     checkinClusterNode.checkinList.add(checkin);
@@ -775,6 +781,11 @@ public class MapFragment extends Fragment {
                     @Override
                     public void onClick(View v) {
                         translateToImgPx(spotNode.x, spotNode.y, false);
+                        spotNode.checkinNode.icon.setVisibility(View.GONE);
+                        for (Checkin checkinInSpot : spotNode.checkinNode.checkinList) {
+                            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+                            checkinIcon.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
                 spotNode.checkinNode.checkinList.add(checkin);
