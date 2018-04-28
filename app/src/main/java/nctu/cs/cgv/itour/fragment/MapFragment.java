@@ -671,7 +671,7 @@ public class MapFragment extends Fragment {
         }
 
         // create new node
-        CheckinNode checkinNode = new CheckinNode(x, y);
+        CheckinNode checkinNode = new CheckinNode(x, y, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
         checkinNode.icon = new ImageView(context);
         checkinNode.icon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -717,11 +717,15 @@ public class MapFragment extends Fragment {
             for (final CheckinNode checkinClusterNode : checkinClusterNodeList) {
                 if (checkinClusterNode.onSpot) continue;
 
-                double distance = Math.pow(x - checkinClusterNode.x, 2) + Math.pow(y - checkinClusterNode.y, 2);
+                double distance = Utility.gpsToMeter(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
+                        checkinClusterNode.lat, checkinClusterNode.lng);
                 if (distance < CLUSTER_THRESHOLD) {
                     int clusterSize = checkinClusterNode.checkinList.size();
-                    checkinClusterNode.x = (checkinClusterNode.x * clusterSize + x) / (clusterSize + 1);
-                    checkinClusterNode.y = (checkinClusterNode.y * clusterSize + y) / (clusterSize + 1);
+                    checkinClusterNode.lat = (checkinClusterNode.lat * clusterSize + Float.valueOf(checkin.lat)) / (clusterSize + 1);
+                    checkinClusterNode.lng = (checkinClusterNode.lng * clusterSize + Float.valueOf(checkin.lng)) / (clusterSize + 1);
+                    float[] imgPx = Utility.gpsToImgPx(checkinClusterNode.lat, checkinClusterNode.lng);
+                    checkinClusterNode.x = imgPx[0];
+                    checkinClusterNode.y = imgPx[1];
                     checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -743,7 +747,8 @@ public class MapFragment extends Fragment {
                 }
             }
             // cluster not found, create a new one
-            CheckinNode checkinNode = new CheckinNode(x, y,
+            CheckinNode checkinNode = new CheckinNode(
+                    x, y, Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
                     inflater.inflate(R.layout.item_merged_checkin, null));
             checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -762,6 +767,7 @@ public class MapFragment extends Fragment {
             final SpotNode spotNode = spotNodeMap.get(location);
             if (spotNode.checkinNode == null) { // no checkin on spot yet
                 spotNode.checkinNode = new CheckinNode(spotNode.x, spotNode.y,
+                        Float.valueOf(spotNode.lat), Float.valueOf(spotNode.lng),
                         inflater.inflate(R.layout.item_merged_checkin, null));
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override

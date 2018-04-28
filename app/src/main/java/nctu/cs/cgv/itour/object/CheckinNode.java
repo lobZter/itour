@@ -11,18 +11,24 @@ import java.util.List;
 
 public class CheckinNode extends ImageNode{
 
+    public float lat;
+    public float lng;
     public boolean onSpot;
     public List<Checkin> checkinList;
 
-    public CheckinNode(float x, float y) {
+    public CheckinNode(float x, float y, float lat, float lng) {
         super(x, y);
-        onSpot = false;
-        checkinList = new ArrayList<>();
+        this.lat = lat;
+        this.lng = lng;
+        this.onSpot = false;
+        this.checkinList = new ArrayList<>();
     }
 
-    public CheckinNode(float x, float y, View icon) {
+    public CheckinNode(float x, float y, float lat, float lng, View icon) {
         super(x, y, icon);
-        onSpot = false;
-        checkinList = new ArrayList<>();
+        this.lat = lat;
+        this.lng = lng;
+        this.onSpot = false;
+        this.checkinList = new ArrayList<>();
     }
 }
