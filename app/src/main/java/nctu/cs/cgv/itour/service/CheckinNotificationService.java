@@ -5,18 +5,14 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -25,7 +21,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.File;
 import java.util.HashMap;
@@ -34,7 +29,7 @@ import java.util.Map;
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
-import nctu.cs.cgv.itour.object.UngoData;
+import nctu.cs.cgv.itour.object.UserData;
 
 import static nctu.cs.cgv.itour.MyApplication.latitude;
 import static nctu.cs.cgv.itour.MyApplication.longitude;
@@ -48,7 +43,9 @@ public class CheckinNotificationService extends Service {
     private String channelId = "checkin notification";
     private long currentTimestamp;
     private String uid;
-    private UngoData ungoData = null;
+    private UserData userData = null;
+    private Query notiQuery;
+    private ChildEventListener notiListener;
 
     @Nullable
     @Override
@@ -81,49 +78,37 @@ public class CheckinNotificationService extends Service {
             return START_NOT_STICKY;
         }
 
-        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        final DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-
-        final Query ungoQuery = databaseReference.child("users").child(uid).child("data").child(mapTag);
-        ungoQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        currentTimestamp = System.currentTimeMillis() / 1000;
+        notiQuery = databaseReference.child("notification").child(mapTag);
+        notiListener = notiQuery.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ungoData = dataSnapshot.getValue(UngoData.class);
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                try {
+                    nctu.cs.cgv.itour.object.Notification notification =
+                            dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
+                    if (notification == null) return;
+                    if (notification.uid.equals(uid)) return;
+                    if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
+                        notifyCheckin(notification);
+                } catch (Exception ignore) {
 
-                Query notificationQuery = databaseReference.child("notification").child(mapTag);
-                currentTimestamp = System.currentTimeMillis() / 1000;
-                notificationQuery.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
-                    @Override
-                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                        nctu.cs.cgv.itour.object.Notification notification = dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
-                        if (notification == null) return;
-                        if (notification.uid.equals(uid)) return;
-                        if (ungoData == null || ungoData.ungo == null || !ungoData.ungo.containsKey(notification.location) || ungoData.ungo.get(notification.location) == 0)
-                            if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
-                                checkDistance(notification, dataSnapshot.getKey());
-                    }
+                }
+            }
 
-                    @Override
-                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                    }
+            }
 
-                    @Override
-                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
 
-                    }
+            }
 
-                    @Override
-                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
             }
 
             @Override
@@ -131,7 +116,6 @@ public class CheckinNotificationService extends Service {
 
             }
         });
-
         return START_STICKY;
     }
 
@@ -199,5 +183,6 @@ public class CheckinNotificationService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        notiQuery.removeEventListener(notiListener);
     }
 }

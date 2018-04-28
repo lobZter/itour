@@ -701,7 +701,7 @@ public class MapFragment extends Fragment {
         if (spotNodeMap.containsKey(checkin.location)) {
             location = checkin.location;
         } else {
-            float minDist = 101;
+            float minDist = 101f;
             for (SpotNode spot : spotNodeList) {
                 float dist = Utility.gpsToMeter(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
                         Float.valueOf(spot.lat), Float.valueOf(spot.lng));

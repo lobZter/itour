@@ -12,13 +12,17 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
@@ -30,12 +34,18 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.Utility;
+import nctu.cs.cgv.itour.activity.MainActivity;
+import nctu.cs.cgv.itour.object.SpotNode;
+import nctu.cs.cgv.itour.object.UserData;
 
 import static nctu.cs.cgv.itour.MyApplication.APPServerURL;
 import static nctu.cs.cgv.itour.MyApplication.gpsLogPath;
 import static nctu.cs.cgv.itour.MyApplication.latitude;
 import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.longitude;
+import static nctu.cs.cgv.itour.MyApplication.mapTag;
+import static nctu.cs.cgv.itour.MyApplication.spotList;
 
 public class GpsLocationService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
@@ -111,13 +121,38 @@ public class GpsLocationService extends Service implements
         // check whether it should update fog or not
         double distance = Math.sqrt(Math.pow(lastFogClearLat - location.getLatitude(), 2.0) + Math.pow(lastFogClearLng - location.getLongitude(), 2.0));
         if (distance > FOG_UPDATE_THRESHOLD) {
+            gpsLog(location);
+            notifySpot(location);
             sendFogUpdate();
             lastFogClearLat = (float) location.getLatitude();
             lastFogClearLng = (float) location.getLongitude();
-
-            gpsLog(location);
         }
     }
+
+    private void notifySpot(Location location) {
+//        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null) return;
+//        if (MainActivity.userData == null || MainActivity.userData.ungo == null) return;
+//
+//        String spotName = "";
+//        float minDist = 101f;
+//        for (SpotNode spot : spotList.nodeMap.values()) {
+//            float dist = Utility.gpsToMeter((float) location.getLatitude(), (float) location.getLongitude(),
+//                    Float.valueOf(spot.lat), Float.valueOf(spot.lng));
+//            if (dist <= 100f && dist < minDist) {
+//                spotName = spot.name;
+//                minDist = dist;
+//            }
+//        }
+//
+//        // 0: 沒去過, 1: 不確定, 2: 有去過
+//        if (!spotName.equals("") && MainActivity.userData.ungo.containsKey(spotName) && MainActivity.userData.ungo.get(spotName) == 0) {
+//            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//            FirebaseDatabase.getInstance().getReference()
+//                    .child("users").child(uid).child("data").child(mapTag).child("ungo").child(spotName)
+//                    .setValue(2);
+//        }
+    }
+
 
     private void gpsLog(Location location) {
         if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)
@@ -156,8 +191,7 @@ public class GpsLocationService extends Service implements
         });
 
         File file = new File(gpsLogPath + "/" + "gpsLog-" + FirebaseAuth.getInstance().getCurrentUser().getUid() + ".json");
-        if(!file.exists())
-        {
+        if (!file.exists()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
@@ -166,7 +200,7 @@ public class GpsLocationService extends Service implements
         }
 
         try {
-            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file,true));
+            OutputStreamWriter file_writer = new OutputStreamWriter(new FileOutputStream(file, true));
             BufferedWriter buffered_writer = new BufferedWriter(file_writer);
             buffered_writer.write("{" + requestParams.toString() + "},\n");
             buffered_writer.close();

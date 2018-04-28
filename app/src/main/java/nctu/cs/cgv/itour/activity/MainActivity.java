@@ -32,6 +32,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabSelectListener;
@@ -54,6 +55,7 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
+import nctu.cs.cgv.itour.object.UserData;
 import nctu.cs.cgv.itour.service.AudioFeedbackService;
 import nctu.cs.cgv.itour.service.CheckinNotificationService;
 import nctu.cs.cgv.itour.service.GpsLocationService;
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements
     // Checkins
     public static Map<String, Checkin> checkinMap;
     public static Map<String, Boolean> savedPostId;
+    public static UserData userData;
     // view objects
     private MyViewPager viewPager;
     private BottomBar bottomBar;
@@ -106,6 +109,8 @@ public class MainActivity extends AppCompatActivity implements
     private ChildEventListener checkinListener;
     private Query savePostIdQuery;
     private ChildEventListener savePostIdListener;
+    private Query ungoQuery;
+    private ValueEventListener ungoListener;
 
     private boolean noticeCheckinFlag = false;
     private float notification_imgPxX;
@@ -137,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements
         setView();
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
+            queryUserUngo();
+        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
         if (logFlag && screenCaptureFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             requestScreenCapture();
@@ -148,6 +155,27 @@ public class MainActivity extends AppCompatActivity implements
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean("checkin", true);
         editor.apply();
+    }
+
+    public void queryUserUngo() {
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        ungoQuery = FirebaseDatabase.getInstance().getReference()
+                .child("users").child(uid).child("data").child(mapTag);
+        ungoListener = ungoQuery.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                try {
+                    userData = dataSnapshot.getValue(UserData.class);
+                } catch (Exception ignore) {
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void queryCheckin() {
@@ -483,7 +511,11 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         checkinQuery.removeEventListener(checkinListener);
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) savePostIdQuery.removeEventListener(savePostIdListener);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+            savePostIdQuery.removeEventListener(savePostIdListener);
+
+        if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
+            ungoQuery.removeEventListener(ungoListener);
     }
 
 //    @Override

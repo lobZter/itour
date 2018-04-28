@@ -14,7 +14,8 @@ public class Comment {
     public Comment() {
     }
 
-    public Comment(String msg, String uid, String username, long timestamp) {
+    public
+    Comment(String msg, String uid, String username, long timestamp) {
         this.msg = msg;
         this.uid = uid;
         this.username = username;
