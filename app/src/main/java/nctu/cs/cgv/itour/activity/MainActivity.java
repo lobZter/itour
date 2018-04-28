@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements
             if (checkinNode != null && checkinNode.checkinList.size() > 1) {
                 Checkin checkin = checkinNode.checkinList.get(checkinNode.checkinList.size() - 1);
                 String title = "就在你附近！有人在" + spotName + "打卡了唷！";
-                String msg = "距離" + String.valueOf(minDist) + "公尺";
+                String msg = "距離" + String.valueOf((int) minDist) + "公尺";
                 Notification notification = new Notification(checkin.key, checkin.uid, "all",
                         title, msg, checkin.photo, checkin.location, checkin.lat, checkin.lng, System.currentTimeMillis() / 1000);
                 pushNews(notification, "");

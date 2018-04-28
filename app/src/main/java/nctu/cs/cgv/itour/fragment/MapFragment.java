@@ -811,11 +811,21 @@ public class MapFragment extends Fragment {
 
     public void onLocateCheckinClick(String postId) {
         CheckinNode checkinClusterNode = checkinClusterNodeMap.get(postId);
-        onClusterNodeClick(checkinClusterNode);
+        CheckinNode checkinNode = checkinNodeMap.get(postId);
+        onClusterNodeClick(checkinClusterNode, checkinNode.x, checkinNode.y);
     }
 
     public void onClusterNodeClick(CheckinNode checkinNode) {
         translateToImgPx(checkinNode.x, checkinNode.y, false);
+        checkinNode.icon.setVisibility(View.GONE);
+        for (Checkin checkinInSpot : checkinNode.checkinList) {
+            View checkinIcon = checkinNodeMap.get(checkinInSpot.key).icon;
+            checkinIcon.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void onClusterNodeClick(CheckinNode checkinNode, float x, float y) {
+        translateToImgPx(x, y, false);
         checkinNode.icon.setVisibility(View.GONE);
         for (Checkin checkinInSpot : checkinNode.checkinList) {
             View checkinIcon = checkinNodeMap.get(checkinInSpot.key).icon;
