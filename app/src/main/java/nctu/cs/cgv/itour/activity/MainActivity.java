@@ -52,6 +52,7 @@ import nctu.cs.cgv.itour.fragment.NewsFragment;
 import nctu.cs.cgv.itour.fragment.PersonalFragment;
 import nctu.cs.cgv.itour.fragment.SettingsFragment;
 import nctu.cs.cgv.itour.object.Checkin;
+import nctu.cs.cgv.itour.object.CheckinNode;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
 import nctu.cs.cgv.itour.object.SpotList;
@@ -113,8 +114,9 @@ public class MainActivity extends AppCompatActivity implements
     private ValueEventListener ungoListener;
 
     private boolean noticeCheckinFlag = false;
-    private float notification_imgPxX;
-    private float notification_imgPxY;
+    private String notification_lat;
+    private String notification_lng;
+    private String notification_location;
     private String notification_key;
 
     @Override
@@ -250,8 +252,6 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
-
-        FirebaseMessaging.getInstance().subscribeToTopic("news");
     }
 
     public void querySavedPostId() {
@@ -471,9 +471,9 @@ public class MainActivity extends AppCompatActivity implements
         if (intent.getBooleanExtra("checkinNotificationIntent", false)) {
             Utility.actionLog("notice checkin", intent.getStringExtra("title"), intent.getStringExtra("key"));
 
-            float[] imgPx = gpsToImgPx(Float.valueOf(intent.getStringExtra("lat")), Float.valueOf(intent.getStringExtra("lng")));
-            notification_imgPxX = imgPx[0];
-            notification_imgPxY = imgPx[1];
+            notification_lat = intent.getStringExtra("lat");
+            notification_lng = intent.getStringExtra("lng");
+            notification_location = intent.getStringExtra("location");
             notification_key = intent.getStringExtra("key");
             noticeCheckinFlag = true;
         }
@@ -489,7 +489,16 @@ public class MainActivity extends AppCompatActivity implements
         if (noticeCheckinFlag) {
             noticeCheckinFlag = false;
             try {
-                onLocateClick(notification_imgPxX, notification_imgPxY, notification_key);
+                if (notification_key.equals("")) {
+                    if (notification_location.equals("")) {
+                        onLocateClick(notification_lat, notification_lng);
+                    } else {
+                        onLocateClick(notification_location);
+                    }
+                } else {
+                    onLocateCheckinClick(notification_key);
+                }
+
             } catch (Exception ignore) {
 
             }
@@ -539,11 +548,19 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.switchSpotIcon(flag);
     }
 
-    public void onLocateClick(float imgPxX, float imgPxY, String key) {
+    public void onLocateClick(String lat, String lng) {
         bottomBar.selectTabAtPosition(0);
-        mapFragment.translateToImgPx(imgPxX, imgPxY, false);
-//        if (!key.equals(""))
-//            mapFragment.showCheckinDialog(key);
+        mapFragment.onLocateClick(lat, lng);
+    }
+
+    public void onLocateClick(String location) {
+        bottomBar.selectTabAtPosition(0);
+        mapFragment.onLocateClick(location);
+    }
+
+    public void onLocateCheckinClick(String postId) {
+        bottomBar.selectTabAtPosition(0);
+        mapFragment.onLocateCheckinClick(postId);
     }
 
     private void checkPermission() {

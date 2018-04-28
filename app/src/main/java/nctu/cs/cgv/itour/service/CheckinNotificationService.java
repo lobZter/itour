@@ -155,6 +155,7 @@ public class CheckinNotificationService extends Service {
         notificationIntent.putExtra("lat", notification.lat);
         notificationIntent.putExtra("lng", notification.lng);
         notificationIntent.putExtra("key", notification.postId);
+        notificationIntent.putExtra("location", notification.location);
         notificationIntent.putExtra("title", notification.title);
         notificationIntent.putExtra("msg", notification.msg);
         PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);

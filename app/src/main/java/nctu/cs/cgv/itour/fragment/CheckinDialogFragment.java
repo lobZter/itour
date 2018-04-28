@@ -229,8 +229,7 @@ public class CheckinDialogFragment extends DialogFragment {
         locateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                float[] imgPx = gpsToImgPx(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng));
-                ((MainActivity) Objects.requireNonNull(getActivity())).onLocateClick(imgPx[0], imgPx[1], checkin.key);
+                ((MainActivity) Objects.requireNonNull(getActivity())).onLocateCheckinClick(checkin.key);
                 Fragment fragment = Objects.requireNonNull(getFragmentManager()).findFragmentByTag("fragment_checkin_dialog");
                 Objects.requireNonNull(getFragmentManager()).beginTransaction().remove(fragment).commit();
                 actionLog("locate checkin", checkin.location, checkin.key);

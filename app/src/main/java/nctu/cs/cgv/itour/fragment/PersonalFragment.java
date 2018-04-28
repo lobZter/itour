@@ -55,7 +55,7 @@ public class PersonalFragment extends Fragment {
         viewPager = view.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
 
-            String tabTitles[] = new String[]{"個人", "收藏"};
+            String tabTitles[] = new String[]{"個人發文", "收藏打卡"};
 
             @Override
             public Fragment getItem(int position) {

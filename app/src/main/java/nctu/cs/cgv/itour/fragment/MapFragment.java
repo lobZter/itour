@@ -9,7 +9,6 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -42,6 +41,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import nctu.cs.cgv.itour.R;
 import nctu.cs.cgv.itour.Utility;
@@ -107,9 +107,9 @@ public class MapFragment extends Fragment {
 //    private List<ImageNode> pathEdgeNodeList;
 
 
-    private Map<String, View> checkinNodeViewMap;
+    private Map<String, CheckinNode> checkinNodeMap;
     private List<CheckinNode> checkinNodeList;
-    private Map<String, View> checkinClusterNodeViewMap;
+    private Map<String, CheckinNode> checkinClusterNodeMap;
     private List<CheckinNode> checkinClusterNodeList;
 
 
@@ -143,14 +143,14 @@ public class MapFragment extends Fragment {
         context = getContext();
 
         // load preferences
-        preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        preferences = PreferenceManager.getDefaultSharedPreferences(Objects.requireNonNull(context));
 
         // init objects
 //        edgeNodeList = new ArrayList<>();
 //        pathEdgeNodeList = new ArrayList<>();
-        checkinNodeViewMap = new HashMap<>();
+        checkinNodeMap = new HashMap<>();
         checkinNodeList = new ArrayList<>();
-        checkinClusterNodeViewMap = new HashMap<>();
+        checkinClusterNodeMap = new HashMap<>();
         checkinClusterNodeList = new ArrayList<>();
         transformMat = new Matrix();
         inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -622,13 +622,13 @@ public class MapFragment extends Fragment {
         addCheckinIcon(checkin, imgPx[0], imgPx[1]);
         addCheckinClusterIcon(checkin, imgPx[0], imgPx[1]);
         changeCheckin(checkin); // set heat checkin icon
-        reRender();
+//        reRender();
     }
 
     // change with hot checkin icon
     public void changeCheckin(final Checkin checkin) {
-        View checkinNodeView = checkinNodeViewMap.get(checkin.key);
-        View checkinClusterNodeView = checkinClusterNodeViewMap.get(checkin.key);
+        View checkinNodeView = checkinNodeMap.get(checkin.key).icon;
+        View checkinClusterNodeView = checkinClusterNodeMap.get(checkin.key).icon;
 
         boolean allPopularFlag = checkin.popularTargetUid.containsKey("all") && checkin.popularTargetUid.get("all");
         boolean targetPopularFlag = !uid.equals("") && checkin.popularTargetUid.containsKey(uid) && checkin.popularTargetUid.get(uid);
@@ -658,7 +658,7 @@ public class MapFragment extends Fragment {
             double distance = Math.pow(x - checkinNode.x, 2) + Math.pow(y - checkinNode.y, 2);
             if (distance < OVERLAP_THRESHOLD) {
                 checkinNode.checkinList.add(checkin);
-                checkinNodeViewMap.put(checkin.key, checkinNode.icon);
+                checkinNodeMap.put(checkin.key, checkinNode);
                 if (checkinNode.checkinList.size() > 1) {
                     checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -696,7 +696,7 @@ public class MapFragment extends Fragment {
         rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
         checkinNode.checkinList.add(checkin);
         checkinNodeList.add(checkinNode);
-        checkinNodeViewMap.put(checkin.key, checkinNode.icon);
+        checkinNodeMap.put(checkin.key, checkinNode);
     }
 
     // nearby checkins, checkins with same location
@@ -735,12 +735,6 @@ public class MapFragment extends Fragment {
                         @Override
                         public void onClick(View v) {
                             onClusterNodeClick(checkinClusterNode);
-//                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
-//                            checkinClusterNode.icon.setVisibility(View.GONE);
-//                            for (Checkin checkinInSpot : checkinClusterNode.checkinList) {
-//                                View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
-//                                checkinIcon.setVisibility(View.VISIBLE);
-//                            }
                         }
                     });
                     checkinClusterNode.checkinList.add(checkin);
@@ -748,7 +742,7 @@ public class MapFragment extends Fragment {
                     int checkinsNum = checkinClusterNode.checkinList.size();
                     checkinsNumCircle.setText(checkinsNum < 10 ?
                             " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
-                    checkinClusterNodeViewMap.put(checkin.key, checkinClusterNode.icon);
+                    checkinClusterNodeMap.put(checkin.key, checkinClusterNode);
                     return;
                 }
             }
@@ -767,7 +761,7 @@ public class MapFragment extends Fragment {
             checkinsNumCircle.setText(" 1");
             rootLayout.addView(checkinNode.icon, rootLayout.indexOfChild(seperator));
             checkinClusterNodeList.add(checkinNode);
-            checkinClusterNodeViewMap.put(checkin.key, checkinNode.icon);
+            checkinClusterNodeMap.put(checkin.key, checkinNode);
 
         } else { // add into spot
             final SpotNode spotNode = spotNodeMap.get(location);
@@ -787,18 +781,12 @@ public class MapFragment extends Fragment {
                 checkinsNumCircle.setText(" 1");
                 rootLayout.addView(spotNode.checkinNode.icon, rootLayout.indexOfChild(seperator));
                 checkinClusterNodeList.add(spotNode.checkinNode);
-                checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
+                checkinClusterNodeMap.put(checkin.key, spotNode.checkinNode);
             } else {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         onClusterNodeClick(spotNode.checkinNode);
-//                        translateToImgPx(spotNode.x, spotNode.y, false);
-//                        spotNode.checkinNode.icon.setVisibility(View.GONE);
-//                        for (Checkin checkinInSpot : spotNode.checkinNode.checkinList) {
-//                            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
-//                            checkinIcon.setVisibility(View.VISIBLE);
-//                        }
                     }
                 });
                 spotNode.checkinNode.checkinList.add(checkin);
@@ -806,16 +794,31 @@ public class MapFragment extends Fragment {
                 int checkinsNum = spotNode.checkinNode.checkinList.size();
                 checkinsNumCircle.setText(checkinsNum < 10 ?
                         " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
-                checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
+                checkinClusterNodeMap.put(checkin.key, spotNode.checkinNode);
             }
         }
+    }
+
+    public void onLocateClick(String lat, String lng) {
+        float[] imgPx = Utility.gpsToImgPx(Float.valueOf(lat), Float.valueOf(lng));
+        translateToImgPx(imgPx[0], imgPx[1], false);
+    }
+
+    public void onLocateClick(String location) {
+        CheckinNode checkinClusterNode = spotNodeMap.get(location).checkinNode;
+        onClusterNodeClick(checkinClusterNode);
+    }
+
+    public void onLocateCheckinClick(String postId) {
+        CheckinNode checkinClusterNode = checkinClusterNodeMap.get(postId);
+        onClusterNodeClick(checkinClusterNode);
     }
 
     public void onClusterNodeClick(CheckinNode checkinNode) {
         translateToImgPx(checkinNode.x, checkinNode.y, false);
         checkinNode.icon.setVisibility(View.GONE);
         for (Checkin checkinInSpot : checkinNode.checkinList) {
-            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+            View checkinIcon = checkinNodeMap.get(checkinInSpot.key).icon;
             checkinIcon.setVisibility(View.VISIBLE);
         }
     }
