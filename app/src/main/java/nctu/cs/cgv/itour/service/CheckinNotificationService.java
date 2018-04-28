@@ -177,6 +177,10 @@ public class CheckinNotificationService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        notiQuery.removeEventListener(notiListener);
+        try {
+            notiQuery.removeEventListener(notiListener);
+        } catch (Exception ignore) {
+
+        }
     }
 }

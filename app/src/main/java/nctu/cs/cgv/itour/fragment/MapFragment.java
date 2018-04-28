@@ -9,6 +9,7 @@ import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -440,8 +441,12 @@ public class MapFragment extends Fragment {
     }
 
     private void reRender() {
+        reRender(true);
+    }
 
-        boolean isMerged = scale < ZOOM_THRESHOLD - 0.1f;
+    private void reRender(boolean performMerge) {
+
+        boolean isMerged = performMerge && scale < ZOOM_THRESHOLD;
 
         Matrix gpsMarkTransform = new Matrix();
         Matrix spotIconTransform = new Matrix();
@@ -729,12 +734,13 @@ public class MapFragment extends Fragment {
                     checkinClusterNode.icon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
-                            checkinClusterNode.icon.setVisibility(View.GONE);
-                            for (Checkin checkinInSpot : checkinClusterNode.checkinList) {
-                                View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
-                                checkinIcon.setVisibility(View.VISIBLE);
-                            }
+                            onClusterNodeClick(checkinClusterNode);
+//                            translateToImgPx(checkinClusterNode.x, checkinClusterNode.y, false);
+//                            checkinClusterNode.icon.setVisibility(View.GONE);
+//                            for (Checkin checkinInSpot : checkinClusterNode.checkinList) {
+//                                View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+//                                checkinIcon.setVisibility(View.VISIBLE);
+//                            }
                         }
                     });
                     checkinClusterNode.checkinList.add(checkin);
@@ -786,12 +792,13 @@ public class MapFragment extends Fragment {
                 spotNode.checkinNode.icon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        translateToImgPx(spotNode.x, spotNode.y, false);
-                        spotNode.checkinNode.icon.setVisibility(View.GONE);
-                        for (Checkin checkinInSpot : spotNode.checkinNode.checkinList) {
-                            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
-                            checkinIcon.setVisibility(View.VISIBLE);
-                        }
+                        onClusterNodeClick(spotNode.checkinNode);
+//                        translateToImgPx(spotNode.x, spotNode.y, false);
+//                        spotNode.checkinNode.icon.setVisibility(View.GONE);
+//                        for (Checkin checkinInSpot : spotNode.checkinNode.checkinList) {
+//                            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+//                            checkinIcon.setVisibility(View.VISIBLE);
+//                        }
                     }
                 });
                 spotNode.checkinNode.checkinList.add(checkin);
@@ -801,6 +808,15 @@ public class MapFragment extends Fragment {
                         " " + String.valueOf(checkinsNum) : String.valueOf(checkinsNum));
                 checkinClusterNodeViewMap.put(checkin.key, spotNode.checkinNode.icon);
             }
+        }
+    }
+
+    public void onClusterNodeClick(CheckinNode checkinNode) {
+        translateToImgPx(checkinNode.x, checkinNode.y, false);
+        checkinNode.icon.setVisibility(View.GONE);
+        for (Checkin checkinInSpot : checkinNode.checkinList) {
+            View checkinIcon = checkinNodeViewMap.get(checkinInSpot.key);
+            checkinIcon.setVisibility(View.VISIBLE);
         }
     }
 
@@ -840,7 +856,7 @@ public class MapFragment extends Fragment {
                         transformMat.postTranslate(point[0], point[1]);
                         scale += scaleTo22 / 5;
                     }
-                    reRender();
+                    reRender(false);
                     translationHandler.postDelayed(this, 5);
                 }
             }
