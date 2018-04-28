@@ -21,6 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.custom.ItemClickSupport;
@@ -109,7 +110,16 @@ public class NewsFragment extends Fragment {
                     @Override
                     public void onItemClicked(RecyclerView recyclerView, int position, View v) {
                         Notification notification = newsItemAdapter.getItem(position);
-//                        ((MainActivity) getActivity()).onLocateClick(imgPx[0], imgPx[1], notification.postId);
+                        if (notification.postId.equals("")) {
+                            if (notification.location.equals("")) {
+                                ((MainActivity) Objects.requireNonNull(getActivity())).onLocateClick(notification.lat, notification.lng);
+                            } else {
+                                ((MainActivity) Objects.requireNonNull(getActivity())).onLocateClick(notification.location);
+                            }
+                        } else {
+                            ((MainActivity) Objects.requireNonNull(getActivity())).onLocateCheckinClick(notification.postId);
+                        }
+
                         actionLog("click news", notification.msg, notification.postId);
                     }
                 }

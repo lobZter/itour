@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -88,8 +89,11 @@ public class CheckinNotificationService extends Service {
                     nctu.cs.cgv.itour.object.Notification notification =
                             dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
                     if (notification == null) return;
-                    if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
+                    if (notification.targetUid.equals("all") || notification.targetUid.equals(uid)) {
+                        Log.d(TAG, notification.toString());
                         notifyCheckin(notification);
+                        pushNews(notification, dataSnapshot.getKey());
+                    }
                 } catch (Exception ignore) {
 
                 }
@@ -132,22 +136,22 @@ public class CheckinNotificationService extends Service {
     }
 
     private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
-        Bitmap icon;
-        if (!notification.photo.equals("")) {
-            try {
-                icon = Glide.with(getApplicationContext())
-                        .asBitmap()
-                        .load(fileDownloadURL + "?filename=" + notification.photo)
-                        .submit()
-                        .get();
-            } catch (InterruptedException e) {
-                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-            } catch (ExecutionException e) {
-                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-            }
-        } else {
-            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-        }
+//        Bitmap icon;
+//        if (!notification.photo.equals("")) {
+//            try {
+//                icon = Glide.with(getApplicationContext())
+//                        .asBitmap()
+//                        .load(fileDownloadURL + "?filename=" + notification.photo)
+//                        .submit()
+//                        .get();
+//            } catch (InterruptedException e) {
+//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//            } catch (ExecutionException e) {
+//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//            }
+//        } else {
+//            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//        }
 
         Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -162,7 +166,7 @@ public class CheckinNotificationService extends Service {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
         notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
-        notificationBuilder.setLargeIcon(icon);
+//        notificationBuilder.setLargeIcon(icon);
         notificationBuilder.setVibrate(new long[]{0, 300, 300, 300, 300});
         notificationBuilder.setContentTitle(notification.title);
         notificationBuilder.setContentText(notification.msg);
