@@ -183,7 +183,7 @@ public class CheckinNotificationService extends Service {
     public void onDestroy() {
         super.onDestroy();
         try {
-            notiQuery.removeEventListener(notiListener);
+            if (notiQuery != null && notiListener != null) notiQuery.removeEventListener(notiListener);
         } catch (Exception ignore) {
 
         }
