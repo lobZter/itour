@@ -122,37 +122,11 @@ public class GpsLocationService extends Service implements
         double distance = Math.sqrt(Math.pow(lastFogClearLat - location.getLatitude(), 2.0) + Math.pow(lastFogClearLng - location.getLongitude(), 2.0));
         if (distance > FOG_UPDATE_THRESHOLD) {
             gpsLog(location);
-            notifySpot(location);
             sendFogUpdate();
             lastFogClearLat = (float) location.getLatitude();
             lastFogClearLng = (float) location.getLongitude();
         }
     }
-
-    private void notifySpot(Location location) {
-//        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null) return;
-//        if (MainActivity.userData == null || MainActivity.userData.ungo == null) return;
-//
-//        String spotName = "";
-//        float minDist = 101f;
-//        for (SpotNode spot : spotList.nodeMap.values()) {
-//            float dist = Utility.gpsToMeter((float) location.getLatitude(), (float) location.getLongitude(),
-//                    Float.valueOf(spot.lat), Float.valueOf(spot.lng));
-//            if (dist <= 100f && dist < minDist) {
-//                spotName = spot.name;
-//                minDist = dist;
-//            }
-//        }
-//
-//        // 0: 沒去過, 1: 不確定, 2: 有去過
-//        if (!spotName.equals("") && MainActivity.userData.ungo.containsKey(spotName) && MainActivity.userData.ungo.get(spotName) == 0) {
-//            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-//            FirebaseDatabase.getInstance().getReference()
-//                    .child("users").child(uid).child("data").child(mapTag).child("ungo").child(spotName)
-//                    .setValue(2);
-//        }
-    }
-
 
     private void gpsLog(Location location) {
         if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null)

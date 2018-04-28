@@ -1,6 +1,8 @@
 package nctu.cs.cgv.itour.activity;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,8 +13,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.IdRes;
@@ -55,7 +59,9 @@ import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.CheckinNode;
 import nctu.cs.cgv.itour.object.EdgeNode;
 import nctu.cs.cgv.itour.object.Mesh;
+import nctu.cs.cgv.itour.object.Notification;
 import nctu.cs.cgv.itour.object.SpotList;
+import nctu.cs.cgv.itour.object.SpotNode;
 import nctu.cs.cgv.itour.object.UserData;
 import nctu.cs.cgv.itour.service.AudioFeedbackService;
 import nctu.cs.cgv.itour.service.CheckinNotificationService;
@@ -72,6 +78,8 @@ import static nctu.cs.cgv.itour.MyApplication.screenCaptureFlag;
 import static nctu.cs.cgv.itour.MyApplication.spotList;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
 import static nctu.cs.cgv.itour.Utility.gpsToImgPx;
+import static nctu.cs.cgv.itour.Utility.notifyCheckin;
+import static nctu.cs.cgv.itour.Utility.pushNews;
 
 public class MainActivity extends AppCompatActivity implements
 //        SettingsFragment.OnFogListener,
@@ -118,6 +126,8 @@ public class MainActivity extends AppCompatActivity implements
     private String notification_lng;
     private String notification_location;
     private String notification_key;
+    private NotificationManager notificationManager;
+    private String channelId = "nearby notification";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,13 +152,28 @@ public class MainActivity extends AppCompatActivity implements
         setBroadcastReceiver();
         setCheckinPreference();
         setView();
+        setNotificationManager();
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
-//            queryUserUngo();
+            queryUserUngo();
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
         if (logFlag && screenCaptureFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             requestScreenCapture();
+    }
+
+    private void setNotificationManager() {
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "熱門通知",
+                    NotificationManager.IMPORTANCE_HIGH);
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 300, 300, 300, 300});
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 
     private void setCheckinPreference() {
@@ -178,6 +203,40 @@ public class MainActivity extends AppCompatActivity implements
 
             }
         });
+    }
+
+    private void notifySpot(float lat, float lng) {
+        if (!logFlag || FirebaseAuth.getInstance().getCurrentUser() == null) return;
+        if (userData == null || userData.ungo == null) return;
+
+        String spotName = "";
+        float minDist = 101f;
+        for (SpotNode spot : spotList.nodeMap.values()) {
+            float dist = Utility.isNearBy(lat, lng, Float.valueOf(spot.lat), Float.valueOf(spot.lng));
+            if (dist <= 100f && dist < minDist) {
+                spotName = spot.name;
+                minDist = dist;
+            }
+        }
+
+        // 0: 沒去過, 1: 不確定, 2: 有去過
+        if (!spotName.equals("") && MainActivity.userData.ungo.containsKey(spotName) && MainActivity.userData.ungo.get(spotName) == 0) {
+            CheckinNode checkinNode = mapFragment.spotNodeMap.get(spotName).checkinNode;
+            if (checkinNode != null && checkinNode.checkinList.size() > 1) {
+                Checkin checkin = checkinNode.checkinList.get(checkinNode.checkinList.size() - 1);
+                String title = "就在你附近！有人在" + spotName + "打卡了唷！";
+                String msg = "距離" + String.valueOf(minDist) + "公尺";
+                Notification notification = new Notification(checkin.key, checkin.uid, "all",
+                        title, msg, checkin.photo, checkin.location, checkin.lat, checkin.lng, System.currentTimeMillis() / 1000);
+                pushNews(notification, "");
+                notifyCheckin(this, notification, notificationManager, channelId);
+
+                String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FirebaseDatabase.getInstance().getReference()
+                        .child("users").child(uid).child("data").child(mapTag).child("ungo").child(spotName)
+                        .setValue(2);
+            }
+        }
     }
 
     public void queryCheckin() {
@@ -371,9 +430,10 @@ public class MainActivity extends AppCompatActivity implements
                                 intent.getFloatExtra("lng", 0));
                         break;
                     case "fogUpdate":
-                        mapFragment.handleFogUpdate(
-                                intent.getFloatExtra("lat", 0),
-                                intent.getFloatExtra("lng", 0));
+                        notifySpot(intent.getFloatExtra("lat", 0), intent.getFloatExtra("lng", 0));
+//                        mapFragment.handleFogUpdate(
+//                                intent.getFloatExtra("lat", 0),
+//                                intent.getFloatExtra("lng", 0));
                         break;
                 }
             }

@@ -113,7 +113,7 @@ public class MapFragment extends Fragment {
     private List<CheckinNode> checkinClusterNodeList;
 
 
-    private Map<String, SpotNode> spotNodeMap;
+    public Map<String, SpotNode> spotNodeMap;
     private List<SpotNode> spotNodeList;
     private LayoutInflater inflater;
     private Handler translationHandler;
@@ -925,11 +925,8 @@ public class MapFragment extends Fragment {
     }
 
     public void handleFogUpdate(double lat, double lng) {
-
 //        if (lat >= realMesh.minLat && lat <= realMesh.maxLat && lng >= realMesh.minLon && lng <= realMesh.maxLon) {
-//
 //            float[] imgPx = gpsToImgPx(lat, lng);
-//
 //            if (imgPx[0] != -1 && imgPx[1] != -1) {
 //                // update fog map
 //                Paint paint = new Paint();

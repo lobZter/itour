@@ -35,12 +35,14 @@ import nctu.cs.cgv.itour.object.UserData;
 import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
+import static nctu.cs.cgv.itour.Utility.notifyCheckin;
+import static nctu.cs.cgv.itour.Utility.pushNews;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 public class CheckinNotificationService extends Service {
     private static final String TAG = "CheckinNotification";
     private NotificationManager notificationManager;
-    private String channelId = "checkin notification";
+    private String channelId = "hot notification";
     private long currentTimestamp;
     private String uid;
     private UserData userData = null;
@@ -61,7 +63,7 @@ public class CheckinNotificationService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     channelId,
-                    "打卡通知",
+                    "熱門通知",
                     NotificationManager.IMPORTANCE_HIGH);
             channel.enableLights(true);
             channel.enableVibration(true);
@@ -90,8 +92,7 @@ public class CheckinNotificationService extends Service {
                             dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
                     if (notification == null) return;
                     if (notification.targetUid.equals("all") || notification.targetUid.equals(uid)) {
-                        Log.d(TAG, notification.toString());
-                        notifyCheckin(notification);
+                        notifyCheckin(getApplicationContext(), notification, notificationManager, channelId);
                         pushNews(notification, dataSnapshot.getKey());
                     }
                 } catch (Exception ignore) {
@@ -120,63 +121,6 @@ public class CheckinNotificationService extends Service {
             }
         });
         return START_STICKY;
-    }
-
-    private void pushNews(final nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
-        Map<String, Object> notificationValues = notification.toMap();
-        Map<String, Object> notificationUpdates = new HashMap<>();
-        notificationUpdates.put("/users/" + uid + "/news/" + mapTag + "/" + notificationKey, notificationValues);
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-                actionLog("push news", notification.location, notification.postId);
-            }
-        });
-    }
-
-    private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
-//        Bitmap icon;
-//        if (!notification.photo.equals("")) {
-//            try {
-//                icon = Glide.with(getApplicationContext())
-//                        .asBitmap()
-//                        .load(fileDownloadURL + "?filename=" + notification.photo)
-//                        .submit()
-//                        .get();
-//            } catch (InterruptedException e) {
-//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-//            } catch (ExecutionException e) {
-//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-//            }
-//        } else {
-//            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
-//        }
-
-        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        notificationIntent.putExtra("checkinNotificationIntent", true);
-        notificationIntent.putExtra("lat", notification.lat);
-        notificationIntent.putExtra("lng", notification.lng);
-        notificationIntent.putExtra("key", notification.postId);
-        notificationIntent.putExtra("location", notification.location);
-        notificationIntent.putExtra("title", notification.title);
-        notificationIntent.putExtra("msg", notification.msg);
-        PendingIntent intent = PendingIntent.getActivity(getApplicationContext(), CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext());
-        notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
-//        notificationBuilder.setLargeIcon(icon);
-        notificationBuilder.setVibrate(new long[]{0, 300, 300, 300, 300});
-        notificationBuilder.setContentTitle(notification.title);
-        notificationBuilder.setContentText(notification.msg);
-        notificationBuilder.setContentIntent(intent);
-        notificationBuilder.setChannelId(channelId);
-
-        Notification builtNotification = notificationBuilder.build();
-        builtNotification.flags |= Notification.FLAG_AUTO_CANCEL;
-
-        notificationManager.notify((int) (System.currentTimeMillis() / 1000), builtNotification);
     }
 
     @Override

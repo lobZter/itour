@@ -1,7 +1,11 @@
 package nctu.cs.cgv.itour;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.inputmethod.InputMethodManager;
@@ -26,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import cz.msebera.android.httpclient.Header;
+import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.Checkin;
 import nctu.cs.cgv.itour.object.IdxWeights;
 import nctu.cs.cgv.itour.object.Notification;
@@ -36,6 +41,7 @@ import static nctu.cs.cgv.itour.MyApplication.logFlag;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.MyApplication.realMesh;
 import static nctu.cs.cgv.itour.MyApplication.warpMesh;
+import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
 
 /**
  * Created by lobZter on 2017/6/21.
@@ -196,28 +202,91 @@ public class Utility {
         }
     }
 
-    public void pushNotification(final Checkin checkin) {
+//    public void pushNotification(final Checkin checkin) {
+//        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+//        String msg = checkin.location.equals("") ? checkin.description : checkin.location + " | " + checkin.description;
+//        final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
+//        final Notification notification = new Notification(checkin.key,
+//                checkin.uid,
+//                "all",
+//                checkin.username,
+//                msg,
+//                checkin.photo,
+//                checkin.location,
+//                checkin.lat,
+//                checkin.lng,
+//                System.currentTimeMillis() / 1000);
+//        Map<String, Object> notificationValues = notification.toMap();
+//        Map<String, Object> notificationUpdates = new HashMap<>();
+//        notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
+//        databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
+//            @Override
+//            public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
+//                actionLog("push notification: " + notification.msg, checkin.location, checkin.key);
+//            }
+//        });
+//    }
+
+    public static void pushNews(final nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-        String msg = checkin.location.equals("") ? checkin.description : checkin.location + " | " + checkin.description;
-        final String notificationKey = databaseReference.child("notification").child(mapTag).push().getKey();
-        final Notification notification = new Notification(checkin.key,
-                checkin.uid,
-                "all",
-                checkin.username,
-                msg,
-                checkin.photo,
-                checkin.location,
-                checkin.lat,
-                checkin.lng,
-                System.currentTimeMillis() / 1000);
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (notificationKey.equals(""))
+            notificationKey =  databaseReference.child("users").child(uid).child("news").child(mapTag).push().getKey();
         Map<String, Object> notificationValues = notification.toMap();
         Map<String, Object> notificationUpdates = new HashMap<>();
-        notificationUpdates.put("/notification/" + mapTag + "/" + notificationKey, notificationValues);
+        notificationUpdates.put("/users/" + uid + "/news/" + mapTag + "/" + notificationKey, notificationValues);
         databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, final DatabaseReference databaseReference) {
-                actionLog("push notification: " + notification.msg, checkin.location, checkin.key);
+                actionLog("push news", notification.location, notification.postId);
             }
         });
+    }
+
+    public static void notifyCheckin(Context context,
+                                     nctu.cs.cgv.itour.object.Notification notification,
+                                     NotificationManager notificationManager,
+                                     String channelId) {
+//        Bitmap icon;
+//        if (!notification.photo.equals("")) {
+//            try {
+//                icon = Glide.with(getApplicationContext())
+//                        .asBitmap()
+//                        .load(fileDownloadURL + "?filename=" + notification.photo)
+//                        .submit()
+//                        .get();
+//            } catch (InterruptedException e) {
+//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//            } catch (ExecutionException e) {
+//                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//            }
+//        } else {
+//            icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+//        }
+
+        Intent notificationIntent = new Intent(context, MainActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        notificationIntent.putExtra("checkinNotificationIntent", true);
+        notificationIntent.putExtra("lat", notification.lat);
+        notificationIntent.putExtra("lng", notification.lng);
+        notificationIntent.putExtra("key", notification.postId);
+        notificationIntent.putExtra("location", notification.location);
+        notificationIntent.putExtra("title", notification.title);
+        notificationIntent.putExtra("msg", notification.msg);
+        PendingIntent intent = PendingIntent.getActivity(context, CHECKIN_NOTIFICATION_REQUEST, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context);
+        notificationBuilder.setSmallIcon(R.drawable.ic_launcher);
+//        notificationBuilder.setLargeIcon(icon);
+        notificationBuilder.setVibrate(new long[]{0, 300, 300, 300, 300});
+        notificationBuilder.setContentTitle(notification.title);
+        notificationBuilder.setContentText(notification.msg);
+        notificationBuilder.setContentIntent(intent);
+        notificationBuilder.setChannelId(channelId);
+
+        android.app.Notification builtNotification = notificationBuilder.build();
+        builtNotification.flags |= android.app.Notification.FLAG_AUTO_CANCEL;
+
+        notificationManager.notify((int) (System.currentTimeMillis() / 1000), builtNotification);
     }
 }
