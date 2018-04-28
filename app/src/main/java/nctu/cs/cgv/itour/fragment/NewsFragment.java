@@ -75,7 +75,7 @@ public class NewsFragment extends Fragment {
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         Query query = databaseReference.child("users").child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .child("data").child(mapTag).child("news");
+                .child("news").child(mapTag);
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {

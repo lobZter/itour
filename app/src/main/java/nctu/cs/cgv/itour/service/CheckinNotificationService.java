@@ -125,7 +125,7 @@ public class CheckinNotificationService extends Service {
     private void pushNews(final nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
         Map<String, Object> notificationValues = notification.toMap();
         Map<String, Object> notificationUpdates = new HashMap<>();
-        notificationUpdates.put("/users/" + uid + "/data/" + mapTag + "/news/" + notificationKey, notificationValues);
+        notificationUpdates.put("/users/" + uid + "/news/" + mapTag + "/" + notificationKey, notificationValues);
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         databaseReference.updateChildren(notificationUpdates, new DatabaseReference.CompletionListener() {
             @Override

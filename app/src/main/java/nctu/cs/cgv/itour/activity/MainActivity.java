@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements
         setView();
 
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
-            queryUserUngo();
+//            queryUserUngo();
         if (logFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
             startService(new Intent(this, CheckinNotificationService.class));
         if (logFlag && screenCaptureFlag && FirebaseAuth.getInstance().getCurrentUser() != null)
