@@ -491,6 +491,7 @@ public class MainActivity extends AppCompatActivity implements
             try {
                 onLocateClick(notification_imgPxX, notification_imgPxY, notification_key);
             } catch (Exception ignore) {
+
             }
         }
     }

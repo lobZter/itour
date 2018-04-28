@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -22,17 +23,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import nctu.cs.cgv.itour.R;
-import nctu.cs.cgv.itour.Utility;
 import nctu.cs.cgv.itour.activity.MainActivity;
 import nctu.cs.cgv.itour.object.UserData;
 
-import static nctu.cs.cgv.itour.MyApplication.latitude;
-import static nctu.cs.cgv.itour.MyApplication.longitude;
+import static nctu.cs.cgv.itour.MyApplication.fileDownloadURL;
 import static nctu.cs.cgv.itour.MyApplication.mapTag;
 import static nctu.cs.cgv.itour.Utility.actionLog;
 import static nctu.cs.cgv.itour.activity.MainActivity.CHECKIN_NOTIFICATION_REQUEST;
@@ -78,9 +77,10 @@ public class CheckinNotificationService extends Service {
             return START_NOT_STICKY;
         }
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         currentTimestamp = System.currentTimeMillis() / 1000;
-        notiQuery = databaseReference.child("notification").child(mapTag);
+        notiQuery = FirebaseDatabase.getInstance().getReference().child("notification").child(mapTag);
         notiListener = notiQuery.orderByChild("timestamp").startAt(currentTimestamp).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -88,7 +88,6 @@ public class CheckinNotificationService extends Service {
                     nctu.cs.cgv.itour.object.Notification notification =
                             dataSnapshot.getValue(nctu.cs.cgv.itour.object.Notification.class);
                     if (notification == null) return;
-                    if (notification.uid.equals(uid)) return;
                     if (notification.targetUid.equals("all") || notification.targetUid.equals(uid))
                         notifyCheckin(notification);
                 } catch (Exception ignore) {
@@ -119,19 +118,6 @@ public class CheckinNotificationService extends Service {
         return START_STICKY;
     }
 
-    private void checkDistance(nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
-        float dist = Utility.gpsToMeter(latitude, longitude, Float.valueOf(notification.lat), Float.valueOf(notification.lng));
-        if (dist <= 100f) {
-            notification.title += "在離你" + String.valueOf((int) dist) + "公尺的地方打卡了";
-            notifyCheckin(notification);
-            pushNews(notification, notificationKey);
-        } else if (300f <= dist && dist <= 600f) {
-            notification.title += "在你周圍打卡了";
-            notifyCheckin(notification);
-            pushNews(notification, notificationKey);
-        }
-    }
-
     private void pushNews(final nctu.cs.cgv.itour.object.Notification notification, String notificationKey) {
         Map<String, Object> notificationValues = notification.toMap();
         Map<String, Object> notificationUpdates = new HashMap<>();
@@ -147,10 +133,18 @@ public class CheckinNotificationService extends Service {
 
     private void notifyCheckin(nctu.cs.cgv.itour.object.Notification notification) {
         Bitmap icon;
-        final File externalCacheDir = getExternalCacheDir();
-        if (externalCacheDir != null && new File(externalCacheDir.toString() + "/" + notification.photo).exists()) {
-            // load photo from storage
-            icon = BitmapFactory.decodeFile(externalCacheDir.toString() + "/" + notification.photo);
+        if (!notification.photo.equals("")) {
+            try {
+                icon = Glide.with(getApplicationContext())
+                        .asBitmap()
+                        .load(fileDownloadURL + "?filename=" + notification.photo)
+                        .submit()
+                        .get();
+            } catch (InterruptedException e) {
+                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+            } catch (ExecutionException e) {
+                icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
+            }
         } else {
             icon = BitmapFactory.decodeResource(getApplicationContext().getResources(), R.drawable.ic_launcher);
         }
