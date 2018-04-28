@@ -188,6 +188,14 @@ public class Utility {
         return (float) d * 1000; // meters
     }
 
+    public static float isNearBy(float lat1, float lon1, float lat2, float lon2) {
+        if (Math.abs(lat1 - lat2) >= 0.0091f || Math.abs(lon1 - lon2) >= 0.0091f) {
+            return 999f;
+        } else {
+            return gpsToMeter(lat1, lon1, lat2, lon2);
+        }
+    }
+
     public void pushNotification(final Checkin checkin) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
         String msg = checkin.location.equals("") ? checkin.description : checkin.location + " | " + checkin.description;

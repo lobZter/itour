@@ -708,7 +708,7 @@ public class MapFragment extends Fragment {
         } else {
             float minDist = 101f;
             for (SpotNode spot : spotNodeList) {
-                float dist = Utility.gpsToMeter(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
+                float dist = Utility.isNearBy(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
                         Float.valueOf(spot.lat), Float.valueOf(spot.lng));
                 if (dist <= 100f && dist < minDist) {
                     location = spot.name;
@@ -722,7 +722,7 @@ public class MapFragment extends Fragment {
             for (final CheckinNode checkinClusterNode : checkinClusterNodeList) {
                 if (checkinClusterNode.onSpot) continue;
 
-                double distance = Utility.gpsToMeter(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
+                double distance = Utility.isNearBy(Float.valueOf(checkin.lat), Float.valueOf(checkin.lng),
                         checkinClusterNode.lat, checkinClusterNode.lng);
                 if (distance < CLUSTER_THRESHOLD) {
                     int clusterSize = checkinClusterNode.checkinList.size();
