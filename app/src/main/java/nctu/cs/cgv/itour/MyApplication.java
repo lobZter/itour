@@ -34,9 +34,9 @@ public class MyApplication extends Application {
     public static float latitude = 0.0f;
     public static float longitude = 0.0f;
     // flags
-    public static final boolean logFlag = true;
+    public static final boolean logFlag = false;
     public static final boolean screenCaptureFlag = false;
-    public static final boolean audioFeedbackFlag = true;
+    public static final boolean audioFeedbackFlag = false;
 
     // map constant
     public static final float MIN_ZOOM = 0.5f;

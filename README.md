@@ -1,0 +1,1 @@
+place your firebase api key file ```google-services.json``` to ```/app```
